@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Person wechseln (abmelden als Person)
     if ($action === 'switch_person') {
-        unset($_SESSION['person_id'], $_SESSION['person_name']);
+        unset($_SESSION['person_id'], $_SESSION['person_name'], $_SESSION['streak'], $_SESSION['streak_date']);
         header('Location: home.php');
         exit;
     }
@@ -202,6 +202,10 @@ function get_streak(PDO $pdo, int $person_id): int {
 }
 
 $streak = ($person_id) ? get_streak($pdo, $person_id) : 0;
+if ($person_id) {
+    $_SESSION['streak']      = $streak;
+    $_SESSION['streak_date'] = today();
+}
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -223,9 +227,7 @@ $streak = ($person_id) ? get_streak($pdo, $person_id) : 0;
             <?php if (in_array(strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? '')[0]), ['localhost', '127.0.0.1'], true)): ?>
             <a href="settings.php" class="text-white-50 small text-decoration-none">Einstellungen</a>
             <?php endif; ?>
-            <?php if ($streak > 0): ?>
-            <span class="badge bg-warning text-dark">🔥 <?= $streak ?> Tag<?= $streak > 1 ? 'e' : '' ?></span>
-            <?php endif; ?>
+            <?= streak_badge() ?>
             <span class="text-white small"><?= htmlspecialchars($person_name) ?></span>
             <form method="post" class="d-inline">
                 <?= csrf_field() ?>

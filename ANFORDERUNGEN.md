@@ -44,6 +44,7 @@
 - Leitner und Drill: Breadcrumb zeigt immer `Startseite > Leitner` bzw. `Startseite > Drill` — unabhängig von Phase (Setup, aktive Session, Zusammenfassung)
 - **Session-Verlassen-Warnung:** Während einer aktiven Leitner- oder Drill-Session (Karte wird angezeigt) löst jeder Link-Klick einen Bestätigungsdialog aus: "Achtung: die laufende Session wird dadurch automatisch beendet" — mit "Verlassen" und "Abbrechen"
 - **Session-Abbruch:** Bei Bestätigung wird die Session server-seitig beendet (`$_SESSION['drill']` bzw. `$_SESSION['learn']` wird gelöscht) bevor zur Zielseite navigiert wird — verhindert Geisterzustände im Hintergrund
+- **Streak-Badge in Navbar:** Das 🔥-Badge mit Streak-Anzahl wird auf allen Seiten angezeigt (via Session-Cache, einmal täglich berechnet auf home.php). Verschwindet wenn heute und gestern kein Lerntag war.
 
 ---
 
@@ -324,15 +325,17 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 - Einstellungen werden **dauerhaft in config.php** geschrieben (Regex-Ersatz der jeweiligen Zeile)
 - PRG-Muster: nach Speichern Redirect auf GET, Flash-Meldung via Session
 
-### Konfigurierbare Werte
-| Einstellung | Konstante | Beschreibung | Bereich |
-|---|---|---|---|
-| Session-Timeout | `SESSION_TIMEOUT` | Inaktivitäts-Timeout in Minuten | 1–480 |
-| Tägliches Karten-Limit | `DAILY_CARD_LIMIT` | Neue Karten pro Tag aus der Warteschlange | 1–100 |
-| Drill-Timer | `DRILL_SESSION_SECONDS` | Dauer einer Drill-Session in Minuten | 1–120 |
-| «Musste nachdenken»-Limit | `DRILL_TOO_HARD_LIMIT` | Bewertungen bis Karte aus Session entfernt wird | 1–20 |
-| Mastery-Schwelle | `DRILL_MASTERY_THRESHOLD` | Aufeinanderfolgende Korrekt-Antworten für «gemeistert» | 1–10 |
-| Bekannt/Neu-Verhältnis | `DRILL_KNOWN_RATIO` | Bekannte Karten pro neuer Karte in der Rotation | 1–30 |
+### Konfigurierbare Werte (Gruppen: Allgemein / Leitner / Drill)
+| Gruppe | Einstellung | Konstante | Beschreibung | Bereich |
+|---|---|---|---|---|
+| Allgemein | Seitentitel | `APP_NAME` | Anzeigename oben links in der Navbar | max. 50 Zeichen |
+| Allgemein | Session-Timeout | `SESSION_TIMEOUT` | Inaktivitäts-Timeout in Minuten | 1–480 |
+| Leitner | Tägliches Karten-Limit | `DAILY_CARD_LIMIT` | Neue Karten pro Tag aus der Warteschlange | 1–100 |
+| Leitner | Default Kartenanzahl | `LEITNER_DEFAULT_CARDS` | Voreingestellte Anzahl Karten beim Session-Start | 1–200 |
+| Drill | Timer | `DRILL_SESSION_SECONDS` | Dauer einer Drill-Session in Minuten | 1–120 |
+| Drill | «Musste nachdenken»-Limit | `DRILL_TOO_HARD_LIMIT` | Bewertungen bis Karte aus Session entfernt wird | 1–20 |
+| Drill | Mastery-Schwelle | `DRILL_MASTERY_THRESHOLD` | Aufeinanderfolgende Korrekt-Antworten für «gemeistert» | 1–10 |
+| Drill | Bekannt/Neu-Verhältnis | `DRILL_KNOWN_RATIO` | Bekannte Karten pro neuer Karte in der Rotation | 1–30 |
 
 ---
 

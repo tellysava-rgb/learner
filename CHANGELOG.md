@@ -5,6 +5,19 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [0.7.0] - 2026-06-28
+
+### Neu
+- Streak-Badge (🔥) in Navbar auf allen Seiten sichtbar — Session-Cache, einmal täglich berechnet
+- Einstellungen: Seitentitel (APP_NAME) konfigurierbar — wird in Navbar aller Seiten angezeigt
+- Einstellungen: Default Kartenanzahl für Leitner-Session konfigurierbar (LEITNER_DEFAULT_CARDS)
+- Einstellungen: 3 Gruppen (Allgemein / Leitner / Drill-Modus)
+
+### Verbessert
+- edit.php: Inline-Edit-Felder gleichbreit (flex col statt feste col-md-N), Speichern/Abbrechen als Icon-Buttons
+
+---
+
 ## [0.6.5] - 2026-06-28
 
 ### Behoben

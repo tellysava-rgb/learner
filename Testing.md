@@ -26,6 +26,9 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Letzte Stufe in Breadcrumb ist nicht anklickbar (aktive Seite). _(v0.5.0)_
 [ ] Breadcrumb erscheint auf home.php als "Startseite" (nicht verlinkt). _(v0.5.0)_
 [ ] Breadcrumb steht auf allen Seiten an derselben horizontalen Position. _(v0.5.0)_
+[ ] Streak-Badge (🔥 N Tage) erscheint in der Navbar auf allen Seiten wenn Streak aktiv. _(v0.7.0)_
+[ ] Streak-Badge verschwindet wenn kein Streak (heute/gestern nicht gelernt). _(v0.7.0)_
+[ ] Nach Person-Wechsel: Streak zeigt korrekten Wert für neue Person (nach home.php). _(v0.7.0)_
 [ ] Startseite: Button "Meine Listen" führt zu lists.php (kein "Verwalten" mehr). _(v0.5.0)_
 [ ] Startseite: kein "Mathe-Generator"-Button sichtbar. _(v0.5.0)_
 [ ] lists.php: "Mathe-Generator"-Button rechts oben sichtbar, führt zu math.php. _(v0.5.0)_
@@ -47,6 +50,8 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Aktionsbuttons zeigen nur Icons (kein Text). _(v0.6.1)_
 [ ] Hover über Icon-Button → Tooltip mit Bezeichnung erscheint. _(v0.6.1)_
 [ ] CSV Import / Export: Icon + Text sichtbar. _(v0.6.1)_
+[ ] Inline-Edit: alle 4 Felder (Wort A, Wort B, Beschreibung A, B) gleichbreit und vollständig sichtbar. _(v0.7.0)_
+[ ] Speichern-Button zeigt ✓-Icon, Abbrechen zeigt ✕-Icon (mit Tooltip). _(v0.7.0)_
 
 
 ### Import 
@@ -185,7 +190,10 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 
 [ ] Auf localhost: "Einstellungen"-Link in Navbar der Startseite sichtbar. _(v0.6.3)_
 [ ] Auf Prod-URL: kein Einstellungen-Link, settings.php gibt HTTP 403. _(v0.6.3)_
-[ ] Alle 6 Einstellungen sichtbar, aktuelle Werte aus config.php korrekt angezeigt. _(v0.6.4)_
+[ ] Einstellungen in 3 Gruppen: Allgemein, Leitner, Drill-Modus. _(v0.7.0)_
+[ ] Alle 9 Einstellungen sichtbar, aktuelle Werte aus config.php korrekt angezeigt. _(v0.7.0)_
+[ ] Seitentitel ändern → Navbar zeigt neuen Titel nach Speichern. _(v0.7.0)_
+[ ] Default Kartenanzahl ändern → Leitner-Setup zeigt neuen Defaultwert. _(v0.7.0)_
 [ ] Werte ändern und "Alle speichern" → config.php enthält alle neuen Werte. _(v0.6.4)_
 [ ] Nach Speichern: Flash-Meldung "Einstellungen gespeichert." erscheint. _(v0.6.4)_
 [ ] Drill startet mit neuem Timer-Wert (z.B. 2 Minuten → Timer läuft auf 2:00). _(v0.6.4)_

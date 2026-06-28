@@ -112,6 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'gener
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="home.php"><?= APP_NAME ?></a>
         <div class="ms-auto d-flex align-items-center gap-3">
+            <?= streak_badge() ?>
             <span class="text-white small"><?= htmlspecialchars($person_name) ?></span>
             <form method="post" class="d-inline">
                 <?= csrf_field() ?>

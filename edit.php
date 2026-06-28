@@ -176,6 +176,7 @@ $filtered_cards = match($filter) {
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="home.php"><?= APP_NAME ?></a>
         <div class="ms-auto d-flex align-items-center gap-3">
+            <?= streak_badge() ?>
             <span class="text-white small"><?= htmlspecialchars($person_name) ?></span>
             <form method="post" class="d-inline">
                 <?= csrf_field() ?>
@@ -272,30 +273,32 @@ $filtered_cards = match($filter) {
                 <?php if ($edit_card_id === $card['id']): ?>
                 <tr class="table-warning">
                     <td colspan="4">
-                        <form method="post" class="row g-2 py-1">
+                        <form method="post" class="row g-2 py-1 align-items-center">
                             <?= csrf_field() ?>
                             <input type="hidden" name="action" value="update">
                             <input type="hidden" name="list_id" value="<?= $list_id ?>">
                             <input type="hidden" name="card_id" value="<?= $card['id'] ?>">
-                            <div class="col-md-3">
+                            <div class="col">
                                 <input type="text" name="word_a" class="form-control form-control-sm"
                                        value="<?= htmlspecialchars($card['word_a']) ?>" required>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col">
                                 <input type="text" name="word_b" class="form-control form-control-sm"
                                        value="<?= htmlspecialchars($card['word_b']) ?>" required>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col">
                                 <input type="text" name="desc_a" class="form-control form-control-sm"
                                        value="<?= htmlspecialchars($card['desc_a'] ?? '') ?>" placeholder="Beschreibung A">
                             </div>
-                            <div class="col-md-2">
+                            <div class="col">
                                 <input type="text" name="desc_b" class="form-control form-control-sm"
                                        value="<?= htmlspecialchars($card['desc_b'] ?? '') ?>" placeholder="Beschreibung B">
                             </div>
-                            <div class="col-md-2 d-flex gap-1">
-                                <button type="submit" class="btn btn-sm btn-success">Speichern</button>
-                                <a href="edit.php?list_id=<?= $list_id ?>&filter=<?= $filter ?>" class="btn btn-sm btn-outline-secondary">Abbrechen</a>
+                            <div class="col-auto d-flex gap-1">
+                                <button type="submit" class="btn btn-sm btn-success"
+                                        data-bs-toggle="tooltip" title="Speichern"><i class="bi bi-check-lg"></i></button>
+                                <a href="edit.php?list_id=<?= $list_id ?>&filter=<?= $filter ?>" class="btn btn-sm btn-outline-secondary"
+                                   data-bs-toggle="tooltip" title="Abbrechen"><i class="bi bi-x-lg"></i></button>
                             </div>
                         </form>
                     </td>

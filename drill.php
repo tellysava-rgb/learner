@@ -352,6 +352,7 @@ if (!$state && !$done_data) {
             <span class="text-white small"><?= (int)($state['stats']['mastered'] ?? 0) ?> gemeistert</span>
             <a href="drill.php?action=abort" class="btn btn-sm btn-outline-light">Session abbrechen</a>
             <?php else: ?>
+            <?= streak_badge() ?>
             <span class="text-white small"><?= htmlspecialchars($person_name) ?></span>
             <form method="post" class="d-inline">
                 <?= csrf_field() ?>

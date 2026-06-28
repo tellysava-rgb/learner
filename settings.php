@@ -24,18 +24,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (($_POST['action'] ?? '') === 'save_settings') {
-        $fields = [
-            'session_timeout_min' => ['min' => 1,  'max' => 480, 'label' => 'Session-Timeout'],
-            'daily_card_limit'    => ['min' => 1,  'max' => 100, 'label' => 'Tägliches Karten-Limit'],
-            'drill_minutes'       => ['min' => 1,  'max' => 120, 'label' => 'Drill-Timer'],
-            'drill_too_hard'      => ['min' => 1,  'max' => 20,  'label' => '«Musste nachdenken»-Limit'],
-            'drill_mastery'       => ['min' => 1,  'max' => 10,  'label' => 'Mastery-Schwelle'],
-            'drill_known_ratio'   => ['min' => 1,  'max' => 30,  'label' => 'Bekannt/Neu-Verhältnis'],
+        $int_fields = [
+            'session_timeout_min'  => ['min' => 1,  'max' => 480, 'label' => 'Session-Timeout'],
+            'daily_card_limit'     => ['min' => 1,  'max' => 100, 'label' => 'Tägliches Karten-Limit'],
+            'leitner_default_cards'=> ['min' => 1,  'max' => 200, 'label' => 'Default Kartenanzahl'],
+            'drill_minutes'        => ['min' => 1,  'max' => 120, 'label' => 'Drill-Timer'],
+            'drill_too_hard'       => ['min' => 1,  'max' => 20,  'label' => '«Musste nachdenken»-Limit'],
+            'drill_mastery'        => ['min' => 1,  'max' => 10,  'label' => 'Mastery-Schwelle'],
+            'drill_known_ratio'    => ['min' => 1,  'max' => 30,  'label' => 'Bekannt/Neu-Verhältnis'],
         ];
 
         $vals   = [];
         $errs   = [];
-        foreach ($fields as $key => $spec) {
+        foreach ($int_fields as $key => $spec) {
             $v = intval($_POST[$key] ?? 0);
             if ($v < $spec['min'] || $v > $spec['max']) {
                 $errs[] = "{$spec['label']}: Wert muss zwischen {$spec['min']} und {$spec['max']} liegen.";
@@ -43,9 +44,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $vals[$key] = $v;
         }
 
+        // Seitentitel (String-Feld)
+        $app_name = trim($_POST['app_name'] ?? '');
+        if ($app_name === '' || mb_strlen($app_name) > 50 || str_contains($app_name, "'")) {
+            $errs[] = "Seitentitel: Darf nicht leer sein, max. 50 Zeichen, keine Anführungszeichen.";
+        }
+
         if (empty($errs)) {
             $c = file_get_contents($config_path);
 
+            $c = preg_replace(
+                "/define\('APP_NAME',\s*'[^']*'\);/",
+                "define('APP_NAME', '{$app_name}');",
+                $c
+            );
             $timeout_sec = $vals['session_timeout_min'] * 60;
             $c = preg_replace(
                 "/define\('SESSION_TIMEOUT',\s*\d+\)[^\n]*/",
@@ -55,6 +67,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $c = preg_replace(
                 "/define\('DAILY_CARD_LIMIT',\s*\d+\)[^\n]*/",
                 "define('DAILY_CARD_LIMIT', {$vals['daily_card_limit']});",
+                $c
+            );
+            $c = preg_replace(
+                "/define\('LEITNER_DEFAULT_CARDS',\s*\d+\)[^\n]*/",
+                "define('LEITNER_DEFAULT_CARDS', {$vals['leitner_default_cards']});",
                 $c
             );
             $drill_sec = $vals['drill_minutes'] * 60;
@@ -93,8 +110,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Aktuelle Werte (frisch aus config, nach PRG-Redirect)
+$cur_app_name    = APP_NAME;
 $cur_timeout_min = (int) round(SESSION_TIMEOUT / 60);
 $cur_daily       = DAILY_CARD_LIMIT;
+$cur_default_cards = LEITNER_DEFAULT_CARDS;
 $cur_drill_min   = (int) round(DRILL_SESSION_SECONDS / 60);
 $cur_too_hard    = DRILL_TOO_HARD_LIMIT;
 $cur_mastery     = DRILL_MASTERY_THRESHOLD;
@@ -115,6 +134,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="home.php"><?= APP_NAME ?></a>
         <div class="ms-auto d-flex align-items-center gap-3">
+            <?= streak_badge() ?>
             <?php if ($person_name): ?>
             <span class="text-white small"><?= htmlspecialchars($person_name) ?></span>
             <?php endif; ?>
@@ -155,7 +175,19 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
             <div class="list-group list-group-flush">
 
                 <div class="list-group-item bg-light py-2">
-                    <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing:.05em;">Allgemein &amp; Leitner</span>
+                    <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing:.05em;">Allgemein</span>
+                </div>
+
+                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                    <div class="flex-grow-1">
+                        <span class="fw-medium">Seitentitel</span>
+                        <span class="text-muted small ms-2">Wird oben links in der Navbar angezeigt</span>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <input type="text" class="form-control form-control-sm"
+                               name="app_name" value="<?= htmlspecialchars($cur_app_name) ?>"
+                               maxlength="50" style="width:160px;">
+                    </div>
                 </div>
 
                 <div class="list-group-item d-flex align-items-center gap-3 py-2">
@@ -171,6 +203,10 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                     </div>
                 </div>
 
+                <div class="list-group-item bg-light py-2">
+                    <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing:.05em;">Leitner</span>
+                </div>
+
                 <div class="list-group-item d-flex align-items-center gap-3 py-2">
                     <div class="flex-grow-1">
                         <span class="fw-medium">Tägliches Karten-Limit</span>
@@ -180,6 +216,19 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                         <input type="number" class="form-control form-control-sm text-end"
                                name="daily_card_limit" value="<?= $cur_daily ?>"
                                min="1" max="100" style="width:68px;">
+                        <span class="text-muted small">Karten</span>
+                    </div>
+                </div>
+
+                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                    <div class="flex-grow-1">
+                        <span class="fw-medium">Default Kartenanzahl</span>
+                        <span class="text-muted small ms-2">Voreingestellte Anzahl Karten beim Session-Start</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                        <input type="number" class="form-control form-control-sm text-end"
+                               name="leitner_default_cards" value="<?= $cur_default_cards ?>"
+                               min="1" max="200" style="width:68px;">
                         <span class="text-muted small">Karten</span>
                     </div>
                 </div>

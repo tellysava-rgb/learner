@@ -59,6 +59,15 @@ function today(): string {
     return (new DateTimeImmutable('now', new DateTimeZone(TIMEZONE)))->format('Y-m-d');
 }
 
+// Streak-Badge für Navbar — liest aus Session-Cache, zeigt nichts wenn kein Person gewählt
+function streak_badge(): string {
+    if (empty($_SESSION['person_id'])) return '';
+    $streak = (int)($_SESSION['streak'] ?? 0);
+    if ($streak <= 0 || ($_SESSION['streak_date'] ?? '') !== today()) return '';
+    $days = $streak === 1 ? 'Tag' : 'Tage';
+    return '<span class="badge bg-warning text-dark">🔥 ' . $streak . ' ' . $days . '</span>';
+}
+
 // Logout
 function logout(): void {
     session_unset();

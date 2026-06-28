@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin
 
     $list_ids  = array_map('intval', array_filter((array)($_POST['list_ids'] ?? [])));
     $direction = $_POST['direction'] ?? 'a_to_b';
-    $card_limit = max(1, intval($_POST['card_limit'] ?? 20));
+    $card_limit = max(1, intval($_POST['card_limit'] ?? LEITNER_DEFAULT_CARDS));
 
     if (!$list_ids) {
         $setup_error = 'Bitte mindestens eine Liste auswählen.';
@@ -399,6 +399,7 @@ render_setup:
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="home.php"><?= APP_NAME ?></a>
         <div class="ms-auto d-flex align-items-center gap-3">
+            <?= streak_badge() ?>
             <span class="text-white small"><?= htmlspecialchars($person_name) ?></span>
             <?php if ($state): ?>
             <a href="learn.php?action=setup" class="btn btn-sm btn-outline-light">Session abbrechen</a>
@@ -615,7 +616,7 @@ $lang_b = $preset_list ? htmlspecialchars($preset_list['language_b']) : 'B';
         <label class="form-label fw-semibold">Kartenanzahl</label>
         <div class="d-flex align-items-center gap-2">
             <button type="button" class="btn btn-outline-secondary" onclick="adjustCards(-5)">−5</button>
-            <input type="number" name="card_limit" id="card_limit" class="form-control text-center" value="20" min="1" max="200" style="width:80px;">
+            <input type="number" name="card_limit" id="card_limit" class="form-control text-center" value="<?= LEITNER_DEFAULT_CARDS ?>" min="1" max="200" style="width:80px;">
             <button type="button" class="btn btn-outline-secondary" onclick="adjustCards(5)">+5</button>
         </div>
         <div class="form-text">App zeigt alle fälligen Karten. Du kannst die Zahl anpassen.</div>
