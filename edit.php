@@ -74,11 +74,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($word_a === '' || $word_b === '') {
             $error = 'Beide Sprachfelder sind Pflicht.';
         } else {
-            $stmt = $pdo->prepare("UPDATE cards SET word_a=?, word_b=?, desc_a=?, desc_b=? WHERE id=? AND list_id=?");
-            $stmt->execute([$word_a, $word_b, $desc_a ?: null, $desc_b ?: null, $card_id, $list_id]);
-            if ($stmt->rowCount() === 0) {
+            $stmt = $pdo->prepare("SELECT id FROM cards WHERE id=? AND list_id=?");
+            $stmt->execute([$card_id, $list_id]);
+            if (!$stmt->fetch()) {
                 $error = 'Karte nicht gefunden.';
             } else {
+                $stmt = $pdo->prepare("UPDATE cards SET word_a=?, word_b=?, desc_a=?, desc_b=? WHERE id=? AND list_id=?");
+                $stmt->execute([$word_a, $word_b, $desc_a ?: null, $desc_b ?: null, $card_id, $list_id]);
                 $_SESSION['flash_success'] = 'Karte gespeichert.';
                 header("Location: edit.php?list_id={$list_id}&filter={$filter}");
                 exit;
