@@ -147,115 +147,105 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
     </div>
     <?php endif; ?>
 
-    <form method="post">
+    <form method="post" style="max-width:640px;">
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="save_settings">
 
-        <div class="row g-4">
+        <div class="card">
+            <div class="list-group list-group-flush">
 
-            <!-- Allgemein & Leitner -->
-            <div class="col-md-6">
-                <div class="card h-100">
-                    <div class="card-header fw-semibold">Allgemein & Leitner</div>
-                    <div class="card-body d-flex flex-column gap-4">
+                <div class="list-group-item bg-light py-2">
+                    <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing:.05em;">Allgemein &amp; Leitner</span>
+                </div>
 
-                        <div class="d-flex justify-content-between align-items-start gap-3">
-                            <div>
-                                <div class="fw-medium">Session-Timeout</div>
-                                <div class="text-muted small">Minuten Inaktivität bis zur automatischen Abmeldung.</div>
-                            </div>
-                            <div class="text-end flex-shrink-0">
-                                <input type="number" class="form-control form-control-sm text-end"
-                                       name="session_timeout_min" value="<?= $cur_timeout_min ?>"
-                                       min="1" max="480" style="width:72px;">
-                                <div class="text-muted" style="font-size:0.7rem;">Min. (1–480)</div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-start gap-3">
-                            <div>
-                                <div class="fw-medium">Tägliches Karten-Limit</div>
-                                <div class="text-muted small">Wie viele neue Karten täglich aus der Warteschlange aktiviert werden.</div>
-                            </div>
-                            <div class="text-end flex-shrink-0">
-                                <input type="number" class="form-control form-control-sm text-end"
-                                       name="daily_card_limit" value="<?= $cur_daily ?>"
-                                       min="1" max="100" style="width:72px;">
-                                <div class="text-muted" style="font-size:0.7rem;">Karten (1–100)</div>
-                            </div>
-                        </div>
-
+                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                    <div class="flex-grow-1">
+                        <span class="fw-medium">Session-Timeout</span>
+                        <span class="text-muted small ms-2">Minuten Inaktivität bis zur automatischen Abmeldung</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                        <input type="number" class="form-control form-control-sm text-end"
+                               name="session_timeout_min" value="<?= $cur_timeout_min ?>"
+                               min="1" max="480" style="width:68px;">
+                        <span class="text-muted small">Min.</span>
                     </div>
                 </div>
-            </div>
 
-            <!-- Drill -->
-            <div class="col-md-6">
-                <div class="card h-100">
-                    <div class="card-header fw-semibold">Drill-Modus</div>
-                    <div class="card-body d-flex flex-column gap-4">
-
-                        <div class="d-flex justify-content-between align-items-start gap-3">
-                            <div>
-                                <div class="fw-medium">Timer</div>
-                                <div class="text-muted small">Dauer einer Drill-Session. Nach Ablauf wird die aktuelle Karte noch fertig gespielt.</div>
-                            </div>
-                            <div class="text-end flex-shrink-0">
-                                <input type="number" class="form-control form-control-sm text-end"
-                                       name="drill_minutes" value="<?= $cur_drill_min ?>"
-                                       min="1" max="120" style="width:72px;">
-                                <div class="text-muted" style="font-size:0.7rem;">Min. (1–120)</div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-start gap-3">
-                            <div>
-                                <div class="fw-medium">«Musste nachdenken»-Limit</div>
-                                <div class="text-muted small">Wie oft eine Karte in einer Session als zu schwer bewertet werden darf, bevor sie entfernt wird.</div>
-                            </div>
-                            <div class="text-end flex-shrink-0">
-                                <input type="number" class="form-control form-control-sm text-end"
-                                       name="drill_too_hard" value="<?= $cur_too_hard ?>"
-                                       min="1" max="20" style="width:72px;">
-                                <div class="text-muted" style="font-size:0.7rem;">× (1–20)</div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-start gap-3">
-                            <div>
-                                <div class="fw-medium">Mastery-Schwelle</div>
-                                <div class="text-muted small">Wie viele Male hintereinander eine Karte korrekt beantwortet werden muss, um als «gemeistert» zu gelten.</div>
-                            </div>
-                            <div class="text-end flex-shrink-0">
-                                <input type="number" class="form-control form-control-sm text-end"
-                                       name="drill_mastery" value="<?= $cur_mastery ?>"
-                                       min="1" max="10" style="width:72px;">
-                                <div class="text-muted" style="font-size:0.7rem;">× (1–10)</div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-start gap-3">
-                            <div>
-                                <div class="fw-medium">Bekannt/Neu-Verhältnis</div>
-                                <div class="text-muted small">Wie viele bekannte Karten zwischen zwei neuen Karten rotieren (9 = 9:1-Verhältnis).</div>
-                            </div>
-                            <div class="text-end flex-shrink-0">
-                                <input type="number" class="form-control form-control-sm text-end"
-                                       name="drill_known_ratio" value="<?= $cur_known_ratio ?>"
-                                       min="1" max="30" style="width:72px;">
-                                <div class="text-muted" style="font-size:0.7rem;">Karten (1–30)</div>
-                            </div>
-                        </div>
-
+                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                    <div class="flex-grow-1">
+                        <span class="fw-medium">Tägliches Karten-Limit</span>
+                        <span class="text-muted small ms-2">Neue Karten pro Tag aus der Warteschlange</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                        <input type="number" class="form-control form-control-sm text-end"
+                               name="daily_card_limit" value="<?= $cur_daily ?>"
+                               min="1" max="100" style="width:68px;">
+                        <span class="text-muted small">Karten</span>
                     </div>
                 </div>
+
+                <div class="list-group-item bg-light py-2">
+                    <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing:.05em;">Drill-Modus</span>
+                </div>
+
+                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                    <div class="flex-grow-1">
+                        <span class="fw-medium">Timer</span>
+                        <span class="text-muted small ms-2">Dauer einer Drill-Session</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                        <input type="number" class="form-control form-control-sm text-end"
+                               name="drill_minutes" value="<?= $cur_drill_min ?>"
+                               min="1" max="120" style="width:68px;">
+                        <span class="text-muted small">Min.</span>
+                    </div>
+                </div>
+
+                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                    <div class="flex-grow-1">
+                        <span class="fw-medium">«Musste nachdenken»-Limit</span>
+                        <span class="text-muted small ms-2">Bewertungen bis Karte aus der Session entfernt wird</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                        <input type="number" class="form-control form-control-sm text-end"
+                               name="drill_too_hard" value="<?= $cur_too_hard ?>"
+                               min="1" max="20" style="width:68px;">
+                        <span class="text-muted small">×</span>
+                    </div>
+                </div>
+
+                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                    <div class="flex-grow-1">
+                        <span class="fw-medium">Mastery-Schwelle</span>
+                        <span class="text-muted small ms-2">Aufeinanderfolgende Korrekt-Antworten für «gemeistert»</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                        <input type="number" class="form-control form-control-sm text-end"
+                               name="drill_mastery" value="<?= $cur_mastery ?>"
+                               min="1" max="10" style="width:68px;">
+                        <span class="text-muted small">×</span>
+                    </div>
+                </div>
+
+                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                    <div class="flex-grow-1">
+                        <span class="fw-medium">Bekannt/Neu-Verhältnis</span>
+                        <span class="text-muted small ms-2">Bekannte Karten pro neuer Karte in der Rotation</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                        <input type="number" class="form-control form-control-sm text-end"
+                               name="drill_known_ratio" value="<?= $cur_known_ratio ?>"
+                               min="1" max="30" style="width:68px;">
+                        <span class="text-muted small">Karten</span>
+                    </div>
+                </div>
+
             </div>
+        </div>
 
-        </div><!-- /row -->
-
-        <div class="mt-4">
+        <div class="mt-3">
             <button type="submit" class="btn btn-primary">Alle speichern</button>
-            <span class="text-muted small ms-3">Werte werden dauerhaft in config.php geschrieben.</span>
+            <span class="text-muted small ms-3">Dauerhaft in config.php geschrieben.</span>
         </div>
 
     </form>
