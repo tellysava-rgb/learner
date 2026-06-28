@@ -7,21 +7,15 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 
 ## 1. Login / DB _(v0.1.0)_
 
-[x] `http://localhost/learner/` aufrufen — Login-Seite erscheint (kein Stacktrace, kein weisser Screen).
-[x] Falsches Passwort eingeben → Fehlermeldung, kein Login.
-[x] Richtiges Passwort eingeben → Weiterleitung auf Personenwahl.
-[ ] 30 Minuten Inaktivität simulieren (Session-Timeout in `config.php` kurz auf 1s setzen) → automatischer Logout.
 
 ---
 
 ## 2. Übersicht _(v0.1.0)_
 
 [ ] Nach Login: Personenliste erscheint. Neue Person erstellen → erscheint in der Liste.
-[ ] Gleichen Namen nochmal versuchen → Fehlermeldung "Name bereits vergeben".
-[ ] Person auswählen → eigene Listen werden angezeigt, öffentliche Listen anderer Personen im Bereich "Entdecken".
-[ ] Lernstreak-Badge erscheint wenn heute oder gestern gelernt wurde.
-[ ] "Person wechseln"-Button → zurück zur Personenwahl ohne Logout.
-[ ] Warteschlange-Hinweis (⏳ N in Warteschlange) erscheint bei einer Liste mit `queued`-Karten.
+[ ] Personenwahl: Formular ist nicht sichtbar — nur Button "Neuen Benutzer hinzufügen" erscheint unter der Personenliste. _(v0.3.0)_
+[ ] Button "Neuen Benutzer hinzufügen" klicken → Formular klappt auf. _(v0.3.0)_
+[ ] Fehler beim Erstellen (z.B. Name bereits vergeben) → Formular bleibt offen und Fehlermeldung erscheint. _(v0.3.0)_
 
 ---
 
@@ -40,6 +34,8 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Karte bearbeiten → Änderungen werden gespeichert.
 [ ] Karte löschen → verschwindet aus der Liste, kein DB-Fehler.
 [ ] Karte als archiviert markieren → Status wechselt zu "archiviert".
+[ ] Karte archivieren bei langer Liste → Seite bleibt an derselben Scrollposition (kein Sprung an den Seitenanfang). _(v0.3.0)_
+[ ] Karte bearbeiten & speichern → Seite kehrt zur gleichen Scrollposition zurück. _(v0.3.0)_
 
 ### Import _(v0.1.0)_
 
@@ -65,6 +61,8 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Multiplikationstabelle generieren → neue Liste mit Karten `7 × 8 = ?` / `56` erscheint.
 [ ] Divisionstabelle generieren → neue Liste mit Karten `56 ÷ 7 = ?` / `8` erscheint.
 [ ] Generierte Liste normal im Leitner- und Drill-Modus verwendbar.
+[ ] Mathe-Generator mit bereits verwendetem Listennamen → Fehlermeldung erscheint, keine Duplikat-Liste erstellt. _(v0.3.0)_
+[ ] Nach Fehlermeldung anderen Namen eingeben → Liste wird normal erstellt. _(v0.3.0)_
 
 ---
 

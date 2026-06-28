@@ -275,15 +275,21 @@ $streak = ($person_id) ? get_streak($pdo, $person_id) : 0;
         </div>
         <?php endif; ?>
 
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title h6">Neue Person erstellen</h5>
-                <form method="post" class="d-flex gap-2">
-                    <?= csrf_field() ?>
-                    <input type="hidden" name="action" value="create_person">
-                    <input type="text" name="name" class="form-control" placeholder="Name" required maxlength="100" autofocus>
-                    <button type="submit" class="btn btn-primary">Erstellen</button>
-                </form>
+        <button class="btn btn-outline-secondary btn-sm" type="button"
+                data-bs-toggle="collapse" data-bs-target="#new-person-form"
+                aria-expanded="false" aria-controls="new-person-form">
+            + Neuen Benutzer hinzufügen
+        </button>
+        <div class="collapse<?= ($error && ($_POST['action'] ?? '') === 'create_person') ? ' show' : '' ?> mt-3" id="new-person-form">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post" class="d-flex gap-2">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="action" value="create_person">
+                        <input type="text" name="name" class="form-control" placeholder="Name" required maxlength="100">
+                        <button type="submit" class="btn btn-primary">Erstellen</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

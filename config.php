@@ -1,8 +1,8 @@
 <?php
 define('APP_NAME', 'Learner');
-define('APP_VERSION', '0.2.0');
+define('APP_VERSION', '0.3.0');
 define('TIMEZONE', 'Europe/Zurich');
-define('SESSION_TIMEOUT', 1800); // 30 Minuten
+define('SESSION_TIMEOUT', 3600); // 30 Minuten = 1800 Sekunden
 
 define('DAILY_CARD_LIMIT', 10);
 define('LEITNER_INTERVALS', [1 => 1, 2 => 2, 3 => 7, 4 => 14, 5 => 30]);

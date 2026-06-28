@@ -26,6 +26,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'gener
     } elseif (!$list_name) {
         $error = 'Bitte gib einen Listennamen ein.';
     } else {
+        // Prüfen ob bereits eine Liste mit diesem Namen existiert
+        $stmt_check = $pdo->prepare("SELECT id FROM lists WHERE person_id = ? AND name = ?");
+        $stmt_check->execute([$person_id, $list_name]);
+        if ($stmt_check->fetch()) {
+            $error = "Eine Liste mit dem Namen \"{$list_name}\" existiert bereits. Bitte wähle einen anderen Namen.";
+        }
+    }
+
+    if (!$error) {
         $pdo->beginTransaction();
         try {
             if ($type === 'multiplication') {

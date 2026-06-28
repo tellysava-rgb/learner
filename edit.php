@@ -361,8 +361,21 @@ $filtered_cards = match($filter) {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+(function() {
+    const _key = 'edit_scroll_<?= $list_id ?>';
+    const saved = sessionStorage.getItem(_key);
+    if (saved !== null) {
+        window.scrollTo(0, parseInt(saved, 10));
+        sessionStorage.removeItem(_key);
+    }
+    document.addEventListener('submit', function() {
+        sessionStorage.setItem(_key, window.scrollY);
+    });
+})();
+
 function confirmDelete(id) {
     if (confirm('Karte wirklich löschen? Der Lernfortschritt dieser Karte geht verloren.')) {
+        sessionStorage.setItem('edit_scroll_<?= $list_id ?>', window.scrollY);
         document.getElementById('delete-card-id').value = id;
         document.getElementById('delete-form').submit();
     }

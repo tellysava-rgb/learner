@@ -23,7 +23,7 @@
 ## Zugang / Benutzerverwaltung
 
 - Ein **globales Passwort** schützt die gesamte App
-- Nach Login: **Person auswählen** (aus Liste) oder **neue Person erstellen**
+- Nach Login: **Person auswählen** (aus Liste) — Personenliste ist prominent; "Neuen Benutzer hinzufügen" ist hinter einem Button versteckt um versehentliches Erstellen zu verhindern
 - **Personenname muss eindeutig sein** — beim Erstellen wird geprüft ob der Name bereits existiert, sonst Fehlermeldung
 - Keine individuellen Passwörter pro Person (alle kennen sich)
 - Jede Person hat **eigene Listen** und **eigenen Lernfortschritt** (Fortschritt ist nicht öffentlich)
@@ -283,6 +283,7 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 ## Mathe-Generator
 
 - Einmaliger Generator für **Multiplikationstabellen** und **Divisionstabellen** (1×1 bis 10×10, konfigurierbar)
+- **Duplikat-Prüfung:** Existiert bereits eine Liste mit dem gewählten Namen, erscheint eine Fehlermeldung — der User muss einen anderen Namen wählen (verhindert versehentliche Duplikate des gleichen Decks)
 - Multiplikation und Division werden als **separate Decks** generiert:
   - Deck Multiplikation: `7 × 8 = ?`
   - Deck Division: `56 ÷ 7 = ?`

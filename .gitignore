@@ -4,4 +4,5 @@ deploy.php
 deploy-config.php
 *.log
 
-*.md
+Checkliste.md
+CLAUDE.md
