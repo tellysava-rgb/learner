@@ -5,6 +5,14 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [0.6.1] - 2026-06-28
+
+### Verbessert
+- edit.php: Aktionsbuttons (Bearbeiten, Archivieren, Reaktivieren, Löschen) als Icon-only mit Tooltip — kompaktere Kartenliste
+- edit.php: CSV Import / Export mit Icon + Text (Bootstrap Icons eingebunden)
+
+---
+
 ## [0.6.0] - 2026-06-28
 
 ### Neu

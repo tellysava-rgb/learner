@@ -167,6 +167,7 @@ $filtered_cards = match($filter) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= htmlspecialchars($list['name']) ?> — <?= APP_NAME ?></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -195,8 +196,8 @@ $filtered_cards = match($filter) {
         <span class="text-muted small"><?= htmlspecialchars($list['language_a']) ?> / <?= htmlspecialchars($list['language_b']) ?></span>
     </div>
     <div class="d-flex gap-2 mb-4">
-        <a href="import.php?list_id=<?= $list_id ?>" class="btn btn-sm btn-outline-secondary">CSV Import</a>
-        <a href="export.php?list_id=<?= $list_id ?>" class="btn btn-sm btn-outline-secondary">CSV Export</a>
+        <a href="import.php?list_id=<?= $list_id ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-upload me-1"></i>CSV Import</a>
+        <a href="export.php?list_id=<?= $list_id ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-download me-1"></i>CSV Export</a>
     </div>
 
     <?php if ($error): ?>
@@ -328,7 +329,8 @@ $filtered_cards = match($filter) {
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-1">
                             <a href="edit.php?list_id=<?= $list_id ?>&edit=<?= $card['id'] ?>&filter=<?= $filter ?>"
-                               class="btn btn-sm btn-outline-primary">Bearbeiten</a>
+                               class="btn btn-sm btn-outline-primary"
+                               data-bs-toggle="tooltip" title="Bearbeiten"><i class="bi bi-pencil"></i></a>
 
                             <?php if ($card['status'] !== 'archived'): ?>
                             <form method="post" class="d-inline">
@@ -336,7 +338,8 @@ $filtered_cards = match($filter) {
                                 <input type="hidden" name="action" value="archive">
                                 <input type="hidden" name="list_id" value="<?= $list_id ?>">
                                 <input type="hidden" name="card_id" value="<?= $card['id'] ?>">
-                                <button type="submit" class="btn btn-sm btn-outline-secondary">Archivieren</button>
+                                <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                        data-bs-toggle="tooltip" title="Archivieren"><i class="bi bi-archive"></i></button>
                             </form>
                             <?php else: ?>
                             <form method="post" class="d-inline">
@@ -344,12 +347,14 @@ $filtered_cards = match($filter) {
                                 <input type="hidden" name="action" value="reactivate">
                                 <input type="hidden" name="list_id" value="<?= $list_id ?>">
                                 <input type="hidden" name="card_id" value="<?= $card['id'] ?>">
-                                <button type="submit" class="btn btn-sm btn-outline-success">Reaktivieren</button>
+                                <button type="submit" class="btn btn-sm btn-outline-success"
+                                        data-bs-toggle="tooltip" title="Reaktivieren"><i class="bi bi-arrow-counterclockwise"></i></button>
                             </form>
                             <?php endif; ?>
 
                             <button type="button" class="btn btn-sm btn-outline-danger"
-                                    onclick="confirmDelete(<?= $card['id'] ?>)">Löschen</button>
+                                    data-bs-toggle="tooltip" title="Löschen"
+                                    onclick="confirmDelete(<?= $card['id'] ?>)"><i class="bi bi-trash"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -372,6 +377,10 @@ $filtered_cards = match($filter) {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
+    new bootstrap.Tooltip(el, { trigger: 'hover' });
+});
+
 (function() {
     const _key = 'edit_scroll_<?= $list_id ?>';
     const saved = sessionStorage.getItem(_key);

@@ -114,6 +114,8 @@
 ### Bearbeitung im Browser
 - Einzelne Einträge **hinzufügen**, **ändern**, **löschen**
 - Einträge direkt als **archiviert** markieren (erscheinen nicht mehr im Training)
+- Aktionsbuttons pro Karte als **Icon-only** (Bootstrap Icons) mit Tooltip: Bearbeiten (Stift), Archivieren (Archiv-Box), Reaktivieren (Pfeil zurück), Löschen (Mülleimer)
+- CSV Import / Export im Header: Icon + Text
 
 ### Duplikat-Prüfung beim Import
 - Gilt **nur beim CSV-Import** — nicht beim Kopieren einer öffentlichen Liste

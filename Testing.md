@@ -42,7 +42,11 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 ### Listen verwalten 
 
 
-### Karten bearbeiten 
+### Karten bearbeiten _(v0.6.1)_
+
+[ ] Aktionsbuttons zeigen nur Icons (kein Text). _(v0.6.1)_
+[ ] Hover über Icon-Button → Tooltip mit Bezeichnung erscheint. _(v0.6.1)_
+[ ] CSV Import / Export: Icon + Text sichtbar. _(v0.6.1)_
 
 
 ### Import 
