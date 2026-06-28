@@ -243,7 +243,7 @@ if ($edit_id) {
                     <a href="export.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary">Export</a>
                     <a href="lists.php?edit=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary">Umbenennen</a>
                     <button type="button" class="btn btn-sm btn-outline-danger"
-                            onclick="confirmDelete(<?= $list['id'] ?>, '<?= htmlspecialchars(addslashes($list['name'])) ?>')">
+                            onclick="confirmDelete(<?= $list['id'] ?>, <?= htmlspecialchars(json_encode($list['name'])) ?>)">
                         Löschen
                     </button>
                 </div>

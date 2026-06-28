@@ -5,8 +5,9 @@ require_login();
 
 $person_id   = $_SESSION['person_id']   ?? null;
 $person_name = $_SESSION['person_name'] ?? null;
-$error       = '';
+$error       = $_SESSION['flash_error'] ?? '';
 $success     = '';
+unset($_SESSION['flash_error']);
 
 // --- POST-Aktionen ---
 
@@ -135,7 +136,7 @@ if ($person_id) {
 
 function activate_queued_cards(PDO $pdo, int $person_id, array $list_ids, int $limit): void {
     $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
-    $params = array_merge([$person_id], $list_ids, [$limit]);
+    $params = array_merge([$person_id], $list_ids);
 
     // Karten aus den Listen holen die queued sind und dieser Person gehören
     $stmt = $pdo->prepare("
@@ -146,7 +147,7 @@ function activate_queued_cards(PDO $pdo, int $person_id, array $list_ids, int $l
           AND c.list_id IN ($placeholders)
           AND cp.status = 'queued'
         ORDER BY cp.id
-        LIMIT ?
+        LIMIT {$limit}
     ");
     $stmt->execute($params);
     $card_ids = $stmt->fetchAll(PDO::FETCH_COLUMN);

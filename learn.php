@@ -18,10 +18,12 @@ if (($_POST['action'] ?? '') === 'logout') {
 }
 
 // -------------------------------------------------------
-// PHASE: Setup — Liste(n) wählen und Session starten
+// PHASE: Setup — Session abbrechen → zurück zur Startseite
 // -------------------------------------------------------
-if (($_POST['action'] ?? '') === 'start' || ($_GET['action'] ?? '') === 'setup') {
+if (($_GET['action'] ?? '') === 'setup') {
     unset($_SESSION['learn']);
+    header('Location: home.php');
+    exit;
 }
 
 // Verfügbare eigene Listen laden
@@ -33,6 +35,18 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$person_id]);
 $all_lists = $stmt->fetchAll();
+
+// Vorausgewählte Liste aus URL (von home.php)
+$preset_list_id = intval($_GET['list_id'] ?? 0);
+$preset_list    = null;
+if ($preset_list_id) {
+    foreach ($all_lists as $l) {
+        if ((int)$l['id'] === $preset_list_id) {
+            $preset_list = $l;
+            break;
+        }
+    }
+}
 
 // -------------------------------------------------------
 // POST: Session konfigurieren und starten
@@ -246,13 +260,13 @@ function activate_daily_cards(PDO $pdo, int $person_id, array $list_ids, string 
     $to_activate = DAILY_CARD_LIMIT - $already_activated;
     if ($to_activate <= 0) return;
 
-    $params = array_merge([$person_id], $list_ids, [$to_activate]);
+    $params = array_merge([$person_id], $list_ids);
     $stmt = $pdo->prepare("
         SELECT cp.card_id FROM card_progress cp
         JOIN cards c ON c.id = cp.card_id
         WHERE cp.person_id = ? AND c.list_id IN ($placeholders) AND cp.status = 'queued'
         ORDER BY cp.id
-        LIMIT ?
+        LIMIT {$to_activate}
     ");
     $stmt->execute($params);
     $card_ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
@@ -283,9 +297,9 @@ function build_leitner_queue(PDO $pdo, int $person_id, array $list_ids, string $
           AND cp.status = 'active'
           AND cp.next_due_date <= ?
         ORDER BY priority, cp.leitner_box, cp.next_due_date
-        LIMIT ?
+        LIMIT {$limit}
     ");
-    $stmt->execute(array_merge([$today, $today, $person_id], $list_ids, [$today, $limit]));
+    $stmt->execute(array_merge([$today, $today, $person_id], $list_ids, [$today]));
     return array_column($stmt->fetchAll(), 'card_id');
 }
 
@@ -324,7 +338,6 @@ function get_learn_streak(PDO $pdo, int $person_id): int {
 // -------------------------------------------------------
 $state    = $_SESSION['learn'] ?? null;
 $current  = null;
-$show_answer = isset($_GET['show']);
 
 if ($state) {
     $card_id = $state['queue'][0] ?? null;
@@ -446,7 +459,11 @@ render_setup:
     </div>
 
     <a href="home.php" class="btn btn-primary me-2">Zur Startseite</a>
-    <a href="learn.php" class="btn btn-outline-primary">Neue Session</a>
+    <?php
+    $repeat_ids = $done_data['list_ids'] ?? [];
+    $repeat_url = count($repeat_ids) === 1 ? 'learn.php?list_id=' . $repeat_ids[0] : 'learn.php';
+    ?>
+    <a href="<?= $repeat_url ?>" class="btn btn-outline-primary">Neue Session</a>
 </div>
 
 <?php elseif ($state && $current): ?>
@@ -471,31 +488,30 @@ $is_retry  = isset($state['answered'][$current['id']]);
     <div class="progress-bar" style="width: <?= $total > 0 ? round(($total - $remaining) / $total * 100) : 0 ?>%"></div>
 </div>
 
-<!-- Karte -->
-<div class="card shadow text-center mb-4" style="min-height:220px;">
-    <div class="card-body d-flex flex-column justify-content-center p-4">
+<!-- Karte (klicken zum Aufdecken) -->
+<div class="learn-card text-center mb-4"
+     id="learn-card" style="cursor:pointer;" onclick="flipCard()">
+    <div class="d-flex flex-column justify-content-center p-4" style="min-height:260px;">
         <p class="text-muted small mb-2"><?= htmlspecialchars($qa['q_lang']) ?></p>
-        <h2 class="h3 mb-1"><?= htmlspecialchars($qa['q']) ?></h2>
+        <div class="fw-bold fs-2 mb-1"><?= htmlspecialchars($qa['q']) ?></div>
         <?php if ($qa['q_desc']): ?>
-        <p class="text-muted"><?= htmlspecialchars($qa['q_desc']) ?></p>
+        <p class="text-muted small mb-0"><?= htmlspecialchars($qa['q_desc']) ?></p>
         <?php endif; ?>
-
-        <?php if ($show_answer): ?>
-        <hr>
-        <p class="text-muted small mb-1"><?= htmlspecialchars($qa['a_lang']) ?></p>
-        <h3 class="h4 text-success mb-1"><?= htmlspecialchars($qa['a']) ?></h3>
-        <?php if ($qa['a_desc']): ?>
-        <p class="text-muted"><?= htmlspecialchars($qa['a_desc']) ?></p>
-        <?php endif; ?>
-        <?php endif; ?>
+        <div id="learn-answer" style="display:none;">
+            <hr>
+            <p class="text-muted small mb-1"><?= htmlspecialchars($qa['a_lang']) ?></p>
+            <div class="fw-bold fs-3 text-success mb-1"><?= htmlspecialchars($qa['a']) ?></div>
+            <?php if ($qa['a_desc']): ?>
+            <p class="text-muted small mb-0"><?= htmlspecialchars($qa['a_desc']) ?></p>
+            <?php endif; ?>
+        </div>
+        <p class="text-muted small mt-3 mb-0" id="learn-tap-hint">Tippen zum Aufdecken</p>
     </div>
 </div>
 
-<!-- Aktions-Buttons -->
-<?php if (!$show_answer): ?>
-<div class="text-center">
-    <a href="learn.php?show=1" class="btn btn-primary btn-lg px-5">Antwort zeigen</a>
-    <form method="post" class="mt-3 d-inline">
+<!-- Überspringen (vor Aufdecken) -->
+<div id="learn-skip" class="text-center mb-3">
+    <form method="post" class="d-inline">
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="answer">
         <input type="hidden" name="card_id" value="<?= $current['id'] ?>">
@@ -503,8 +519,9 @@ $is_retry  = isset($state['answered'][$current['id']]);
         <button type="submit" class="btn btn-sm btn-outline-secondary">Überspringen</button>
     </form>
 </div>
-<?php else: ?>
-<div class="row g-3 justify-content-center">
+
+<!-- Antwort-Buttons (nach Aufdecken) -->
+<div id="learn-answer-buttons" class="row g-3 justify-content-center" style="display:none;">
     <div class="col-auto">
         <form method="post">
             <?= csrf_field() ?>
@@ -524,7 +541,6 @@ $is_retry  = isset($state['answered'][$current['id']]);
         </form>
     </div>
 </div>
-<?php endif; ?>
 
 <?php else: ?>
 <!-- ==================== SETUP ==================== -->
@@ -537,18 +553,30 @@ $is_retry  = isset($state['answered'][$current['id']]);
 <?php if (!$all_lists): ?>
 <p class="text-muted">Du hast noch keine Listen. <a href="lists.php">Erstelle zuerst eine Liste</a>.</p>
 <?php else: ?>
+<?php
+$lang_a = $preset_list ? htmlspecialchars($preset_list['language_a']) : 'A';
+$lang_b = $preset_list ? htmlspecialchars($preset_list['language_b']) : 'B';
+?>
 <form method="post">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="begin">
 
-    <!-- Listen auswählen -->
+    <?php if ($preset_list): ?>
+    <!-- Vorausgewählte Liste (von Startseite) -->
+    <input type="hidden" name="list_ids[]" value="<?= $preset_list['id'] ?>">
+    <div class="mb-4">
+        <div class="fw-semibold mb-1">Liste</div>
+        <div class="text-muted"><?= htmlspecialchars($preset_list['name']) ?> <span class="small">(<?= $lang_a ?> / <?= $lang_b ?>)</span></div>
+    </div>
+    <?php else: ?>
+    <!-- Alle Listen zur Auswahl -->
     <div class="mb-4">
         <label class="form-label fw-semibold">Listen auswählen</label>
         <?php foreach ($all_lists as $list): ?>
         <div class="form-check">
             <input class="form-check-input" type="checkbox" name="list_ids[]"
                    value="<?= $list['id'] ?>" id="list_<?= $list['id'] ?>"
-                   <?= empty($all_lists[0]) || $list['id'] === $all_lists[0]['id'] ? 'checked' : '' ?>>
+                   <?= $list['id'] === ($all_lists[0]['id'] ?? 0) ? 'checked' : '' ?>>
             <label class="form-check-label" for="list_<?= $list['id'] ?>">
                 <?= htmlspecialchars($list['name']) ?>
                 <span class="text-muted small">(<?= htmlspecialchars($list['language_a']) ?> / <?= htmlspecialchars($list['language_b']) ?>)</span>
@@ -556,6 +584,7 @@ $is_retry  = isset($state['answered'][$current['id']]);
         </div>
         <?php endforeach; ?>
     </div>
+    <?php endif; ?>
 
     <!-- Lernrichtung -->
     <div class="mb-4">
@@ -563,11 +592,11 @@ $is_retry  = isset($state['answered'][$current['id']]);
         <div>
             <div class="form-check form-check-inline">
                 <input class="form-check-input" type="radio" name="direction" id="dir_ab" value="a_to_b" checked>
-                <label class="form-check-label" for="dir_ab">A → B</label>
+                <label class="form-check-label" for="dir_ab" id="label_ab"><?= $lang_a ?> → <?= $lang_b ?></label>
             </div>
             <div class="form-check form-check-inline">
                 <input class="form-check-input" type="radio" name="direction" id="dir_ba" value="b_to_a">
-                <label class="form-check-label" for="dir_ba">B → A</label>
+                <label class="form-check-label" for="dir_ba" id="label_ba"><?= $lang_b ?> → <?= $lang_a ?></label>
             </div>
             <div class="form-check form-check-inline">
                 <input class="form-check-input" type="radio" name="direction" id="dir_mix" value="mixed">
@@ -596,10 +625,40 @@ $is_retry  = isset($state['answered'][$current['id']]);
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+function flipCard() {
+    document.getElementById('learn-answer').style.display = 'block';
+    document.getElementById('learn-tap-hint').style.display = 'none';
+    document.getElementById('learn-skip').style.display = 'none';
+    document.getElementById('learn-answer-buttons').style.display = 'flex';
+    const card = document.getElementById('learn-card');
+    card.style.cursor = 'default';
+    card.onclick = null;
+}
+
 function adjustCards(delta) {
     const el = document.getElementById('card_limit');
     if (el) el.value = Math.max(1, parseInt(el.value || 20) + delta);
 }
+
+<?php if (!$preset_list && $all_lists): ?>
+// Richtungs-Labels bei Mehrfach-Listenauswahl dynamisch aktualisieren
+const langMap = <?= json_encode(array_combine(
+    array_column($all_lists, 'id'),
+    array_map(fn($l) => ['a' => $l['language_a'], 'b' => $l['language_b']], $all_lists)
+)) ?>;
+
+function updateDirLabels() {
+    const first = document.querySelector('input[name="list_ids[]"]:checked');
+    const langs = first && langMap[first.value] ? langMap[first.value] : {a: 'A', b: 'B'};
+    document.getElementById('label_ab').textContent = langs.a + ' → ' + langs.b;
+    document.getElementById('label_ba').textContent = langs.b + ' → ' + langs.a;
+}
+
+document.querySelectorAll('input[name="list_ids[]"]').forEach(cb => {
+    cb.addEventListener('change', updateDirLabels);
+});
+updateDirLabels();
+<?php endif; ?>
 </script>
 </body>
 </html>

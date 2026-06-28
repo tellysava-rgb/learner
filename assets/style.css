@@ -4,9 +4,19 @@ body {
     background-color: #f8f9fa;
 }
 
-/* Karte beim Lernen etwas grösser wirken lassen */
-.card.shadow {
-    border: none;
+/* Lernkarten (Drill + Leitner) */
+.learn-card {
+    background: #fff;
+    border: 2px solid #dee2e6;
+    border-radius: 1rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+    transition: box-shadow 0.15s;
+    user-select: none;
+}
+
+.learn-card:active {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    transform: translateY(1px);
 }
 
 /* Navbar etwas kompakter auf Mobile */
