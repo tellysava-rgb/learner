@@ -335,9 +335,6 @@ if (!$state && !$done_data) {
     <title>Drill — <?= APP_NAME ?></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/style.css">
-    <style>
-    #flip-card { transition: transform 0.15s ease; }
-    </style>
 </head>
 <body>
 
@@ -428,7 +425,7 @@ if (!$state && !$done_data) {
 <!-- ==================== KARTE ==================== -->
 
 <div class="learn-card mx-auto mb-4" id="flip-card" style="max-width:540px; cursor:pointer;" onclick="flipCard()">
-    <div class="text-center p-5">
+    <div class="text-center p-5" style="min-height:280px;">
         <p class="text-muted small mb-2"><?= htmlspecialchars($card_data['language_a']) ?></p>
         <div class="fw-bold fs-1 mb-1"><?= htmlspecialchars($card_data['word_a']) ?></div>
         <?php if ($card_data['desc_a']): ?>

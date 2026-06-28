@@ -1,6 +1,6 @@
 <?php
 define('APP_NAME', 'Learner');
-define('APP_VERSION', '0.6.1');
+define('APP_VERSION', '0.6.2');
 define('TIMEZONE', 'Europe/Zurich');
 define('SESSION_TIMEOUT', 3600); // 30 Minuten = 1800 Sekunden
 

@@ -95,13 +95,18 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 
 ### Setup — Richtungs-Labels _(v0.2.0)_
 
-### Karten-Design _(v0.2.0)_
+### Karten-Design _(v0.6.2)_
 
-[ ] Auf dem iPhone: Karte sieht wie eine physische Karte aus.
+[ ] Leitner-Karte zentriert, max. Breite ~540px. _(v0.6.2)_
+[ ] Auf dem iPhone: Karte sieht wie eine physische Karte aus. _(v0.6.2)_
+[ ] Leitner-Karte und Drill-Karte haben identisches Aussehen und identische Grösse. _(v0.6.2)_
 
-### Click-to-Flip _(v0.2.0)_
+### Click-to-Flip _(v0.6.2)_
 
-[ ] Funktioniert per Finger auf dem iPhone (Touch-Event).
+[ ] Klick auf Karte → horizontale Flip-Animation (scaleX), Rückseite erscheint danach. _(v0.6.2)_
+[ ] Antwort-Buttons erscheinen erst nach Abschluss der Animation. _(v0.6.2)_
+[ ] Flip-Animation identisch in Leitner und Drill. _(v0.6.2)_
+[ ] Funktioniert per Finger auf dem iPhone (Touch-Event). _(v0.6.2)_
 
 ### Session verlassen _(v0.5.0)_
 

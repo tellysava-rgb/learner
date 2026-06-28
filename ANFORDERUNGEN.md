@@ -227,6 +227,14 @@ card_progress Tabelle:
 - Warteschlange zeigt wie viele Karten noch warten
 - Beim Upload von 100 Karten → nur 10 sofort aktiv, 90 in Warteschlange
 
+### Kartendarstellung
+- Karte zentriert, max. Breite 540px (`max-width:540px; margin: 0 auto`)
+- Innenabstand `p-5`, Mindesthöhe 280px
+- Frage in `fs-1` (gross), Antwort in `fs-2` (mittelgross)
+- Flip-Animation: Karte faltet sich horizontal (`scaleX(0)` → Inhalt tauschen → `scaleX(1)`, 150ms)
+- Antwort-Buttons erscheinen erst nach Abschluss der Animation (300ms)
+- Gleiche Karte und Animation wie im Drill-Modus
+
 ### Session
 - **Kartenanzahl** wählbar — App macht Vorschlag (alle fälligen), User kann ändern via:
   - Button **-5** / Eingabefeld (Zahl) / Button **+5**

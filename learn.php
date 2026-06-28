@@ -490,23 +490,23 @@ $is_retry  = isset($state['answered'][$current['id']]);
 </div>
 
 <!-- Karte (klicken zum Aufdecken) -->
-<div class="learn-card text-center mb-4"
-     id="learn-card" style="cursor:pointer;" onclick="flipCard()">
-    <div class="d-flex flex-column justify-content-center p-4" style="min-height:260px;">
+<div class="learn-card mx-auto mb-4"
+     id="learn-card" style="max-width:540px; cursor:pointer;" onclick="flipCard()">
+    <div class="text-center p-5" style="min-height:280px;">
         <p class="text-muted small mb-2"><?= htmlspecialchars($qa['q_lang']) ?></p>
-        <div class="fw-bold fs-2 mb-1"><?= htmlspecialchars($qa['q']) ?></div>
+        <div class="fw-bold fs-1 mb-1"><?= htmlspecialchars($qa['q']) ?></div>
         <?php if ($qa['q_desc']): ?>
-        <p class="text-muted small mb-0"><?= htmlspecialchars($qa['q_desc']) ?></p>
+        <p class="text-muted mb-0"><?= htmlspecialchars($qa['q_desc']) ?></p>
         <?php endif; ?>
         <div id="learn-answer" style="display:none;">
-            <hr>
+            <hr class="my-3">
             <p class="text-muted small mb-1"><?= htmlspecialchars($qa['a_lang']) ?></p>
-            <div class="fw-bold fs-3 text-success mb-1"><?= htmlspecialchars($qa['a']) ?></div>
+            <div class="fw-bold fs-2 text-success mb-0"><?= htmlspecialchars($qa['a']) ?></div>
             <?php if ($qa['a_desc']): ?>
-            <p class="text-muted small mb-0"><?= htmlspecialchars($qa['a_desc']) ?></p>
+            <p class="text-muted mt-1 mb-0"><?= htmlspecialchars($qa['a_desc']) ?></p>
             <?php endif; ?>
         </div>
-        <p class="text-muted small mt-3 mb-0" id="learn-tap-hint">Tippen zum Aufdecken</p>
+        <p class="text-muted small mt-4 mb-0" id="learn-tap-hint">Tippen zum Aufdecken</p>
     </div>
 </div>
 
@@ -665,13 +665,19 @@ $lang_b = $preset_list ? htmlspecialchars($preset_list['language_b']) : 'B';
 <?php endif; ?>
 
 function flipCard() {
-    document.getElementById('learn-answer').style.display = 'block';
-    document.getElementById('learn-tap-hint').style.display = 'none';
-    document.getElementById('learn-skip').style.display = 'none';
-    document.getElementById('learn-answer-buttons').style.display = 'flex';
-    const card = document.getElementById('learn-card');
-    card.style.cursor = 'default';
-    card.onclick = null;
+    var card = document.getElementById('learn-card');
+    card.style.transform = 'scaleX(0)';
+    setTimeout(function () {
+        document.getElementById('learn-answer').style.display = 'block';
+        document.getElementById('learn-tap-hint').style.display = 'none';
+        document.getElementById('learn-skip').style.display = 'none';
+        card.style.transform = 'scaleX(1)';
+    }, 150);
+    setTimeout(function () {
+        document.getElementById('learn-answer-buttons').style.display = 'flex';
+        card.style.cursor = 'default';
+        card.onclick = null;
+    }, 300);
 }
 
 function adjustCards(delta) {

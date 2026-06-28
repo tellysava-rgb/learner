@@ -5,6 +5,14 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [0.6.2] - 2026-06-28
+
+### Verbessert
+- Leitner-Karte: identisches Design und Animation wie Drill-Karte (max-width 540px, p-5, fs-1/fs-2)
+- Flip-Animation in Leitner: scaleX-Transform identisch zum Drill-Modus
+
+---
+
 ## [0.6.1] - 2026-06-28
 
 ### Verbessert
