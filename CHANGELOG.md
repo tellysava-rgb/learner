@@ -5,6 +5,43 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [0.6.0] - 2026-06-28
+
+### Neu
+- Drill-Modus komplett neu: Incremental Rehearsal — eine Karte nach der anderen statt 3 gleichzeitig
+- 9:1-Verhältnis: bekannte Karten (drill_mastery >= 1) rotieren, neue Karten werden einzeln eingeführt
+- Flip-Animation beim Aufdecken der Karte (CSS scaleX-Transform)
+- "Gemeistert" = 3× hintereinander korrekt; "Musste nachdenken" setzt Zähler auf 0 zurück
+
+### Verbessert
+- Drill: "Musste nachdenken"-Limit gilt für alle Karten gleichermassen (bekannte und neue)
+- Drill: drill_too_hard-Reset (lazy) jetzt auch beim Laden des Pools berücksichtigt — Karten die gestern zu schwer waren erscheinen heute wieder
+- Drill: Abschluss zeigt "Musste nachdenken" in orange (statt rot) passend zum Button
+
+### Behoben
+- Drill: config-Konstante `DRILL_ACTIVE_CARDS` entfernt (war für 3-Karten-Modus, nicht mehr nötig)
+
+---
+
+## [0.5.0] - 2026-06-28
+
+### Neu
+- Warnung beim Verlassen einer aktiven Leitner- oder Drill-Session: Klick auf beliebigen Link zeigt Bestätigungs-Dialog ("Session wird beendet") mit Abbrechen-Option
+- Breadcrumb-Navigation auf allen Seiten (inkl. Startseite): zeigt immer den vollständigen Pfad zur aktuellen Seite (z.B. `Startseite > Listen > Spanisch > Importieren`)
+- Breadcrumb steht in eigenem Container — Position ist auf allen Seiten identisch, unabhängig von der Inhaltsbreite
+- Mathe-Generator von Startseite nach "Meine Listen" (lists.php) verschoben
+
+### Verbessert
+- Redundante Zurück-Buttons und "Zur Startseite"-Links entfernt — Navigation läuft ausschliesslich über Breadcrumbs
+- Startseite: Button "Meine Listen" (war "Verwalten") — Bezeichnung entspricht jetzt der Zielseite
+- Import: Duplikat-Prüfung listenübergreifend — alle eigenen Karten werden verglichen, mit Wahl ob Duplikate importiert oder übersprungen werden
+- Import: Duplikat-Vergleich ignoriert HTML-Tags in DB-Werten (strip_tags vor normalize) — Export→Import Roundtrip erkennt Duplikate korrekt
+
+### Behoben
+- Import: Export reimportieren schlug mit 0 importierten Karten fehl, weil Duplikate in anderen Listen die Prüfung blockierten
+
+---
+
 ## [0.4.0] - 2026-06-28
 
 ### Neu

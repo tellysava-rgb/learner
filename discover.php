@@ -125,12 +125,11 @@ if ($preview_list_id) {
     </div>
 </nav>
 
-<div class="container mt-4" style="max-width:900px;">
+<div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Entdecken', '']]) ?></div>
 
-    <div class="d-flex align-items-center gap-3 mb-4">
-        <a href="home.php" class="btn btn-sm btn-outline-secondary">← Startseite</a>
-        <h1 class="h4 mb-0">Öffentliche Listen entdecken</h1>
-    </div>
+<div class="container mt-2" style="max-width:900px;">
+
+    <h1 class="h4 mb-4">Öffentliche Listen entdecken</h1>
 
     <?php if ($error): ?>
         <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>

@@ -130,11 +130,13 @@ if ($edit_id) {
     </div>
 </nav>
 
-<div class="container mt-4" style="max-width:800px;">
+<div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Meine Listen', '']]) ?></div>
+
+<div class="container mt-2" style="max-width:800px;">
 
     <div class="d-flex align-items-center gap-3 mb-4">
-        <a href="home.php" class="btn btn-sm btn-outline-secondary">← Startseite</a>
-        <h1 class="h4 mb-0">Meine Listen</h1>
+        <h1 class="h4 mb-0 me-auto">Meine Listen</h1>
+        <a href="math.php" class="btn btn-sm btn-outline-secondary">Mathe-Generator</a>
     </div>
 
     <?php if ($error): ?>

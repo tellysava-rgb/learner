@@ -122,12 +122,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'gener
     </div>
 </nav>
 
-<div class="container mt-4" style="max-width:600px;">
+<div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Meine Listen', 'lists.php'], ['Mathe-Generator', '']]) ?></div>
 
-    <div class="d-flex align-items-center gap-3 mb-4">
-        <a href="home.php" class="btn btn-sm btn-outline-secondary">← Startseite</a>
-        <h1 class="h4 mb-0">Mathe-Generator</h1>
-    </div>
+<div class="container mt-2" style="max-width:600px;">
+
+    <h1 class="h4 mb-4">Mathe-Generator</h1>
 
     <?php if ($error): ?>
         <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
@@ -135,7 +134,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'gener
     <?php if ($success): ?>
         <div class="alert alert-success">
             <?= htmlspecialchars($success) ?>
-            <br><a href="home.php">Zur Startseite</a> um zu lernen.
         </div>
     <?php endif; ?>
 

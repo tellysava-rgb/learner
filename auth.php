@@ -66,3 +66,18 @@ function logout(): void {
     header('Location: index.php');
     exit;
 }
+
+// Breadcrumb-Navigation rendern: [['Label', 'url'], ...] — letztes Element ist immer aktiv (kein Link)
+function breadcrumb(array $items): string {
+    $html = '<nav aria-label="breadcrumb" class="mb-3"><ol class="breadcrumb">';
+    $last = count($items) - 1;
+    foreach ($items as $i => [$label, $url]) {
+        if ($i === $last) {
+            $html .= '<li class="breadcrumb-item active" aria-current="page">' . htmlspecialchars($label) . '</li>';
+        } else {
+            $html .= '<li class="breadcrumb-item"><a href="' . htmlspecialchars($url) . '">' . htmlspecialchars($label) . '</a></li>';
+        }
+    }
+    $html .= '</ol></nav>';
+    return $html;
+}

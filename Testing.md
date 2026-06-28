@@ -5,46 +5,67 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 
 ---
 
-## 1. Login / DB _(v0.1.0)_
+## 1. Login / DB 
 
 
 ---
 
-## 2. Übersicht _(v0.1.0)_
+## 2. Navigation _(v0.5.0)_
+
+[ ] lists.php: Breadcrumb zeigt "Startseite > Meine Listen". _(v0.5.0)_
+[ ] edit.php: Breadcrumb zeigt "Startseite > Meine Listen > [Listenname]". _(v0.5.0)_
+[ ] import.php: Breadcrumb zeigt "Startseite > Meine Listen > [Listenname] > Importieren". _(v0.5.0)_
+[ ] stats.php: Breadcrumb zeigt "Startseite > Statistik". _(v0.5.0)_
+[ ] math.php: Breadcrumb zeigt "Startseite > Meine Listen > Mathe-Generator". _(v0.5.0)_
+[ ] discover.php: Breadcrumb zeigt "Startseite > Entdecken". _(v0.5.0)_
+[ ] learn.php Setup: Breadcrumb zeigt "Startseite > Leitner". _(v0.5.0)_
+[ ] learn.php aktive Session: Breadcrumb zeigt "Startseite > Leitner". _(v0.5.0)_
+[ ] learn.php Zusammenfassung: Breadcrumb zeigt "Startseite > Leitner". _(v0.5.0)_
+[ ] drill.php Setup/Session/Zusammenfassung: Breadcrumb zeigt "Startseite > Drill". _(v0.5.0)_
+[ ] "Startseite"-Link in Breadcrumb führt zu home.php. _(v0.5.0)_
+[ ] Letzte Stufe in Breadcrumb ist nicht anklickbar (aktive Seite). _(v0.5.0)_
+[ ] Breadcrumb erscheint auf home.php als "Startseite" (nicht verlinkt). _(v0.5.0)_
+[ ] Breadcrumb steht auf allen Seiten an derselben horizontalen Position. _(v0.5.0)_
+[ ] Startseite: Button "Meine Listen" führt zu lists.php (kein "Verwalten" mehr). _(v0.5.0)_
+[ ] Startseite: kein "Mathe-Generator"-Button sichtbar. _(v0.5.0)_
+[ ] lists.php: "Mathe-Generator"-Button rechts oben sichtbar, führt zu math.php. _(v0.5.0)_
+
+---
+
+## 4. Übersicht 
 
 
 ---
 
-## 3. Listen (Import / Export / Bearbeiten)
+## 5. Listen (Import / Export / Bearbeiten)
 
-### Listen verwalten _(v0.1.0)_
-
-
-### Karten bearbeiten _(v0.1.0)_
+### Listen verwalten 
 
 
-### Import _(v0.1.0)_
+### Karten bearbeiten 
 
 
-### Export _(v0.1.0)_
+### Import 
+
+[ ] Import: Karten die in einer anderen Liste existieren, werden als Duplikate erkannt. _(v0.5.0)_
+[ ] Import: Duplikate überspringen → Karten werden nicht importiert. _(v0.5.0)_
+[ ] Import: Duplikate trotzdem importieren → alle Karten werden importiert. _(v0.5.0)_
+[ ] Import: Export reimportieren (gleiche Liste) → alle Karten als Duplikate erkannt. _(v0.5.0)_
+
+### Export 
 
 
 
-### Entdecken _(v0.1.0)_
+### Entdecken 
 
 
-### Mathe-Generator _(v0.1.0)_
+### Mathe-Generator 
 
 [ ] Mathe-Generator: Multiplikationsdecks existiert bereits → beim Erstellen eines zweiten erscheint Warnung mit Checkbox. _(v0.4.0)_
-[ ] Checkbox anhaken → zweites Multiplikationsdeck wird erstellt (unabhängig vom Namen). _(v0.4.0)_
-[ ] Gleiches für Division: zweites Divisionsdeck erfordert Bestätigung. _(v0.4.0)_
-[ ] Formularwerte (Typ, Von, Bis, Name) bleiben bei Warnung erhalten. _(v0.4.0)_
 [ ] Erstes Multiplikationsdeck → kein Warning, direkte Erstellung. _(v0.4.0)_
 
 ### Listen verwalten (PRG) _(v0.4.0)_
 
-[ ] Liste umbenennen → nach Speichern verschwindet das Editierformular. _(v0.4.0)_
-[ ] Erfolgs-Flash erscheint nach Umbenennen (PRG). _(v0.4.0)_
 
 ### Karten bearbeiten (PRG) _(v0.4.0)_
 
@@ -62,18 +83,13 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 
 ---
 
-## 4. Leitner
+## 6. Leitner
 
-### Setup _(v0.1.0)_
+### Setup 
 
-[ ] Setup-Seite zeigt "← Startseite"-Button. _(v0.4.0)_
-[ ] Zurück-Button führt zur Startseite ohne Session zu beeinflussen. _(v0.4.0)_
+[ ] Setup-Seite: Breadcrumb "Startseite > Leitner" sichtbar, "Startseite"-Link führt zu home.php ohne Session zu starten. _(v0.5.0)_
 
 ### Setup — Richtungs-Labels _(v0.2.0)_
-
-[ ] Setup mit vorausgewählter Liste: Richtungs-Labels zeigen echte Sprachnamen (z.B. "Deutsch → Englisch"), nicht "A → B".
-[ ] `learn.php` direkt ohne `list_id` aufrufen → Labels zeigen "A → B" bis eine Liste gewählt wird, dann aktualisieren sie sich per JS.
-[ ] Andere Liste wählen → Labels passen sich sofort an (kein Seitenneuladen).
 
 ### Karten-Design _(v0.2.0)_
 
@@ -83,46 +99,77 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 
 [ ] Funktioniert per Finger auf dem iPhone (Touch-Event).
 
-### Lernlogik _(v0.1.0)_
+### Session verlassen _(v0.5.0)_
+
+[ ] Während aktiver Session: Klick auf "Startseite" im Breadcrumb → Bestätigungsdialog erscheint. _(v0.5.0)_
+[ ] Während aktiver Session: Klick auf App-Logo in Navbar → Bestätigungsdialog erscheint. _(v0.5.0)_
+[ ] Während aktiver Session: Klick auf "Session abbrechen" → Bestätigungsdialog erscheint. _(v0.5.0)_
+[ ] Setup- und Zusammenfassungsseite (kein aktives Karte): kein Dialog beim Klicken. _(v0.5.0)_
+
+### Lernlogik 
 
 
-### Abschluss _(v0.1.0)_
+### Abschluss 
 
 
 ---
 
-## 5. Drill
+## 7. Drill _(v0.6.0)_
 
-### Start _(v0.1.0)_
+### Start _(v0.6.0)_
 
+[ ] Drill startet direkt aus Startseite (list_id in URL) — keine Konfigurationsseite. _(v0.6.0)_
+[ ] Keine geeigneten Karten → Fehlermeldung, Weiterleitung zur Startseite. _(v0.6.0)_
 
-### Timer _(v0.2.0)_
+### Einzelkarten-Ablauf _(v0.6.0)_
 
+[ ] Karte zeigt beim Start nur Vorderseite (Frage + Sprachbezeichnung). _(v0.6.0)_
+[ ] Klick auf Karte → Flip-Animation, Rückseite (Antwort) erscheint. _(v0.6.0)_
+[ ] "Gewusst" und "Musste nachdenken" Buttons erscheinen erst nach Flip. _(v0.6.0)_
+[ ] Nach Bewertung: nächste Karte erscheint sofort (PRG-Redirect). _(v0.6.0)_
 
-### Karten-Design _(v0.2.0)_
+### Timer & Fortschritt _(v0.6.0)_
 
+[ ] Timer läuft sichtbar in der Navbar (MM:SS, rückwärts). _(v0.6.0)_
+[ ] "X gemeistert" steht neben dem Timer und zählt nach oben wenn eine Karte gemeistert wird. _(v0.6.0)_
+[ ] Nach Timer-Ablauf: aktuelle Karte kann noch fertig gespielt werden (Flip + Bewertung). _(v0.6.0)_
+[ ] Danach: Abschlussseite erscheint. _(v0.6.0)_
 
-### Alle 3 Karten gleichzeitig _(v0.2.0)_
+### Gemeistert-Logik _(v0.6.0)_
 
+[ ] Karte 3× hintereinander "Gewusst" → erscheint auf Abschlussseite als gemeistert. _(v0.6.0)_
+[ ] "Musste nachdenken" dazwischen → Zähler auf 0, Karte muss wieder 3× hintereinander korrekt. _(v0.6.0)_
+[ ] Gemeisterte Karte: drill_mastery in DB um 1 erhöht. _(v0.6.0)_
 
-### Lernlogik _(v0.1.0)_
+### "Musste nachdenken"-Limit _(v0.6.0)_
 
+[ ] 5× "Musste nachdenken" für eine Karte → Karte verschwindet aus Session (drill_too_hard = 1). _(v0.6.0)_
+[ ] drill_too_hard-Reset: Karte am nächsten Tag wieder im Pool vorhanden. _(v0.6.0)_
 
-### Abschluss _(v0.1.0)_
+### Leitner-Übergang _(v0.6.0)_
 
-[ ] Nach Timer-Ablauf und leerer Queue: Abschlussseite erscheint.
-[ ] Abschlussseite zeigt Gewusst / Musste nachdenken / Gemeistert korrekt an. _(v0.4.0)_
-[ ] "Zur Startseite"-Button führt zurück zur Übersicht.
-[ ] "Erneut starten"-Button startet sofort neue Session mit gleicher Liste. _(v0.2.0)_
+[ ] 1. Mal gemeistert (drill_mastery = 1) → leitner_box = 2, next_due_date = heute + 2. _(v0.6.0)_
+[ ] 2. Mal gemeistert (drill_mastery = 2) → leitner_box = 3, next_due_date = heute + 7. _(v0.6.0)_
+[ ] 3. Mal gemeistert (drill_mastery = 3) → leitner_box = 4, next_due_date = heute + 14. _(v0.6.0)_
+
+### Session verlassen _(v0.5.0)_
+
+[ ] Während aktiver Drill-Session: Klick auf Breadcrumb/Logo → Bestätigungsdialog erscheint. _(v0.5.0)_
+[ ] Während aktiver Drill-Session: Klick auf "Session abbrechen" → Bestätigungsdialog erscheint. _(v0.5.0)_
+[ ] Dialog "Abbrechen" → Drill läuft weiter. _(v0.5.0)_
+[ ] Dialog "Verlassen" → Navigation erfolgt. _(v0.5.0)_
+
+### Abschluss _(v0.6.0)_
+
+[ ] Abschlussseite zeigt Kacheln: Gewusst (grün) / Musste nachdenken (orange) / Gemeistert (blau). _(v0.6.0)_
+[ ] Gemeisterte Karten werden mit Wortpaar und drill_mastery-Badge (1×/2×/3×) aufgelistet. _(v0.6.0)_
+[ ] Motivationstext: "Super! Weiter so!" wenn Karten gemeistert, sonst Aufmunterungstext. _(v0.6.0)_
+[ ] "Für beste Resultate warte ein paar Stunden" Hinweis immer sichtbar. _(v0.6.0)_
+[ ] "Erneut starten"-Button startet neue Session mit gleicher Liste. _(v0.6.0)_
+
 
 ---
 
-## 6. Statistik _(v0.1.0)_
+## 8. Statistik 
 
-[ ] Statistik ohne list_id aufrufen → automatische Weiterleitung zur ersten Liste. _(v0.4.0)_
-[ ] Kein "Alle Listen"-Button sichtbar. _(v0.4.0)_
-[ ] Statistik-Seite aufrufen → Karten pro Leitner-Fach werden korrekt angezeigt.
-[ ] Lernstreak stimmt mit der tatsächlichen Lernhistorie überein.
-[ ] Drill-Fortschritt (1×, 2×, 3× gemeistert) wird pro Liste korrekt angezeigt.
-[ ] Drill-Statistik zeigt "musste nachdenken" (nicht "nicht gewusst"). _(v0.4.0)_
-[ ] Richtig/Falsch-Statistik stimmt mit den durchgeführten Sessions überein.
+

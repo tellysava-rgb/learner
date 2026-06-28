@@ -31,6 +31,21 @@
 
 ---
 
+## Navigation
+
+- Jede Seite zeigt eine **Breadcrumb-Navigation** in einem eigenen Container direkt unterhalb der Navbar — Position ist auf allen Seiten identisch, unabhängig von der Inhaltsbreite
+- Breadcrumb zeigt immer den vollständigen Pfad zur aktuellen Seite, z.B.:
+  - `Startseite > Meine Listen > Spanisch > Importieren`
+  - `Startseite > Leitner`
+  - `Startseite > Statistik`
+- Das letzte Element (aktuelle Seite) ist nicht anklickbar — alle übergeordneten Stufen sind Links
+- Breadcrumbs **ersetzen** die Zurück-Buttons — es gibt keine separaten Zurück-Buttons mehr
+- Startseite (home.php) zeigt Breadcrumb mit nur `Startseite` (nicht verlinkt)
+- Leitner und Drill: Breadcrumb zeigt immer `Startseite > Leitner` bzw. `Startseite > Drill` — unabhängig von Phase (Setup, aktive Session, Zusammenfassung)
+- **Session-Verlassen-Warnung:** Während einer aktiven Leitner- oder Drill-Session (Karte wird angezeigt) löst jeder Link-Klick einen Bestätigungsdialog aus: "Achtung: die laufende Session wird dadurch automatisch beendet" — mit "Verlassen" und "Abbrechen"
+
+---
+
 ## Startseite
 
 - Zeigt alle **eigenen Listen** der aktuellen Person (selbst erstellt oder kopiert)
@@ -39,7 +54,7 @@
 - Wahl des **Lernmodus** pro Session: Leitner oder Drill
   - **Drill:** startet sofort (keine Zwischenauswahl nötig — Liste bereits gewählt)
   - **Leitner:** kurze Konfigurationsseite (Richtung, Kartenanzahl) vor dem Start
-- Jederzeit zurück zur Startseite möglich
+- Navigation zur Startseite jederzeit über die Breadcrumb-Navigation möglich
 
 ---
 
@@ -224,9 +239,9 @@ card_progress Tabelle:
 
 ---
 
-## Lernmodus 2: Drill-Modus (Fluency / Precision Teaching)
+## Lernmodus 2: Drill-Modus (Incremental Rehearsal)
 
-Basiert auf **Precision Teaching** und **Mastery Learning**. Der Drill-Modus dient als **Eingangstor ins Leitner-System** — Karten beweisen zuerst im Drill ihre Automatizität und steigen dann progressiv ins Leitner-System ein.
+Basiert auf **Incremental Rehearsal** und **Mastery Learning**. Der Drill-Modus dient als **Eingangstor ins Leitner-System** — Karten beweisen zuerst im Drill ihre Automatizität und steigen dann progressiv ins Leitner-System ein.
 
 ### Ziel
 Automatizität — die Antwort soll nicht errechnet oder überlegt, sondern **sofort gewusst** werden.
@@ -234,45 +249,55 @@ Terminologie: "Gewusst" / "Musste nachdenken" (kein Richtig/Falsch).
 Geeignet für: Mathe-Fakten, häufig vergessene Vokabeln, neue Wörter festigen.
 
 ### Karten-Auswahl (automatisch)
-- Noch nie gedrillt → **höchste Priorität**
-- Danach sortiert nach höchster Quote "Noch nicht gewusst"
+- Karten mit `drill_mastery = 0` (noch nie gemeistert) → neue/unbekannte Karten
+- Karten mit `drill_mastery >= 1` (mindestens einmal früher gemeistert) → bekannte Karten
 - Archivierte Karten erscheinen **nicht** im Drill
 - Keine manuelle Karten-Auswahl — stattdessen ungewünschte Karten einfach archivieren
 
-### Ablauf (Hybrid / Incremental Rehearsal)
-1. **3 aktive Karten** zu Beginn der Session
-2. Alle 3 Karten werden **gleichzeitig** angezeigt (je mit Vorderseite). User tippt/klickt auf eine Karte um sie umzudrehen → Antwort erscheint → "Gewusst" oder "Musste nachdenken" wählen. Reihenfolge ist frei wählbar.
-3. Alle 3 "Gewusst" in einer Runde (fixe Phase) → **Reihenfolge intern mischen** → nochmal alle 3 gewusst nötig
-4. Alle 3 auch in der gemischten Runde "Gewusst" → **die Karte mit den meisten aktiven Runden** gilt als gemeistert (bei Gleichstand: die zuerst geladene Karte)
-5. Gemeisterte Karte verlässt die 3er-Gruppe → **neue Karte rückt nach** (immer 3 aktive Karten)
-6. Die anderen zwei Karten bleiben aktiv und werden weiter geübt
-7. Gemeisterte Karten bleiben im Drill-Pool für Folge-Sessions (zur Bestätigung)
+### Ablauf (eine Karte nach der anderen)
+1. Karte wird angezeigt (nur Vorderseite / Frage)
+2. User denkt nach, tippt/klickt auf die Karte → Karte dreht sich um (Flip-Animation)
+3. Antwort erscheint, darunter: Button **"Gewusst"** (grün) und **"Musste nachdenken"** (orange)
+4. User bewertet → nächste Karte erscheint sofort
 
-### Fehler-Behandlung ("Musste nachdenken")
-- Nur die betroffene **Karte** wird zurückgesetzt, nicht die ganze Runde
-- Nach **5× "Musste nachdenken"** in einer Session → Karte als "zu schwer für heute" markiert, neue Karte kommt rein
+### Karten-Reihenfolge (9:1-Verhältnis)
+- Bekannte Karten (`drill_mastery >= 1`) bilden einen rotierenden Pool
+- Neue/unbekannte Karten werden einzeln eingeführt: nach jeweils 9 bekannten Karten erscheint 1 neue
+- Neu eingeführte Karten wandern in den rotierenden Pool und werden ab dann gemeinsam wiederholt
+- Das Mischen passiert im Hintergrund — der User sieht nur eine Karte nach der anderen
+
+### "Gemeistert"-Definition
+Eine Karte gilt als in dieser Session gemeistert wenn sie **3× hintereinander** mit "Gewusst" beantwortet wurde. "Musste nachdenken" setzt den Zähler auf 0 zurück.
+
+### "Musste nachdenken"-Behandlung
+- Nach **5× "Musste nachdenken"** in einer Session → Karte als "zu schwer für heute" markiert (`drill_too_hard = 1`) und aus dem Pool entfernt
+- Gilt für alle Karten gleichermassen (bekannte wie neue)
+- Reset von `drill_too_hard`: lazy — beim ersten Zeigen der Karte wenn `last_drill_shown < heute`
+
+### Navbar während der Session
+- **Timer** (MM:SS, rückwärts) und **X gemeistert** werden nebeneinander angezeigt — aktualisieren sich nach jeder Kartenbewertung (PRG-Redirect)
 
 ### Session-Ende
-- Endet nach **10 Minuten** ODER wenn keine geeigneten Drill-Karten mehr verfügbar sind (nicht `archived`, nicht `drill_too_hard = true`) — was zuerst eintritt
-- Nach Timer-Ablauf wird die **aktuelle Runde noch zu Ende gespielt**
-- Danach: motivierende Abschlussmeldung mit:
-  - Anzahl Karten gemeistert in dieser Session
-  - Aktueller Drill-Fortschritt pro gemeisterter Karte (1×, 2×, 3×)
+- Endet nach **10 Minuten** — nach Ablauf wird die aktuelle Karte noch fertig gespielt (Flip + Bewertung), dann Abschluss
+- Oder früher wenn alle Karten gemeistert oder als "zu schwer" markiert wurden
+- Abschlussmeldung:
+  - Anzahl Gewusst / Musste nachdenken / Gemeistert
+  - Drill-Fortschritt pro gemeisterter Karte (1×, 2×, 3×)
   - Kurzer Motivationstext
-- Mehrere Sessions pro Tag erlaubt — nach Abschluss erscheint Hinweis: "Für beste Resultate warte ein paar Stunden bis zur nächsten Session"
+  - Hinweis: "Für beste Resultate warte ein paar Stunden bis zur nächsten Session"
 
 ### Progressiver Übergang ins Leitner-System
-Gemeisterte Drill-Karten steigen je nach Anzahl gemeisterter Sessions ins Leitner ein:
+Gemeisterte Drill-Karten steigen je nach `drill_mastery` ins Leitner ein:
 
-| Drill-Sessions gemeistert | Einstieg Leitner |
+| drill_mastery (nach Session) | Einstieg Leitner |
 |---|---|
-| 1× gemeistert | Fach 2 (alle 2 Tage) |
-| 2× gemeistert | Fach 3 (alle 7 Tage) |
-| 3× gemeistert | Fach 4 (alle 14 Tage) |
+| 1× gemeistert | Fach 2, next_due_date = heute + 2 |
+| 2× gemeistert | Fach 3, next_due_date = heute + 7 |
+| 3× gemeistert | Fach 4, next_due_date = heute + 14 |
 
 Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 
-- Drill-Fortschritt wird **separat** gespeichert
+- Drill-Fortschritt (`drill_mastery`) wird **separat** gespeichert
 - Leitner-Fächer werden nur durch den obigen Übergang beeinflusst, nie durch Drill-Fehler
 
 ### Gilt für
@@ -283,6 +308,7 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 
 ## Mathe-Generator
 
+- Erreichbar über **Meine Listen** (lists.php) — nicht mehr direkt von der Startseite
 - Einmaliger Generator für **Multiplikationstabellen** und **Divisionstabellen** (1×1 bis 10×10, konfigurierbar)
 - **Duplikat-Prüfung (typ-basiert):** Existiert bereits eine Liste desselben Typs (Multiplikation oder Division), erscheint eine Warnung mit Checkbox-Bestätigung — erst mit Bestätigung wird ein zweites Deck erstellt. Listenname spielt dabei keine Rolle.
 - Multiplikation und Division werden als **separate Decks** generiert:
@@ -410,7 +436,7 @@ Neue Versionen werden via Webhook-Deploy eingespielt:
   index.php           ← Login (globales Passwort)
   home.php            ← Personenwahl / Startseite / Dashboard
   learn.php           ← Leitner-Session
-  drill.php           ← Drill-Modus (3 Karten, ~10 Min.)
+  drill.php           ← Drill-Modus (Incremental Rehearsal, ~10 Min.)
   lists.php           ← Listen verwalten (erstellen, umbenennen, löschen)
   edit.php            ← Karte hinzufügen / bearbeiten / löschen
   discover.php        ← Öffentliche Listen entdecken & kopieren

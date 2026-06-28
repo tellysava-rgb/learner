@@ -409,7 +409,9 @@ render_setup:
     </div>
 </nav>
 
-<div class="container mt-4" style="max-width:700px;">
+<div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Leitner', '']]) ?></div>
+
+<div class="container mt-2" style="max-width:700px;">
 
 <?php if ($done_data !== null): ?>
 <!-- ==================== SESSION-ZUSAMMENFASSUNG ==================== -->
@@ -458,12 +460,11 @@ render_setup:
         <?php endif; ?>
     </div>
 
-    <a href="home.php" class="btn btn-primary me-2">Zur Startseite</a>
     <?php
     $repeat_ids = $done_data['list_ids'] ?? [];
     $repeat_url = count($repeat_ids) === 1 ? 'learn.php?list_id=' . $repeat_ids[0] : 'learn.php';
     ?>
-    <a href="<?= $repeat_url ?>" class="btn btn-outline-primary">Neue Session</a>
+    <a href="<?= $repeat_url ?>" class="btn btn-primary">Neue Session</a>
 </div>
 
 <?php elseif ($state && $current): ?>
@@ -544,10 +545,7 @@ $is_retry  = isset($state['answered'][$current['id']]);
 
 <?php else: ?>
 <!-- ==================== SETUP ==================== -->
-<div class="d-flex align-items-center gap-3 mb-4">
-    <a href="home.php" class="btn btn-sm btn-outline-secondary">← Startseite</a>
-    <h1 class="h4 mb-0">Leitner-Session starten</h1>
-</div>
+<h1 class="h4 mb-4">Leitner-Session starten</h1>
 
 <?php if ($setup_error): ?>
 <div class="alert alert-danger"><?= htmlspecialchars($setup_error) ?></div>
@@ -626,8 +624,46 @@ $lang_b = $preset_list ? htmlspecialchars($preset_list['language_b']) : 'B';
 <?php endif; ?>
 </div>
 
+<?php if ($state && $current): ?>
+<div class="modal fade" id="leaveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">Session verlassen?</h5>
+            </div>
+            <div class="modal-body">
+                Achtung: die laufende Session wird dadurch automatisch beendet.
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-danger" id="confirmLeave">Verlassen</button>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+<?php if ($state && $current): ?>
+(function () {
+    var modal = new bootstrap.Modal(document.getElementById('leaveModal'));
+    var target = null;
+    document.querySelectorAll('a[href]').forEach(function (link) {
+        var href = link.getAttribute('href');
+        if (!href || href === '#' || href.startsWith('javascript:')) return;
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            target = href;
+            modal.show();
+        });
+    });
+    document.getElementById('confirmLeave').addEventListener('click', function () {
+        if (target) window.location.href = target;
+    });
+})();
+<?php endif; ?>
+
 function flipCard() {
     document.getElementById('learn-answer').style.display = 'block';
     document.getElementById('learn-tap-hint').style.display = 'none';

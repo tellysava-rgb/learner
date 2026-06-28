@@ -131,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['stage']) && $_GET['stag
 
     $parsed_rows = $import_data['rows'];
 
-    // Bestehende Karten dieser Person in dieser Liste laden (für Duplikat-Check)
+    // Bestehende Karten aller Listen dieser Person laden (für listenübergreifenden Duplikat-Check)
     $stmt = $pdo->prepare("
         SELECT c.id, c.word_a, c.word_b, l.name AS list_name,
                COALESCE(cp.status, 'queued') AS status
@@ -146,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['stage']) && $_GET['stag
     // Normalisierte Map für Duplikat-Check
     $existing_map = [];
     foreach ($existing as $ex) {
-        $key = normalize($ex['word_a']) . '|||' . normalize($ex['word_b']);
+        $key = normalize(strip_tags($ex['word_a'])) . '|||' . normalize(strip_tags($ex['word_b']));
         $existing_map[$key][] = $ex;
     }
 
@@ -189,7 +189,7 @@ if ($import_stage === 'confirm' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $dup_exceptions  = array_map('intval', (array)($_POST['dup_exceptions'] ?? []));
         $archived_decisions = $_POST['archived'] ?? [];          // [index => 'keep'|'reactivate'|'new']
 
-        // Bestehende Karten neu laden (Duplikat-Check wiederholen)
+        // Bestehende Karten aller Listen dieser Person laden (Duplikat-Check wiederholen)
         $stmt = $pdo->prepare("
             SELECT c.id, c.word_a, c.word_b,
                    COALESCE(cp.status, 'queued') AS status
@@ -203,7 +203,7 @@ if ($import_stage === 'confirm' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $existing_map = [];
         foreach ($existing as $ex) {
-            $key = normalize($ex['word_a']) . '|||' . normalize($ex['word_b']);
+            $key = normalize(strip_tags($ex['word_a'])) . '|||' . normalize(strip_tags($ex['word_b']));
             $existing_map[$key][] = $ex;
         }
 
@@ -303,12 +303,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
     </div>
 </nav>
 
-<div class="container mt-4" style="max-width:860px;">
+<div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Meine Listen', 'lists.php'], [$list['name'], 'edit.php?list_id=' . $list_id], ['Importieren', '']]) ?></div>
 
-    <div class="d-flex align-items-center gap-3 mb-4">
-        <a href="edit.php?list_id=<?= $list_id ?>" class="btn btn-sm btn-outline-secondary">← Karten</a>
-        <h1 class="h4 mb-0">CSV Import — <?= htmlspecialchars($list['name']) ?></h1>
-    </div>
+<div class="container mt-2" style="max-width:860px;">
+
+    <h1 class="h4 mb-4">CSV Import — <?= htmlspecialchars($list['name']) ?></h1>
 
     <?php if ($error): ?>
         <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>

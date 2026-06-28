@@ -245,7 +245,9 @@ $streak = ($person_id) ? get_streak($pdo, $person_id) : 0;
     </div>
 </nav>
 
-<div class="container mt-4">
+<div class="container mt-3"><?= breadcrumb([['Startseite', '']]) ?></div>
+
+<div class="container mt-2">
 
 <?php if ($error): ?>
     <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
@@ -304,9 +306,8 @@ $streak = ($person_id) ? get_streak($pdo, $person_id) : 0;
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="h5 mb-0">Meine Listen</h2>
             <div class="d-flex gap-2">
-                <a href="lists.php" class="btn btn-sm btn-outline-primary">Verwalten</a>
+                <a href="lists.php" class="btn btn-sm btn-outline-primary">Meine Listen</a>
                 <a href="stats.php" class="btn btn-sm btn-outline-secondary">Statistik</a>
-                <a href="math.php" class="btn btn-sm btn-outline-secondary">Mathe-Generator</a>
             </div>
         </div>
 

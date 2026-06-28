@@ -219,10 +219,11 @@ if ($filter_list_id) {
     </div>
 </nav>
 
-<div class="container mt-4" style="max-width:860px;">
+<div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Statistik', '']]) ?></div>
+
+<div class="container mt-2" style="max-width:860px;">
 
     <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
-        <a href="home.php" class="btn btn-sm btn-outline-secondary">← Startseite</a>
         <h1 class="h4 mb-0">Statistik</h1>
         <?php if ($streak > 0): ?>
         <span class="badge bg-warning text-dark fs-6">🔥 <?= $streak ?> Tag<?= $streak > 1 ? 'e' : '' ?> Streak</span>

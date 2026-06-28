@@ -12,20 +12,17 @@ if (($_POST['action'] ?? '') === 'logout') {
     logout();
 }
 
-// Session abbrechen → Startseite
-if (($_GET['action'] ?? '') === 'setup') {
+// Session abbrechen
+if (($_GET['action'] ?? '') === 'abort') {
     unset($_SESSION['drill']);
     header('Location: home.php');
     exit;
 }
 
-// -------------------------------------------------------
-// POST: Drill-Session starten
-// -------------------------------------------------------
+// POST: Session starten (von home.php Formular)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin') {
     csrf_validate();
     unset($_SESSION['drill']);
-
     $list_ids = array_map('intval', array_filter((array)($_POST['list_ids'] ?? [])));
     if (!$list_ids) {
         $_SESSION['flash_error'] = 'Bitte mindestens eine Liste auswählen.';
@@ -35,79 +32,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin
     start_drill_session($pdo, $person_id, $list_ids);
 }
 
-// -------------------------------------------------------
-// GET: Drill direkt aus Startseite starten
-// -------------------------------------------------------
+// GET: Direkt aus Startseite starten
 if (!isset($_SESSION['drill']) && isset($_GET['list_id']) && !isset($_GET['done'])) {
-    $list_ids = [intval($_GET['list_id'])];
-    start_drill_session($pdo, $person_id, $list_ids);
+    start_drill_session($pdo, $person_id, [intval($_GET['list_id'])]);
 }
 
-// -------------------------------------------------------
 // POST: Karte beantworten
-// -------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answer' && isset($_SESSION['drill'])) {
     csrf_validate();
 
     $state   = &$_SESSION['drill'];
     $card_id = intval($_POST['card_id'] ?? 0);
-    $result  = $_POST['result'] ?? ''; // 'known' | 'unknown'
-    $today   = $state['today'];
-    $session_id = $state['session_id'];
+    $result  = $_POST['result'] ?? '';
 
-    if (!in_array($result, ['known', 'unknown'])) {
+    if (!in_array($result, ['known', 'unknown']) || $card_id !== $state['current_card_id']) {
         header('Location: drill.php');
         exit;
     }
 
-    // drill_too_hard lazy reset
-    lazy_reset_drill_too_hard($pdo, $person_id, $card_id, $today);
-
     // Event loggen
     $stmt = $pdo->prepare("INSERT INTO learning_events (session_id, person_id, card_id, result, learn_date) VALUES (?,?,?,?,?)");
-    $stmt->execute([$session_id, $person_id, $card_id, $result, $today]);
-
-    // Karte im active-Array finden
-    $card_index = array_search($card_id, array_column($state['active'], 'card_id'));
+    $stmt->execute([$state['session_id'], $person_id, $card_id, $result, $state['today']]);
 
     if ($result === 'known') {
         $state['stats']['known']++;
-        $state['active'][$card_index]['correct_count']++;
-        $state['active'][$card_index]['rounds_participated']++;
+        $state['session_correct'][$card_id] = ($state['session_correct'][$card_id] ?? 0) + 1;
 
-        advance_drill_queue($pdo, $state, $person_id, $today, $session_id, $card_id);
-
+        if ($state['session_correct'][$card_id] >= DRILL_MASTERY_THRESHOLD) {
+            master_card($pdo, $state, $person_id, $card_id, $state['today']);
+        }
     } else {
         $state['stats']['unknown']++;
-        $state['active'][$card_index]['unknown_count']++;
-        $state['active'][$card_index]['correct_count'] = 0;
-        $state['active'][$card_index]['rounds_participated']++;
+        $state['session_correct'][$card_id] = 0;
+        $state['session_unknown'][$card_id] = ($state['session_unknown'][$card_id] ?? 0) + 1;
 
-        $threshold = DRILL_TOO_HARD_LIMIT;
-        if ($state['active'][$card_index]['unknown_count'] >= $threshold) {
-            mark_too_hard($pdo, $state, $person_id, $card_id, $card_index, $today);
-        } else {
-            $pos = array_search($card_id, $state['queue']);
-            if ($pos !== false) {
-                array_splice($state['queue'], $pos, 1);
-            }
-            $state['queue'][] = $card_id;
+        if ($state['session_unknown'][$card_id] >= DRILL_TOO_HARD_LIMIT) {
+            mark_too_hard_card($pdo, $state, $person_id, $card_id);
         }
     }
 
-    // Session-Ende prüfen
-    $elapsed = time() - $state['started_at'];
-    $no_more_cards = empty($state['queue']) && empty($state['pool']);
+    // Session-Ende: Timer abgelaufen oder keine Karten mehr
+    $elapsed  = time() - $state['started_at'];
+    $no_cards = empty($state['pool_known']) && empty($state['pool_new']);
 
-    if ($elapsed >= DRILL_SESSION_SECONDS && empty($state['queue'])) {
-        finish_drill_session($pdo, $state, $person_id);
-        header('Location: drill.php?done=1');
-        exit;
-    } elseif ($no_more_cards) {
+    if ($elapsed >= DRILL_SESSION_SECONDS || $no_cards) {
         finish_drill_session($pdo, $state, $person_id);
         header('Location: drill.php?done=1');
         exit;
     }
+
+    $next = next_drill_card($state);
+    if ($next === null) {
+        finish_drill_session($pdo, $state, $person_id);
+        header('Location: drill.php?done=1');
+        exit;
+    }
+    $state['current_card_id'] = $next;
+    lazy_reset_drill_too_hard($pdo, $person_id, $next, $state['today']);
 
     header('Location: drill.php');
     exit;
@@ -118,7 +99,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
 // -------------------------------------------------------
 
 function start_drill_session(PDO $pdo, int $person_id, array $list_ids): void {
-    // Besitzer prüfen
     $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
     $stmt = $pdo->prepare("SELECT id FROM lists WHERE id IN ($placeholders) AND person_id = ?");
     $stmt->execute(array_merge($list_ids, [$person_id]));
@@ -131,136 +111,153 @@ function start_drill_session(PDO $pdo, int $person_id, array $list_ids): void {
     }
 
     $today = today();
-    $pool  = load_drill_pool($pdo, $person_id, $valid_ids, $today);
-    shuffle($pool);
+    ['known' => $pool_known, 'new' => $pool_new] = load_drill_pool($pdo, $person_id, $valid_ids, $today);
 
-    $active_cards = array_splice($pool, 0, DRILL_ACTIVE_CARDS);
-    if (!$active_cards) {
+    if (!$pool_known && !$pool_new) {
         $_SESSION['flash_error'] = 'Keine geeigneten Karten für Drill in dieser Liste.';
         header('Location: home.php');
         exit;
     }
 
-    // Learning-Session anlegen
     $stmt = $pdo->prepare("INSERT INTO learning_sessions (person_id, mode, started_at) VALUES (?,?,NOW())");
     $stmt->execute([$person_id, 'drill']);
     $session_id = (int) $pdo->lastInsertId();
 
     $ins_sl = $pdo->prepare("INSERT INTO session_lists (session_id, list_id) VALUES (?,?)");
+    $upd    = $pdo->prepare("UPDATE lists SET last_used_at = NOW() WHERE id = ?");
     foreach ($valid_ids as $lid) {
         $ins_sl->execute([$session_id, $lid]);
-    }
-    $upd = $pdo->prepare("UPDATE lists SET last_used_at = NOW() WHERE id = ?");
-    foreach ($valid_ids as $lid) {
         $upd->execute([$lid]);
     }
 
-    $active = [];
-    foreach ($active_cards as $cid) {
-        $active[] = build_card_state($cid);
-    }
-
-    $_SESSION['drill'] = [
-        'session_id'       => $session_id,
-        'list_ids'         => $valid_ids,
-        'pool'             => $pool,
-        'active'           => $active,
-        'queue'            => array_column($active, 'card_id'),
-        'phase'            => 'fixed',
-        'too_hard'         => [],
-        'mastered_session' => [],
-        'stats'            => ['known' => 0, 'unknown' => 0, 'mastered' => 0],
-        'started_at'       => time(),
-        'today'            => $today,
+    $state = [
+        'session_id'      => $session_id,
+        'list_ids'        => $valid_ids,
+        'pool_known'      => $pool_known,
+        'pool_new'        => $pool_new,
+        'cycle_pos'       => 0,
+        'current_card_id' => null,
+        'session_correct' => [],
+        'session_unknown' => [],
+        'mastered_cards'  => [],
+        'too_hard'        => [],
+        'stats'           => ['known' => 0, 'unknown' => 0, 'mastered' => 0],
+        'started_at'      => time(),
+        'today'           => $today,
     ];
+
+    $first = next_drill_card($state);
+    if ($first === null) {
+        $_SESSION['flash_error'] = 'Keine geeigneten Karten für Drill in dieser Liste.';
+        header('Location: home.php');
+        exit;
+    }
+    $state['current_card_id'] = $first;
+    $_SESSION['drill'] = $state;
+
+    lazy_reset_drill_too_hard($pdo, $person_id, $first, $today);
 
     header('Location: drill.php');
     exit;
 }
 
-function build_card_state(int $card_id): array {
-    return [
-        'card_id'             => $card_id,
-        'rounds_participated' => 0,
-        'correct_count'       => 0,
-        'unknown_count'       => 0,
-    ];
-}
-
 function load_drill_pool(PDO $pdo, int $person_id, array $list_ids, string $today): array {
     $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
-    $params = array_merge([$person_id], $list_ids);
+    $params = array_merge([$person_id], $list_ids, [$today]);
 
     $stmt = $pdo->prepare("
-        SELECT cp.card_id,
-               cp.drill_too_hard,
-               cp.last_drill_shown,
-               cp.status,
-               COALESCE(
-                 (SELECT COUNT(*) FROM learning_events le WHERE le.card_id = cp.card_id AND le.person_id = cp.person_id AND le.result = 'unknown'),
-                 0
-               ) AS unknown_count,
-               COALESCE(
-                 (SELECT COUNT(*) FROM learning_events le WHERE le.card_id = cp.card_id AND le.person_id = cp.person_id AND le.result IN ('known','unknown')),
-                 0
-               ) AS total_count
+        SELECT cp.card_id, cp.drill_mastery
         FROM card_progress cp
         JOIN cards c ON c.id = cp.card_id
         WHERE cp.person_id = ?
           AND c.list_id IN ($placeholders)
           AND cp.status != 'archived'
-          AND cp.drill_too_hard = 0
-        ORDER BY
-          cp.last_drill_shown IS NOT NULL,
-          CASE WHEN total_count > 0 THEN unknown_count / total_count ELSE 0 END DESC,
-          RAND()
-        LIMIT 50
+          AND (cp.drill_too_hard = 0
+               OR (cp.drill_too_hard = 1 AND (cp.last_drill_shown IS NULL OR cp.last_drill_shown < ?)))
+        ORDER BY RAND()
     ");
     $stmt->execute($params);
-    $primary = array_column($stmt->fetchAll(), 'card_id');
 
-    if (count($primary) >= DRILL_ACTIVE_CARDS) return $primary;
-
-    // Auffüllen: queued mit drill_too_hard=1 → active mit drill_too_hard=1
-    $needed = DRILL_ACTIVE_CARDS - count($primary);
-    $exclude = $primary;
-
-    foreach (['queued', 'active'] as $fallback_status) {
-        if ($needed <= 0) break;
-        $ex_placeholders = $exclude ? implode(',', array_fill(0, count($exclude), '?')) : 'NULL';
-
-        if ($fallback_status === 'active') {
-            $stmt = $pdo->prepare("
-                SELECT cp.card_id FROM card_progress cp
-                JOIN cards c ON c.id = cp.card_id
-                WHERE cp.person_id = ? AND c.list_id IN ($placeholders)
-                  AND cp.status = 'active' AND cp.drill_too_hard = 1
-                " . ($exclude ? "AND cp.card_id NOT IN ($ex_placeholders)" : "") . "
-                ORDER BY RAND()
-                LIMIT {$needed}
-            ");
-            $fallback_params = array_merge([$person_id], $list_ids, $exclude);
+    $known = [];
+    $new   = [];
+    foreach ($stmt->fetchAll() as $row) {
+        if ((int)$row['drill_mastery'] >= 1) {
+            $known[] = (int)$row['card_id'];
         } else {
-            $stmt = $pdo->prepare("
-                SELECT cp.card_id FROM card_progress cp
-                JOIN cards c ON c.id = cp.card_id
-                WHERE cp.person_id = ? AND c.list_id IN ($placeholders)
-                  AND cp.status = ?
-                " . ($exclude ? "AND cp.card_id NOT IN ($ex_placeholders)" : "") . "
-                ORDER BY RAND()
-                LIMIT {$needed}
-            ");
-            $fallback_params = array_merge([$person_id], $list_ids, [$fallback_status], $exclude);
+            $new[] = (int)$row['card_id'];
         }
+    }
+    return ['known' => $known, 'new' => $new];
+}
 
-        $stmt->execute($fallback_params);
-        $extra = array_column($stmt->fetchAll(), 'card_id');
-        $primary = array_merge($primary, $extra);
-        $exclude = $primary;
-        $needed -= count($extra);
+// Wählt die nächste Karte nach dem 9:1-Prinzip:
+// 9 Karten aus dem Known-Pool (rotierend), dann 1 aus dem New-Pool.
+// Neu eingeführte Karten wandern in den Known-Pool und rotieren mit.
+function next_drill_card(array &$state): ?int {
+    $ratio = DRILL_KNOWN_RATIO;
+
+    $has_known = !empty($state['pool_known']);
+    $has_new   = !empty($state['pool_new']);
+
+    if (!$has_known && !$has_new) return null;
+
+    $pick_new = ($state['cycle_pos'] >= $ratio) || !$has_known;
+
+    if ($pick_new && $has_new) {
+        $state['cycle_pos'] = 0;
+        $id = array_shift($state['pool_new']);
+        $state['pool_known'][] = $id;
+        return $id;
     }
 
-    return $primary;
+    if ($has_known) {
+        $state['cycle_pos']++;
+        $id = array_shift($state['pool_known']);
+        $state['pool_known'][] = $id;
+        return $id;
+    }
+
+    return null;
+}
+
+function master_card(PDO $pdo, array &$state, int $person_id, int $card_id, string $today): void {
+    $state['mastered_cards'][] = $card_id;
+    $state['stats']['mastered']++;
+    remove_from_pools($state, $card_id);
+
+    $stmt = $pdo->prepare("SELECT drill_mastery FROM card_progress WHERE person_id = ? AND card_id = ?");
+    $stmt->execute([$person_id, $card_id]);
+    $cp = $stmt->fetch();
+    $new_mastery = (int)($cp['drill_mastery'] ?? 0) + 1;
+
+    $leitner_transitions = [1 => 2, 2 => 3, 3 => 4];
+    $target_box = $leitner_transitions[$new_mastery] ?? null;
+    $intervals  = LEITNER_INTERVALS;
+
+    if ($target_box) {
+        $due = date('Y-m-d', strtotime($today . ' +' . $intervals[$target_box] . ' days'));
+        $stmt = $pdo->prepare("
+            UPDATE card_progress
+            SET drill_mastery = ?, leitner_box = ?, next_due_date = ?, status = 'active'
+            WHERE person_id = ? AND card_id = ?
+        ");
+        $stmt->execute([$new_mastery, $target_box, $due, $person_id, $card_id]);
+    } else {
+        $stmt = $pdo->prepare("UPDATE card_progress SET drill_mastery = ? WHERE person_id = ? AND card_id = ?");
+        $stmt->execute([$new_mastery, $person_id, $card_id]);
+    }
+}
+
+function mark_too_hard_card(PDO $pdo, array &$state, int $person_id, int $card_id): void {
+    $stmt = $pdo->prepare("UPDATE card_progress SET drill_too_hard = 1 WHERE person_id = ? AND card_id = ?");
+    $stmt->execute([$person_id, $card_id]);
+    $state['too_hard'][] = $card_id;
+    remove_from_pools($state, $card_id);
+}
+
+function remove_from_pools(array &$state, int $card_id): void {
+    $state['pool_known'] = array_values(array_filter($state['pool_known'], fn($id) => $id !== $card_id));
+    $state['pool_new']   = array_values(array_filter($state['pool_new'],   fn($id) => $id !== $card_id));
 }
 
 function lazy_reset_drill_too_hard(PDO $pdo, int $person_id, int $card_id, string $today): void {
@@ -276,128 +273,18 @@ function lazy_reset_drill_too_hard(PDO $pdo, int $person_id, int $card_id, strin
     }
 }
 
-function advance_drill_queue(PDO $pdo, array &$state, int $person_id, string $today, int $session_id, int $card_id): void {
-    $pos = array_search($card_id, $state['queue']);
-    if ($pos === false) return;
-
-    array_splice($state['queue'], $pos, 1);
-
-    if (!empty($state['queue'])) {
-        return;
-    }
-
-    // Alle 3 Karten der Runde beantwortet — alle korrekt?
-    $all_correct = true;
-    foreach ($state['active'] as $ac) {
-        if ($ac['correct_count'] === 0) {
-            $all_correct = false;
-            break;
-        }
-    }
-
-    if (!$all_correct) {
-        $state['queue'] = array_column($state['active'], 'card_id');
-        foreach ($state['active'] as &$ac) {
-            $ac['correct_count'] = 0;
-        }
-        return;
-    }
-
-    if ($state['phase'] === 'fixed') {
-        $state['phase'] = 'mixed';
-        $ids = array_column($state['active'], 'card_id');
-        shuffle($ids);
-        $state['queue'] = $ids;
-        foreach ($state['active'] as &$ac) {
-            $ac['correct_count'] = 0;
-        }
-        return;
-    }
-
-    // Alle korrekt gemischt → eine Karte gemeistert
-    $best_index = 0;
-    $best_rounds = -1;
-    foreach ($state['active'] as $idx => $ac) {
-        if ($ac['rounds_participated'] > $best_rounds) {
-            $best_rounds = $ac['rounds_participated'];
-            $best_index  = $idx;
-        }
-    }
-
-    $mastered_card_id = $state['active'][$best_index]['card_id'];
-    $state['mastered_session'][] = $mastered_card_id;
-    $state['stats']['mastered']++;
-
-    $stmt = $pdo->prepare("SELECT drill_mastery FROM card_progress WHERE person_id = ? AND card_id = ?");
-    $stmt->execute([$person_id, $mastered_card_id]);
-    $cp = $stmt->fetch();
-    $new_mastery = (int)($cp['drill_mastery'] ?? 0) + 1;
-
-    $intervals = LEITNER_INTERVALS;
-    $leitner_transitions = [1 => 2, 2 => 3, 3 => 4];
-    $target_box = $leitner_transitions[$new_mastery] ?? null;
-
-    if ($target_box) {
-        $interval = $intervals[$target_box];
-        $due = date('Y-m-d', strtotime($today . " +$interval days"));
-        $stmt = $pdo->prepare("
-            UPDATE card_progress
-            SET drill_mastery = ?, leitner_box = ?, next_due_date = ?, status = 'active'
-            WHERE person_id = ? AND card_id = ?
-        ");
-        $stmt->execute([$new_mastery, $target_box, $due, $person_id, $mastered_card_id]);
-    } else {
-        $stmt = $pdo->prepare("UPDATE card_progress SET drill_mastery = ? WHERE person_id = ? AND card_id = ?");
-        $stmt->execute([$new_mastery, $person_id, $mastered_card_id]);
-    }
-
-    array_splice($state['active'], $best_index, 1);
-
-    $new_card_id = array_shift($state['pool']);
-    if ($new_card_id) {
-        $state['active'][] = build_card_state($new_card_id);
-    }
-
-    $state['phase'] = 'fixed';
-    $state['queue'] = array_column($state['active'], 'card_id');
-    foreach ($state['active'] as &$ac) {
-        $ac['correct_count'] = 0;
-    }
-}
-
-function mark_too_hard(PDO $pdo, array &$state, int $person_id, int $card_id, int $card_index, string $today): void {
-    $stmt = $pdo->prepare("UPDATE card_progress SET drill_too_hard = 1 WHERE person_id = ? AND card_id = ?");
-    $stmt->execute([$person_id, $card_id]);
-
-    $state['too_hard'][] = $card_id;
-
-    array_splice($state['active'], $card_index, 1);
-    $state['queue'] = array_filter($state['queue'], fn($id) => $id !== $card_id);
-    $state['queue'] = array_values($state['queue']);
-
-    $new_card_id = array_shift($state['pool']);
-    if ($new_card_id) {
-        $state['active'][] = build_card_state($new_card_id);
-        $state['queue'][] = $new_card_id;
-    }
-
-    if (empty($state['active'])) {
-        $state['queue'] = [];
-    }
-}
-
 function finish_drill_session(PDO $pdo, array &$state, int $person_id): void {
     $stmt = $pdo->prepare("UPDATE learning_sessions SET completed_at = NOW() WHERE id = ?");
     $stmt->execute([$state['session_id']]);
 
     $_SESSION['drill_done'] = [
         'stats'        => $state['stats'],
-        'mastered_ids' => $state['mastered_session'],
+        'mastered_ids' => $state['mastered_cards'],
         'list_ids'     => $state['list_ids'],
     ];
 
-    if ($state['mastered_session']) {
-        $ids = $state['mastered_session'];
+    if ($state['mastered_cards']) {
+        $ids = $state['mastered_cards'];
         $ph  = implode(',', array_fill(0, count($ids), '?'));
         $stmt = $pdo->prepare("SELECT card_id, drill_mastery FROM card_progress WHERE person_id = ? AND card_id IN ($ph)");
         $stmt->execute(array_merge([$person_id], $ids));
@@ -407,43 +294,34 @@ function finish_drill_session(PDO $pdo, array &$state, int $person_id): void {
     unset($_SESSION['drill']);
 }
 
-// -------------------------------------------------------
-// STATE: Alle Karten der aktuellen Runde laden
-// -------------------------------------------------------
-$state       = $_SESSION['drill'] ?? null;
-$active_data = [];
+// Veralteten Session-State (anderes Format) verwerfen
+if (isset($_SESSION['drill']) && !array_key_exists('current_card_id', $_SESSION['drill'])) {
+    unset($_SESSION['drill']);
+}
 
-if ($state && !empty($state['queue'])) {
-    $queue_ids = array_values(array_unique($state['queue']));
-    $ph = implode(',', array_fill(0, count($queue_ids), '?'));
-    $stmt = $pdo->prepare("SELECT c.*, l.language_a, l.language_b FROM cards c JOIN lists l ON l.id = c.list_id WHERE c.id IN ($ph)");
-    $stmt->execute($queue_ids);
-    $cards_by_id = [];
-    foreach ($stmt->fetchAll() as $row) {
-        $cards_by_id[(int)$row['id']] = $row;
-    }
-    foreach ($queue_ids as $cid) {
-        lazy_reset_drill_too_hard($pdo, $person_id, (int)$cid, $state['today']);
-        if (isset($cards_by_id[$cid])) {
-            $active_data[] = $cards_by_id[$cid];
-        }
-    }
+// -------------------------------------------------------
+// Anzeige-State
+// -------------------------------------------------------
+$state     = $_SESSION['drill'] ?? null;
+$card_data = null;
+
+if ($state && $state['current_card_id']) {
+    $stmt = $pdo->prepare("SELECT c.*, l.language_a, l.language_b FROM cards c JOIN lists l ON l.id = c.list_id WHERE c.id = ?");
+    $stmt->execute([$state['current_card_id']]);
+    $card_data = $stmt->fetch() ?: null;
 }
 
 $remaining_s = 0;
 if ($state) {
-    $elapsed = time() - $state['started_at'];
-    $remaining_s = max(0, DRILL_SESSION_SECONDS - $elapsed);
+    $remaining_s = max(0, DRILL_SESSION_SECONDS - (time() - $state['started_at']));
 }
 
-// Session-Abschluss
 $done_data = null;
 if (isset($_GET['done']) && isset($_SESSION['drill_done'])) {
     $done_data = $_SESSION['drill_done'];
     unset($_SESSION['drill_done']);
 }
 
-// Kein Session-State und keine Abschlussseite → Startseite
 if (!$state && !$done_data) {
     header('Location: home.php');
     exit;
@@ -457,6 +335,9 @@ if (!$state && !$done_data) {
     <title>Drill — <?= APP_NAME ?></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/style.css">
+    <style>
+    #flip-card { transition: transform 0.15s ease; }
+    </style>
 </head>
 <body>
 
@@ -466,7 +347,9 @@ if (!$state && !$done_data) {
         <div class="ms-auto d-flex align-items-center gap-3">
             <?php if ($state): ?>
             <span class="text-white small fw-semibold" id="drill-timer"></span>
-            <a href="drill.php?action=setup" class="btn btn-sm btn-outline-light">Session abbrechen</a>
+            <span class="text-white small opacity-75">·</span>
+            <span class="text-white small"><?= (int)($state['stats']['mastered'] ?? 0) ?> gemeistert</span>
+            <a href="drill.php?action=abort" class="btn btn-sm btn-outline-light">Session abbrechen</a>
             <?php else: ?>
             <span class="text-white small"><?= htmlspecialchars($person_name) ?></span>
             <form method="post" class="d-inline">
@@ -479,16 +362,20 @@ if (!$state && !$done_data) {
     </div>
 </nav>
 
-<div class="container mt-4" style="max-width:700px;">
+<div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Drill', '']]) ?></div>
+
+<div class="container mt-2" style="max-width:700px;">
 
 <?php if ($done_data !== null): ?>
-<!-- ==================== DRILL ABSCHLUSS ==================== -->
+<!-- ==================== ABSCHLUSS ==================== -->
 <div class="text-center">
     <div class="display-6 mb-2">
-        <?php echo $done_data['stats']['mastered'] > 0 ? '🎉' : '💪'; ?>
+        <?= ($done_data['stats']['mastered'] ?? 0) > 0 ? '🎉' : '💪' ?>
     </div>
     <h2 class="h4 mb-4">
-        <?php echo $done_data['stats']['mastered'] > 0 ? 'Super! Weiter trainieren!' : 'Gut gemacht! Regelmässiges Üben zahlt sich aus.'; ?>
+        <?= ($done_data['stats']['mastered'] ?? 0) > 0
+            ? 'Super! Weiter so!'
+            : 'Gut gemacht! Regelmässiges Üben zahlt sich aus.' ?>
     </h2>
 
     <div class="row g-3 mb-4 justify-content-center">
@@ -500,7 +387,7 @@ if (!$state && !$done_data) {
         </div>
         <div class="col-auto">
             <div class="card text-center px-4 py-3">
-                <div class="h3 text-danger"><?= $done_data['stats']['unknown'] ?></div>
+                <div class="h3 text-warning"><?= $done_data['stats']['unknown'] ?></div>
                 <div class="small text-muted">Musste nachdenken</div>
             </div>
         </div>
@@ -513,18 +400,17 @@ if (!$state && !$done_data) {
     </div>
 
     <?php if (!empty($done_data['mastery_details'])): ?>
-    <div class="card mb-4">
+    <div class="card mb-4 text-start">
         <div class="card-header">Drill-Fortschritt gemeisterter Karten</div>
         <div class="card-body">
-            <?php foreach ($done_data['mastery_details'] as $cid => $mastery): ?>
-            <div class="d-flex justify-content-between align-items-center mb-1">
-                <?php
+            <?php foreach ($done_data['mastery_details'] as $cid => $mastery):
                 $sc = $pdo->prepare("SELECT word_a, word_b FROM cards WHERE id = ?");
                 $sc->execute([$cid]);
                 $cdata = $sc->fetch();
-                ?>
+            ?>
+            <div class="d-flex justify-content-between align-items-center mb-1">
                 <span class="small"><?= htmlspecialchars($cdata['word_a'] ?? '') ?> / <?= htmlspecialchars($cdata['word_b'] ?? '') ?></span>
-                <span class="badge bg-primary"><?= $mastery ?>×</span>
+                <span class="badge bg-primary"><?= (int)$mastery ?>×</span>
             </div>
             <?php endforeach; ?>
         </div>
@@ -532,115 +418,111 @@ if (!$state && !$done_data) {
     <?php endif; ?>
 
     <p class="text-muted small">Für beste Resultate warte ein paar Stunden bis zur nächsten Session.</p>
-    <a href="home.php" class="btn btn-primary me-2">Zur Startseite</a>
-    <?php
-    $repeat_ids = $done_data['list_ids'] ?? [];
-    if (count($repeat_ids) === 1):
-    ?>
-    <a href="drill.php?list_id=<?= $repeat_ids[0] ?>" class="btn btn-outline-primary">Erneut starten</a>
-    <?php endif; ?>
 
+    <?php if (count($done_data['list_ids'] ?? []) === 1): ?>
+    <a href="drill.php?list_id=<?= (int)$done_data['list_ids'][0] ?>" class="btn btn-primary">Erneut starten</a>
+    <?php endif; ?>
 </div>
 
-<?php elseif ($state && $active_data): ?>
-<!-- ==================== DRILL-KARTEN ==================== -->
+<?php elseif ($state && $card_data): ?>
+<!-- ==================== KARTE ==================== -->
 
-<div class="row g-3">
-    <?php foreach ($active_data as $card): ?>
-    <div class="col-md-4 col-12">
-        <div class="learn-card text-center mb-2"
-             id="card-<?= $card['id'] ?>"
-             style="cursor:pointer;"
-             onclick="flipDrillCard(<?= $card['id'] ?>)">
-            <div class="d-flex flex-column justify-content-center p-4" style="min-height:220px;">
-                <p class="text-muted small mb-2"><?= htmlspecialchars($card['language_a']) ?></p>
-                <div class="fw-bold fs-2 mb-1"><?= htmlspecialchars($card['word_a']) ?></div>
-                <?php if ($card['desc_a']): ?>
-                <p class="text-muted small mb-0"><?= htmlspecialchars($card['desc_a']) ?></p>
-                <?php endif; ?>
-                <div id="answer-<?= $card['id'] ?>" style="display:none;">
-                    <hr>
-                    <p class="text-muted small mb-1"><?= htmlspecialchars($card['language_b']) ?></p>
-                    <div class="fw-bold fs-3 text-success mb-0"><?= htmlspecialchars($card['word_b']) ?></div>
-                    <?php if ($card['desc_b']): ?>
-                    <p class="text-muted small mt-1 mb-0"><?= htmlspecialchars($card['desc_b']) ?></p>
-                    <?php endif; ?>
-                </div>
-                <p class="text-muted small mt-3 mb-0" id="hint-<?= $card['id'] ?>">Tippen zum Aufdecken</p>
-            </div>
+<div class="learn-card mx-auto mb-4" id="flip-card" style="max-width:540px; cursor:pointer;" onclick="flipCard()">
+    <div class="text-center p-5">
+        <p class="text-muted small mb-2"><?= htmlspecialchars($card_data['language_a']) ?></p>
+        <div class="fw-bold fs-1 mb-1"><?= htmlspecialchars($card_data['word_a']) ?></div>
+        <?php if ($card_data['desc_a']): ?>
+        <p class="text-muted mb-0"><?= htmlspecialchars($card_data['desc_a']) ?></p>
+        <?php endif; ?>
+
+        <div id="card-back" style="display:none;">
+            <hr class="my-3">
+            <p class="text-muted small mb-1"><?= htmlspecialchars($card_data['language_b']) ?></p>
+            <div class="fw-bold fs-2 text-success mb-0"><?= htmlspecialchars($card_data['word_b']) ?></div>
+            <?php if ($card_data['desc_b']): ?>
+            <p class="text-muted mt-1 mb-0"><?= htmlspecialchars($card_data['desc_b']) ?></p>
+            <?php endif; ?>
         </div>
-        <div id="btns-<?= $card['id'] ?>" class="d-flex gap-2 justify-content-center" style="display:none;">
-            <form method="post">
-                <?= csrf_field() ?>
-                <input type="hidden" name="action" value="answer">
-                <input type="hidden" name="card_id" value="<?= $card['id'] ?>">
-                <input type="hidden" name="result" value="unknown">
-                <button type="submit" class="btn btn-danger">Musste nachdenken</button>
-            </form>
-            <form method="post">
-                <?= csrf_field() ?>
-                <input type="hidden" name="action" value="answer">
-                <input type="hidden" name="card_id" value="<?= $card['id'] ?>">
-                <input type="hidden" name="result" value="known">
-                <button type="submit" class="btn btn-success">Gewusst</button>
-            </form>
-        </div>
+
+        <p class="text-muted small mt-4 mb-0" id="flip-hint">Tippen zum Aufdecken</p>
     </div>
-    <?php endforeach; ?>
+</div>
+
+<div id="answer-btns" class="d-none d-flex gap-3 justify-content-center">
+    <form method="post">
+        <?= csrf_field() ?>
+        <input type="hidden" name="action" value="answer">
+        <input type="hidden" name="card_id" value="<?= (int)$card_data['id'] ?>">
+        <input type="hidden" name="result" value="unknown">
+        <button type="submit" class="btn btn-warning btn-lg">Musste nachdenken</button>
+    </form>
+    <form method="post">
+        <?= csrf_field() ?>
+        <input type="hidden" name="action" value="answer">
+        <input type="hidden" name="card_id" value="<?= (int)$card_data['id'] ?>">
+        <input type="hidden" name="result" value="known">
+        <button type="submit" class="btn btn-success btn-lg">Gewusst</button>
+    </form>
 </div>
 
 <?php endif; ?>
 </div>
 
+<?php if ($state && $card_data): ?>
+<div class="modal fade" id="leaveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">Session verlassen?</h5>
+            </div>
+            <div class="modal-body">
+                Achtung: die laufende Session wird dadurch automatisch beendet.
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-danger" id="confirmLeave">Verlassen</button>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// Flip-Zustand pro Drill-Session in sessionStorage merken
-const _drillKey = 'drill_revealed_<?= $state ? (int)$state['session_id'] : 0 ?>';
-
-function _getRevealed() {
-    try { return JSON.parse(sessionStorage.getItem(_drillKey) || '[]'); } catch(e) { return []; }
-}
-function _setRevealed(ids) {
-    try { sessionStorage.setItem(_drillKey, JSON.stringify(ids)); } catch(e) {}
-}
-
-function flipDrillCard(id) {
-    document.getElementById('answer-' + id).style.display = 'block';
-    const hint = document.getElementById('hint-' + id);
-    if (hint) hint.style.display = 'none';
-    document.getElementById('btns-' + id).style.display = 'flex';
-    const card = document.getElementById('card-' + id);
-    card.style.cursor = 'default';
-    card.onclick = null;
-    // Flip-Zustand speichern
-    const rev = _getRevealed();
-    if (!rev.includes(id)) { rev.push(id); _setRevealed(rev); }
+<?php if ($state && $card_data): ?>
+function flipCard() {
+    var card = document.getElementById('flip-card');
+    card.style.transform = 'scaleX(0)';
+    setTimeout(function () {
+        document.getElementById('card-back').style.display = 'block';
+        document.getElementById('flip-hint').style.display = 'none';
+        card.style.transform = 'scaleX(1)';
+    }, 150);
+    setTimeout(function () {
+        document.getElementById('answer-btns').classList.remove('d-none');
+        card.style.cursor = 'default';
+        card.onclick = null;
+    }, 300);
 }
 
-// Beim Absenden "Nicht gewusst": Karte aus Flip-Zustand entfernen (soll face-down neu erscheinen)
-document.querySelectorAll('input[name="result"][value="unknown"]').forEach(function(input) {
-    input.closest('form').addEventListener('submit', function() {
-        const id = parseInt(this.querySelector('[name="card_id"]').value);
-        _setRevealed(_getRevealed().filter(function(x) { return x !== id; }));
+(function () {
+    var modal = new bootstrap.Modal(document.getElementById('leaveModal'));
+    var target = null;
+    document.querySelectorAll('a[href]').forEach(function (link) {
+        var href = link.getAttribute('href');
+        if (!href || href === '#' || href.startsWith('javascript:')) return;
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            target = href;
+            modal.show();
+        });
     });
-});
-
-// Beim Laden: bereits aufgedeckte Karten automatisch wiederherstellen
-(function() {
-    const revealed = _getRevealed();
-    if (!revealed.length) return;
-    const currentIds = <?= json_encode(array_map(fn($c) => (int)$c['id'], $active_data)) ?>;
-    // Alle Karten bereits aufgedeckt + volle Gruppe → neues Runde, Zustand zurücksetzen
-    if (currentIds.length === <?= DRILL_ACTIVE_CARDS ?> && currentIds.every(function(id) { return revealed.includes(id); })) {
-        _setRevealed([]);
-        return;
-    }
-    revealed.forEach(function(id) {
-        if (document.getElementById('card-' + id)) flipDrillCard(id);
+    document.getElementById('confirmLeave').addEventListener('click', function () {
+        if (target) window.location.href = target;
     });
 })();
+<?php endif; ?>
 
-// Countdown-Timer
 (function () {
     let remaining = <?= (int)$remaining_s ?>;
     const el = document.getElementById('drill-timer');

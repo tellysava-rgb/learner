@@ -186,10 +186,11 @@ $filtered_cards = match($filter) {
     </div>
 </nav>
 
-<div class="container mt-4" style="max-width:900px;">
+<div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Meine Listen', 'lists.php'], [$list['name'], '']]) ?></div>
+
+<div class="container mt-2" style="max-width:900px;">
 
     <div class="d-flex align-items-center gap-3 mb-1">
-        <a href="lists.php" class="btn btn-sm btn-outline-secondary">← Listen</a>
         <h1 class="h4 mb-0"><?= htmlspecialchars($list['name']) ?></h1>
         <span class="text-muted small"><?= htmlspecialchars($list['language_a']) ?> / <?= htmlspecialchars($list['language_b']) ?></span>
     </div>
