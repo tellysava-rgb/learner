@@ -67,8 +67,9 @@
 - Startseite zeigt zwei Bereiche:
   - **Oben:** eigene Listen
   - **Unten:** öffentliche Listen anderer Personen (Name, Beschreibung, Besitzer, Sprachen, Anzahl Karten)
-- Öffentliche Liste anklicken → **Vorschau** aller Karten (Sprache A + Sprache B)
+- Öffentliche Liste anklicken → öffnet `discover.php?list_id=X` mit **Vorschau** aller Karten (Sprache A + Sprache B)
 - Button **"Kopieren"** → Liste wird als eigene unabhängige Kopie übernommen
+- `discover.php` ohne `list_id` → Weiterleitung zur Startseite (kein eigener Überblick)
 - Alle kopierten Karten erhalten `status = queued` — Tageslimit gilt wie bei CSV-Import
 - Nach dem Kopieren erscheint sie normal in der eigenen Listen-Übersicht
 - Änderungen des Besitzers an der Originalliste haben keinen Einfluss auf die Kopie

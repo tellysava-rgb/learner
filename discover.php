@@ -69,10 +69,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Öffentliche Liste anzeigen (Vorschau)
+// Ohne list_id direkt zur Startseite
 $preview_list_id = intval($_GET['list_id'] ?? 0);
-$preview_list    = null;
-$preview_cards   = [];
+if (!$preview_list_id) {
+    header('Location: home.php');
+    exit;
+}
+
+// Öffentliche Liste anzeigen (Vorschau)
+$preview_list  = null;
+$preview_cards = [];
 
 if ($preview_list_id) {
     $stmt = $pdo->prepare("
@@ -93,19 +99,6 @@ if ($preview_list_id) {
     }
 }
 
-// Alle öffentlichen Listen (die aktuell angezeigte Vorschau ausschliessen)
-$stmt = $pdo->prepare("
-    SELECT l.id, l.name, l.description, l.language_a, l.language_b,
-           p.name AS owner_name, COUNT(c.id) AS card_count
-    FROM lists l
-    JOIN persons p ON p.id = l.person_id
-    LEFT JOIN cards c ON c.list_id = l.id
-    WHERE l.is_public = 1 AND l.person_id != ? AND l.id != ?
-    GROUP BY l.id
-    ORDER BY l.name
-");
-$stmt->execute([$person_id, $preview_list_id ?: 0]);
-$public_lists = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -202,32 +195,8 @@ $public_lists = $stmt->fetchAll();
     </div>
     <?php endif; ?>
 
-    <!-- Alle öffentlichen Listen -->
-    <?php if (!$public_lists): ?>
-        <p class="text-muted">Keine öffentlichen Listen anderer Personen vorhanden.</p>
-    <?php else: ?>
-    <div class="row row-cols-1 row-cols-md-2 g-3">
-        <?php foreach ($public_lists as $list): ?>
-        <div class="col">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title h6"><?= htmlspecialchars($list['name']) ?></h5>
-                    <?php if ($list['description']): ?>
-                    <p class="small text-muted"><?= htmlspecialchars($list['description']) ?></p>
-                    <?php endif; ?>
-                    <p class="small text-muted mb-0">
-                        <?= htmlspecialchars($list['language_a']) ?> → <?= htmlspecialchars($list['language_b']) ?>
-                        · <?= $list['card_count'] ?> Karten
-                        · von <?= htmlspecialchars($list['owner_name']) ?>
-                    </p>
-                </div>
-                <div class="card-footer bg-transparent border-0 pb-3">
-                    <a href="discover.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-primary">Vorschau & Kopieren</a>
-                </div>
-            </div>
-        </div>
-        <?php endforeach; ?>
-    </div>
+    <?php if (!$preview_list): ?>
+        <div class="alert alert-warning">Liste nicht gefunden oder nicht öffentlich.</div>
     <?php endif; ?>
 
 </div>
