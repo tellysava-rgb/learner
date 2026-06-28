@@ -5,6 +5,15 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [0.6.4] - 2026-06-28
+
+### Verbessert
+- settings.php: Alle 6 Konfigurationswerte auf einen Blick — Session-Timeout, Tägliches Karten-Limit, Drill-Timer, «Musste nachdenken»-Limit, Mastery-Schwelle, Bekannt/Neu-Verhältnis
+- Zwei-Spalten-Layout (Desktop), gestapelt auf Mobile
+- Ein "Alle speichern"-Button für alle Einstellungen
+
+---
+
 ## [0.6.3] - 2026-06-28
 
 ### Neu

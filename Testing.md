@@ -183,10 +183,12 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 
 [ ] Auf localhost: "Einstellungen"-Link in Navbar der Startseite sichtbar. _(v0.6.3)_
 [ ] Auf Prod-URL: kein Einstellungen-Link, settings.php gibt HTTP 403. _(v0.6.3)_
-[ ] Drill-Timer: Wert ändern und speichern → config.php enthält neuen Wert. _(v0.6.3)_
-[ ] Nach Speichern: Flash-Meldung "Drill-Timer auf X Minuten gesetzt" erscheint. _(v0.6.3)_
-[ ] Drill startet mit neuem Timer-Wert (z.B. 2 Minuten → Timer läuft auf 2:00). _(v0.6.3)_
-[ ] Ungültiger Wert (0 oder >120) → Fehlermeldung, config.php unverändert. _(v0.6.3)_
+[ ] Alle 6 Einstellungen sichtbar, aktuelle Werte aus config.php korrekt angezeigt. _(v0.6.4)_
+[ ] Werte ändern und "Alle speichern" → config.php enthält alle neuen Werte. _(v0.6.4)_
+[ ] Nach Speichern: Flash-Meldung "Einstellungen gespeichert." erscheint. _(v0.6.4)_
+[ ] Drill startet mit neuem Timer-Wert (z.B. 2 Minuten → Timer läuft auf 2:00). _(v0.6.4)_
+[ ] Ungültiger Wert (ausserhalb Bereich) → Fehlermeldung(en), config.php unverändert. _(v0.6.4)_
+[ ] Session-Timeout: neuer Wert wirkt (z.B. 1 Min. → nach 1 Min. Inaktivität abgemeldet). _(v0.6.4)_
 
 ---
 

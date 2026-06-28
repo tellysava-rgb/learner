@@ -324,9 +324,14 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 - PRG-Muster: nach Speichern Redirect auf GET, Flash-Meldung via Session
 
 ### Konfigurierbare Werte
-| Einstellung | Beschreibung | Bereich |
-|---|---|---|
-| Drill-Timer | Dauer einer Drill-Session in Minuten | 1–120 |
+| Einstellung | Konstante | Beschreibung | Bereich |
+|---|---|---|---|
+| Session-Timeout | `SESSION_TIMEOUT` | Inaktivitäts-Timeout in Minuten | 1–480 |
+| Tägliches Karten-Limit | `DAILY_CARD_LIMIT` | Neue Karten pro Tag aus der Warteschlange | 1–100 |
+| Drill-Timer | `DRILL_SESSION_SECONDS` | Dauer einer Drill-Session in Minuten | 1–120 |
+| «Musste nachdenken»-Limit | `DRILL_TOO_HARD_LIMIT` | Bewertungen bis Karte aus Session entfernt wird | 1–20 |
+| Mastery-Schwelle | `DRILL_MASTERY_THRESHOLD` | Aufeinanderfolgende Korrekt-Antworten für «gemeistert» | 1–10 |
+| Bekannt/Neu-Verhältnis | `DRILL_KNOWN_RATIO` | Bekannte Karten pro neuer Karte in der Rotation | 1–30 |
 
 ---
 
