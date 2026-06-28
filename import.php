@@ -305,7 +305,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Meine Listen', 'lists.php'], [$list['name'], 'edit.php?list_id=' . $list_id], ['Importieren', '']]) ?></div>
 
-<div class="container mt-2" style="max-width:860px;">
+<div class="container mt-2" style="max-width:960px;">
 
     <h1 class="h4 mb-4">CSV Import — <?= htmlspecialchars($list['name']) ?></h1>
 

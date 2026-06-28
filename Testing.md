@@ -113,6 +113,7 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Während aktiver Session: Klick auf "Startseite" im Breadcrumb → Bestätigungsdialog erscheint. _(v0.5.0)_
 [ ] Während aktiver Session: Klick auf App-Logo in Navbar → Bestätigungsdialog erscheint. _(v0.5.0)_
 [ ] Während aktiver Session: Klick auf "Session abbrechen" → Bestätigungsdialog erscheint. _(v0.5.0)_
+[ ] Dialog "Verlassen" bestätigen → Session wird server-seitig beendet, nächster Drill-Start beginnt frisch. _(v0.6.5)_
 [ ] Setup- und Zusammenfassungsseite (kein aktives Karte): kein Dialog beim Klicken. _(v0.5.0)_
 
 ### Lernlogik 
@@ -166,7 +167,8 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Während aktiver Drill-Session: Klick auf Breadcrumb/Logo → Bestätigungsdialog erscheint. _(v0.5.0)_
 [ ] Während aktiver Drill-Session: Klick auf "Session abbrechen" → Bestätigungsdialog erscheint. _(v0.5.0)_
 [ ] Dialog "Abbrechen" → Drill läuft weiter. _(v0.5.0)_
-[ ] Dialog "Verlassen" → Navigation erfolgt. _(v0.5.0)_
+[ ] Dialog "Verlassen" → Session wird beendet, Navigation erfolgt. _(v0.6.5)_
+[ ] Nach Verlassen: neuer Drill-Start mit gleicher Liste beginnt sauber (keine alte Session). _(v0.6.5)_
 
 ### Abschluss _(v0.6.0)_
 

@@ -129,7 +129,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Einstellungen', '']]) ?></div>
 
-<div class="container mt-2" style="max-width:760px;">
+<div class="container mt-2" style="max-width:960px;">
 
     <div class="d-flex align-items-center gap-2 mb-4">
         <h1 class="h4 mb-0">Einstellungen</h1>

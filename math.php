@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'gener
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Meine Listen', 'lists.php'], ['Mathe-Generator', '']]) ?></div>
 
-<div class="container mt-2" style="max-width:600px;">
+<div class="container mt-2" style="max-width:960px;">
 
     <h1 class="h4 mb-4">Mathe-Generator</h1>
 

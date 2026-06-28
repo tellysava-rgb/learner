@@ -22,7 +22,11 @@ if (($_POST['action'] ?? '') === 'logout') {
 // -------------------------------------------------------
 if (($_GET['action'] ?? '') === 'setup') {
     unset($_SESSION['learn']);
-    header('Location: home.php');
+    $to = $_GET['to'] ?? 'home.php';
+    if (str_contains($to, '://') || str_starts_with($to, '//')) {
+        $to = 'home.php';
+    }
+    header('Location: ' . $to);
     exit;
 }
 
@@ -659,7 +663,7 @@ $lang_b = $preset_list ? htmlspecialchars($preset_list['language_b']) : 'B';
         });
     });
     document.getElementById('confirmLeave').addEventListener('click', function () {
-        if (target) window.location.href = target;
+        if (target) window.location.href = 'learn.php?action=setup&to=' + encodeURIComponent(target);
     });
 })();
 <?php endif; ?>

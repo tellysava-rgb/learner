@@ -5,6 +5,16 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [0.6.5] - 2026-06-28
+
+### Behoben
+- Drill + Leitner: Session-Abbruch nach Bestätigung des Verlassen-Dialogs löscht jetzt korrekt den Session-Zustand — verhindert Geisterzustände im Hintergrund
+
+### Verbessert
+- Alle Content-Seiten (Listen, Bearbeiten, Mathe, Statistik, Einstellungen, Import, Entdecken) auf einheitliche Breite 960px vereinheitlicht
+
+---
+
 ## [0.6.4] - 2026-06-28
 
 ### Verbessert

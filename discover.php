@@ -127,7 +127,7 @@ if ($preview_list_id) {
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Entdecken', '']]) ?></div>
 
-<div class="container mt-2" style="max-width:900px;">
+<div class="container mt-2" style="max-width:960px;">
 
     <h1 class="h4 mb-4">Öffentliche Listen entdecken</h1>
 

@@ -221,7 +221,7 @@ if ($filter_list_id) {
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Statistik', '']]) ?></div>
 
-<div class="container mt-2" style="max-width:860px;">
+<div class="container mt-2" style="max-width:960px;">
 
     <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
         <h1 class="h4 mb-0">Statistik</h1>

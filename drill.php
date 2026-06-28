@@ -15,7 +15,11 @@ if (($_POST['action'] ?? '') === 'logout') {
 // Session abbrechen
 if (($_GET['action'] ?? '') === 'abort') {
     unset($_SESSION['drill']);
-    header('Location: home.php');
+    $to = $_GET['to'] ?? 'home.php';
+    if (str_contains($to, '://') || str_starts_with($to, '//')) {
+        $to = 'home.php';
+    }
+    header('Location: ' . $to);
     exit;
 }
 
@@ -515,7 +519,7 @@ function flipCard() {
         });
     });
     document.getElementById('confirmLeave').addEventListener('click', function () {
-        if (target) window.location.href = target;
+        if (target) window.location.href = 'drill.php?action=abort&to=' + encodeURIComponent(target);
     });
 })();
 <?php endif; ?>

@@ -132,7 +132,7 @@ if ($edit_id) {
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Meine Listen', '']]) ?></div>
 
-<div class="container mt-2" style="max-width:800px;">
+<div class="container mt-2" style="max-width:960px;">
 
     <div class="d-flex align-items-center gap-3 mb-4">
         <h1 class="h4 mb-0 me-auto">Meine Listen</h1>
