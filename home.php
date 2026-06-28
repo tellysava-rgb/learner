@@ -220,6 +220,9 @@ $streak = ($person_id) ? get_streak($pdo, $person_id) : 0;
         <a class="navbar-brand fw-bold" href="home.php"><?= APP_NAME ?></a>
         <?php if ($person_id): ?>
         <div class="d-flex align-items-center gap-3 ms-auto">
+            <?php if (in_array(strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? '')[0]), ['localhost', '127.0.0.1'], true)): ?>
+            <a href="settings.php" class="text-white-50 small text-decoration-none">Einstellungen</a>
+            <?php endif; ?>
             <?php if ($streak > 0): ?>
             <span class="badge bg-warning text-dark">🔥 <?= $streak ?> Tag<?= $streak > 1 ? 'e' : '' ?></span>
             <?php endif; ?>

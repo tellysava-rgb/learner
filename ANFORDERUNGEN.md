@@ -316,6 +316,20 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 
 ---
 
+## Einstellungsseite (Localhost)
+
+- Nur zugänglich wenn `HTTP_HOST` = `localhost` oder `127.0.0.1` — sonst HTTP 403
+- Link "Einstellungen" erscheint in der Navbar der Startseite (home.php) nur auf Localhost
+- Einstellungen werden **dauerhaft in config.php** geschrieben (Regex-Ersatz der jeweiligen Zeile)
+- PRG-Muster: nach Speichern Redirect auf GET, Flash-Meldung via Session
+
+### Konfigurierbare Werte
+| Einstellung | Beschreibung | Bereich |
+|---|---|---|
+| Drill-Timer | Dauer einer Drill-Session in Minuten | 1–120 |
+
+---
+
 ## Mathe-Generator
 
 - Erreichbar über **Meine Listen** (lists.php) — nicht mehr direkt von der Startseite
@@ -454,6 +468,7 @@ Neue Versionen werden via Webhook-Deploy eingespielt:
   export.php          ← CSV Export
   stats.php           ← Statistik-Dashboard
   math.php            ← Mathe-Generator (Multiplikation + Division)
+  settings.php        ← Einstellungsseite (nur Localhost, schreibt in config.php)
   db.php              ← Umgebungserkennung + DB-Verbindung (committet, keine Credentials)
   db-credentials.php  ← Zugangsdaten Dev + Prod (in .gitignore, nie committen)
   deploy.php          ← Webhook-Deploy via Browser (in .gitignore)

@@ -179,6 +179,17 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 
 ---
 
-## 8. Statistik 
+## 8. Einstellungen (Localhost) _(v0.6.3)_
+
+[ ] Auf localhost: "Einstellungen"-Link in Navbar der Startseite sichtbar. _(v0.6.3)_
+[ ] Auf Prod-URL: kein Einstellungen-Link, settings.php gibt HTTP 403. _(v0.6.3)_
+[ ] Drill-Timer: Wert ändern und speichern → config.php enthält neuen Wert. _(v0.6.3)_
+[ ] Nach Speichern: Flash-Meldung "Drill-Timer auf X Minuten gesetzt" erscheint. _(v0.6.3)_
+[ ] Drill startet mit neuem Timer-Wert (z.B. 2 Minuten → Timer läuft auf 2:00). _(v0.6.3)_
+[ ] Ungültiger Wert (0 oder >120) → Fehlermeldung, config.php unverändert. _(v0.6.3)_
+
+---
+
+## 9. Statistik 
 
 

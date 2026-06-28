@@ -5,6 +5,14 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [0.6.3] - 2026-06-28
+
+### Neu
+- settings.php: Localhost-only Einstellungsseite — Drill-Timer in Minuten anpassen, dauerhaft in config.php gespeichert
+- Startseite (Navbar): "Einstellungen"-Link erscheint nur auf Localhost
+
+---
+
 ## [0.6.2] - 2026-06-28
 
 ### Verbessert
