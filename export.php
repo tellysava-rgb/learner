@@ -46,7 +46,7 @@ fputcsv($out, [
     $list['language_b'],
     'Beschreibung ' . $list['language_a'],
     'Beschreibung ' . $list['language_b'],
-], ';');
+], ';', '"', '\\');
 
 foreach ($cards as $card) {
     fputcsv($out, [
@@ -54,7 +54,7 @@ foreach ($cards as $card) {
         html_entity_decode(strip_tags($card['word_b']), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
         html_entity_decode(strip_tags($card['desc_a'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
         html_entity_decode(strip_tags($card['desc_b'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
-    ], ';');
+    ], ';', '"', '\\');
 }
 
 fclose($out);
