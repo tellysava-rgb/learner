@@ -5,6 +5,27 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [0.4.0] - 2026-06-28
+
+### Neu
+- Leitner-Setup: "← Startseite"-Button vor dem Sessionstart (kein Zurück-Button während aktiver Session)
+
+### Verbessert
+- Listen umbenennen (lists.php): PRG-Redirect nach Speichern — Editierformular verschwindet zuverlässig
+- Karten bearbeiten (edit.php): PRG-Redirect für alle Aktionen (Bearbeiten, Archivieren, Reaktivieren, Löschen)
+- Export: Kopfzeile enthält echte Sprachnamen statt "a;b;desc_a;desc_b"; Dateiname = Listenname; HTML-Tags bereinigt; Roundtrip-importierbar
+- Import: Erste Nicht-Kommentar-Zeile wird immer als Kopfzeile behandelt (unabhängig vom Inhalt)
+- Statistik: Direkt mit erster Liste vorausgewählt — kein globaler "Alle Listen"-Modus
+- Öffentliche Listen (discover.php): Vorschau-Liste erscheint nicht mehr doppelt im Grid darunter
+- Drill: Button- und Label-Text "Nicht gewusst" → "Musste nachdenken" (inkl. Abschlussseite und Statistik)
+- Lernreihenfolge: Warteschlangen-Aktivierung (home.php, learn.php) und Leitner-Queue per `ORDER BY RAND()` gemischt
+- Mathe-Generator: Typ-basierter Duplikat-Check (Multiplikation/Division) statt Namensprüfung — zweites Deck desselben Typs erfordert explizite Checkbox-Bestätigung; Formularwerte bleiben bei Warnung erhalten
+
+### Behoben
+- Discover: Angezeigte Vorschau-Liste erscheint nicht mehr im Grid der weiteren öffentlichen Listen
+
+---
+
 ## [0.3.0] - 2026-06-28
 
 ### Verbessert

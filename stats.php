@@ -11,13 +11,17 @@ if (($_POST['action'] ?? '') === 'logout') {
     logout();
 }
 
-// Filter: Liste auswählen
-$filter_list_id = intval($_GET['list_id'] ?? 0);
-
 // Eigene Listen
 $stmt = $pdo->prepare("SELECT id, name, language_a, language_b FROM lists WHERE person_id = ? ORDER BY name");
 $stmt->execute([$person_id]);
 $own_lists = $stmt->fetchAll();
+
+// Filter: Liste auswählen — ohne Auswahl zur ersten Liste springen
+$filter_list_id = intval($_GET['list_id'] ?? 0);
+if (!$filter_list_id && $own_lists) {
+    header('Location: stats.php?list_id=' . $own_lists[0]['id']);
+    exit;
+}
 
 // -------------------------------------------------------
 // Leitner-Statistik
@@ -227,7 +231,6 @@ if ($filter_list_id) {
 
     <!-- Listen-Filter -->
     <div class="mb-4 d-flex gap-2 flex-wrap">
-        <a href="stats.php" class="btn btn-sm <?= !$filter_list_id ? 'btn-primary' : 'btn-outline-secondary' ?>">Alle Listen</a>
         <?php foreach ($own_lists as $list): ?>
         <a href="stats.php?list_id=<?= $list['id'] ?>"
            class="btn btn-sm <?= $filter_list_id === $list['id'] ? 'btn-primary' : 'btn-outline-secondary' ?>">
@@ -324,7 +327,7 @@ if ($filter_list_id) {
                         <div class="progress-bar bg-danger" style="width:<?= 100-$drill_pct ?>%"></div>
                     </div>
                     <div class="small text-muted mt-1">
-                        <?= $drill_stats['known'] ?> gewusst · <?= $drill_stats['unknown'] ?> nicht gewusst
+                        <?= $drill_stats['known'] ?> gewusst · <?= $drill_stats['unknown'] ?> musste nachdenken
                         (<?= $drill_total ?> gesamt)
                     </div>
                     <?php endif; ?>

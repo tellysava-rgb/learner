@@ -501,7 +501,7 @@ if (!$state && !$done_data) {
         <div class="col-auto">
             <div class="card text-center px-4 py-3">
                 <div class="h3 text-danger"><?= $done_data['stats']['unknown'] ?></div>
-                <div class="small text-muted">Noch nicht gewusst</div>
+                <div class="small text-muted">Musste nachdenken</div>
             </div>
         </div>
         <div class="col-auto">
@@ -575,7 +575,7 @@ if (!$state && !$done_data) {
                 <input type="hidden" name="action" value="answer">
                 <input type="hidden" name="card_id" value="<?= $card['id'] ?>">
                 <input type="hidden" name="result" value="unknown">
-                <button type="submit" class="btn btn-danger">Nicht gewusst</button>
+                <button type="submit" class="btn btn-danger">Musste nachdenken</button>
             </form>
             <form method="post">
                 <?= csrf_field() ?>

@@ -58,10 +58,8 @@ function parse_csv(string $content): array {
         $fields = str_getcsv($line, $sep, '"', '\\');
 
         if (!$header_found) {
-            // Kopfzeile: a,b,desc_a,desc_b
-            if (isset($fields[0]) && strtolower(trim($fields[0])) === 'a') {
-                $header_found = true;
-            }
+            // Erste Nicht-Kommentar-Zeile ist immer die Kopfzeile (Sprachnamen oder a,b,...)
+            $header_found = true;
             continue;
         }
 
@@ -100,7 +98,7 @@ if ($import_stage === 'upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $parsed_rows = parse_csv($content);
 
         if (!$parsed_rows) {
-            $error = 'Die Datei enthält keine lesbaren Karten. Bitte prüfe das Format (Kopfzeile a,b,desc_a,desc_b vorhanden?).';
+            $error = 'Die Datei enthält keine lesbaren Karten. Bitte prüfe das Format (Kopfzeile vorhanden, mindestens 2 Spalten?).';
             $import_stage = 'upload';
         } else {
             $_SESSION['import'] = [
@@ -470,11 +468,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
                 <div class="card-body small">
                     <p>Trennzeichen: <strong>Komma</strong> oder <strong>Semikolon</strong> (wird automatisch erkannt)</p>
                     <p>Encoding: <strong>UTF-8</strong></p>
-                    <p>Die Kopfzeile <code>a,b,desc_a,desc_b</code> ist Pflicht.</p>
+                    <p>Die erste Zeile ist die Kopfzeile (Spaltentitel, z.B. Sprachnamen) und wird übersprungen.</p>
                     <p>Felder mit Kommas oder Semikolons müssen in <strong>doppelte Anführungszeichen</strong> gesetzt werden.</p>
-                    <pre class="bg-white border rounded p-2 small"><code>a,b,desc_a,desc_b
-Diagnose,diagnosis,medizinisch,"A conclusion"
-Behandlung,treatment,,</code></pre>
+                    <pre class="bg-white border rounded p-2 small"><code>Deutsch;Englisch;Beschreibung Deutsch;Beschreibung Englisch
+Diagnose;diagnosis;medizinisch;"A conclusion"
+Behandlung;treatment;;</code></pre>
                 </div>
             </div>
         </div>

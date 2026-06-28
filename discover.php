@@ -93,18 +93,18 @@ if ($preview_list_id) {
     }
 }
 
-// Alle öffentlichen Listen
+// Alle öffentlichen Listen (die aktuell angezeigte Vorschau ausschliessen)
 $stmt = $pdo->prepare("
     SELECT l.id, l.name, l.description, l.language_a, l.language_b,
            p.name AS owner_name, COUNT(c.id) AS card_count
     FROM lists l
     JOIN persons p ON p.id = l.person_id
     LEFT JOIN cards c ON c.list_id = l.id
-    WHERE l.is_public = 1 AND l.person_id != ?
+    WHERE l.is_public = 1 AND l.person_id != ? AND l.id != ?
     GROUP BY l.id
     ORDER BY l.name
 ");
-$stmt->execute([$person_id]);
+$stmt->execute([$person_id, $preview_list_id ?: 0]);
 $public_lists = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>

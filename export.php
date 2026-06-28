@@ -26,7 +26,7 @@ $stmt->execute([$list_id]);
 $cards = $stmt->fetchAll();
 
 // CSV ausgeben (Semikolon, UTF-8, Excel-freundlich)
-$filename = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $list['name']) . '_export.csv';
+$filename = preg_replace('/[^a-zA-Z0-9_\-. ]/', '_', $list['name']) . '.csv';
 
 header('Content-Type: text/csv; charset=UTF-8');
 header('Content-Disposition: attachment; filename="' . $filename . '"');
@@ -40,15 +40,20 @@ $out = fopen('php://output', 'w');
 // Kommentarzeile zur menschenlesbaren Dokumentation (wird beim Import ignoriert)
 fwrite($out, '# ' . $list['name'] . ' (' . $list['language_a'] . ' / ' . $list['language_b'] . ')' . "\n");
 
-// Kopfzeile
-fputcsv($out, ['a', 'b', 'desc_a', 'desc_b'], ';');
+// Kopfzeile mit Sprachnamen
+fputcsv($out, [
+    $list['language_a'],
+    $list['language_b'],
+    'Beschreibung ' . $list['language_a'],
+    'Beschreibung ' . $list['language_b'],
+], ';');
 
 foreach ($cards as $card) {
     fputcsv($out, [
-        $card['word_a'],
-        $card['word_b'],
-        $card['desc_a'] ?? '',
-        $card['desc_b'] ?? '',
+        html_entity_decode(strip_tags($card['word_a']), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+        html_entity_decode(strip_tags($card['word_b']), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+        html_entity_decode(strip_tags($card['desc_a'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+        html_entity_decode(strip_tags($card['desc_b'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
     ], ';');
 }
 

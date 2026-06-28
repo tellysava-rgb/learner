@@ -124,7 +124,7 @@ Behandlung,treatment,,
 ```
 - Trennzeichen: **Komma oder Semikolon** — App erkennt automatisch
 - **Encoding: UTF-8**
-- Kopfzeile `a,b,desc_a,desc_b` ist **Pflicht**
+- Erste Zeile ist die Kopfzeile (Sprachnamen oder beliebige Spaltenbezeichnungen) — wird beim Import immer übersprungen
 - Felder mit Kommas/Semikolons müssen in **doppelte Anführungszeichen** gesetzt werden
 - Kommas/Semikolons innerhalb von Feldern sind nur erlaubt wenn das Feld korrekt gequotet ist
 - Kein Listenname und keine Sprachen in der CSV — die Liste wird vorher in der App erstellt
@@ -229,7 +229,7 @@ Basiert auf **Precision Teaching** und **Mastery Learning**. Der Drill-Modus die
 
 ### Ziel
 Automatizität — die Antwort soll nicht errechnet oder überlegt, sondern **sofort gewusst** werden.
-Terminologie: "Gewusst" / "Noch nicht gewusst" (kein Richtig/Falsch).
+Terminologie: "Gewusst" / "Musste nachdenken" (kein Richtig/Falsch).
 Geeignet für: Mathe-Fakten, häufig vergessene Vokabeln, neue Wörter festigen.
 
 ### Karten-Auswahl (automatisch)
@@ -240,16 +240,16 @@ Geeignet für: Mathe-Fakten, häufig vergessene Vokabeln, neue Wörter festigen.
 
 ### Ablauf (Hybrid / Incremental Rehearsal)
 1. **3 aktive Karten** zu Beginn der Session
-2. Alle 3 Karten werden **gleichzeitig** angezeigt (je mit Vorderseite). User tippt/klickt auf eine Karte um sie umzudrehen → Antwort erscheint → "Gewusst" oder "Nicht gewusst" wählen. Reihenfolge ist frei wählbar.
+2. Alle 3 Karten werden **gleichzeitig** angezeigt (je mit Vorderseite). User tippt/klickt auf eine Karte um sie umzudrehen → Antwort erscheint → "Gewusst" oder "Musste nachdenken" wählen. Reihenfolge ist frei wählbar.
 3. Alle 3 "Gewusst" in einer Runde (fixe Phase) → **Reihenfolge intern mischen** → nochmal alle 3 gewusst nötig
 4. Alle 3 auch in der gemischten Runde "Gewusst" → **die Karte mit den meisten aktiven Runden** gilt als gemeistert (bei Gleichstand: die zuerst geladene Karte)
 5. Gemeisterte Karte verlässt die 3er-Gruppe → **neue Karte rückt nach** (immer 3 aktive Karten)
 6. Die anderen zwei Karten bleiben aktiv und werden weiter geübt
 7. Gemeisterte Karten bleiben im Drill-Pool für Folge-Sessions (zur Bestätigung)
 
-### Fehler-Behandlung ("Noch nicht gewusst")
+### Fehler-Behandlung ("Musste nachdenken")
 - Nur die betroffene **Karte** wird zurückgesetzt, nicht die ganze Runde
-- Nach **5× "Noch nicht gewusst"** in einer Session → Karte als "zu schwer für heute" markiert, neue Karte kommt rein
+- Nach **5× "Musste nachdenken"** in einer Session → Karte als "zu schwer für heute" markiert, neue Karte kommt rein
 
 ### Session-Ende
 - Endet nach **10 Minuten** ODER wenn keine geeigneten Drill-Karten mehr verfügbar sind (nicht `archived`, nicht `drill_too_hard = true`) — was zuerst eintritt
@@ -283,7 +283,7 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 ## Mathe-Generator
 
 - Einmaliger Generator für **Multiplikationstabellen** und **Divisionstabellen** (1×1 bis 10×10, konfigurierbar)
-- **Duplikat-Prüfung:** Existiert bereits eine Liste mit dem gewählten Namen, erscheint eine Fehlermeldung — der User muss einen anderen Namen wählen (verhindert versehentliche Duplikate des gleichen Decks)
+- **Duplikat-Prüfung (typ-basiert):** Existiert bereits eine Liste desselben Typs (Multiplikation oder Division), erscheint eine Warnung mit Checkbox-Bestätigung — erst mit Bestätigung wird ein zweites Deck erstellt. Listenname spielt dabei keine Rolle.
 - Multiplikation und Division werden als **separate Decks** generiert:
   - Deck Multiplikation: `7 × 8 = ?`
   - Deck Division: `56 ÷ 7 = ?`
@@ -295,7 +295,7 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 
 ## Statistik-Dashboard
 
-Kombinierte Ansicht pro Person und Liste:
+Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler "Alle Listen"-Modus. Auswahl per Button oben.
 
 **Leitner-Übersicht:**
 - Anzahl Karten pro Fach (Fach 1–5 + archiviert)
@@ -309,7 +309,7 @@ Kombinierte Ansicht pro Person und Liste:
 
 **Drill-Übersicht:**
 - Anzahl Karten gemeistert (1×, 2×, 3×)
-- Gesamtquote "Gewusst" / "Noch nicht gewusst" pro Liste
+- Gesamtquote "Gewusst" / "Musste nachdenken" pro Liste
 
 ---
 
@@ -388,10 +388,14 @@ Neue Versionen werden via Webhook-Deploy eingespielt:
 
 - Exportiert nur **Kartendaten** (Sprache A, Sprache B, Beschreibung A, Beschreibung B)
 - Erste Zeile: Kommentar `# Listenname (Sprache A / Sprache B)` — zur menschenlesbaren Dokumentation, wird beim Import ignoriert
+- Zweite Zeile: Kopfzeile mit echten Sprachnamen (z.B. `Deutsch;Englisch;Beschreibung Deutsch;Beschreibung Englisch`)
+- Dateiname = Listenname (Sonderzeichen ersetzt durch `_`)
+- HTML-Tags und Entities werden vor dem Export bereinigt (z.B. `<p>`, `<br>`, `&amp;`) — Export ist plain text
 - Kein Fortschritt im Export
 - Nur **eigene Listen** exportierbar (selbst erstellt oder kopiert — beides gilt als eigene Liste)
 - Encoding: **UTF-8** mit BOM (Excel-kompatibel)
 - Trennzeichen: **Semikolon** (Excel-freundlich in der Schweiz)
+- Export-Datei kann direkt wieder importiert werden (Roundtrip-kompatibel)
 
 ---
 

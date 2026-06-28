@@ -5,8 +5,9 @@ require_person();
 
 $person_id   = $_SESSION['person_id'];
 $person_name = $_SESSION['person_name'];
-$error       = '';
-$success     = '';
+$error   = $_SESSION['flash_error'] ?? '';
+$success = $_SESSION['flash_success'] ?? '';
+unset($_SESSION['flash_error'], $_SESSION['flash_success']);
 
 // --- POST-Aktionen ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -29,7 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 VALUES (?, ?, ?, ?, ?, ?)
             ");
             $stmt->execute([$person_id, $name, $description ?: null, $language_a, $language_b, $is_public]);
-            $success = 'Liste "' . htmlspecialchars($name) . '" wurde erstellt.';
+            $_SESSION['flash_success'] = 'Liste "' . $name . '" wurde erstellt.';
+            header('Location: lists.php');
+            exit;
         }
     }
 
@@ -45,28 +48,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($name === '' || $language_a === '' || $language_b === '') {
             $error = 'Name und beide Sprachen sind Pflichtfelder.';
         } else {
-            // Nur eigene Listen dürfen bearbeitet werden
             $stmt = $pdo->prepare("UPDATE lists SET name=?, description=?, language_a=?, language_b=?, is_public=? WHERE id=? AND person_id=?");
             $stmt->execute([$name, $description ?: null, $language_a, $language_b, $is_public, $list_id, $person_id]);
             if ($stmt->rowCount() === 0) {
-                $error = 'Liste nicht gefunden oder keine Berechtigung.';
+                $_SESSION['flash_error'] = 'Liste nicht gefunden oder keine Berechtigung.';
             } else {
-                $success = 'Liste gespeichert.';
+                $_SESSION['flash_success'] = 'Liste gespeichert.';
             }
+            header('Location: lists.php');
+            exit;
         }
     }
 
     // Liste löschen
     if ($action === 'delete') {
         $list_id = intval($_POST['list_id'] ?? 0);
-        // Nur eigene Listen
         $stmt = $pdo->prepare("DELETE FROM lists WHERE id = ? AND person_id = ?");
         $stmt->execute([$list_id, $person_id]);
         if ($stmt->rowCount() === 0) {
-            $error = 'Liste nicht gefunden oder keine Berechtigung.';
+            $_SESSION['flash_error'] = 'Liste nicht gefunden oder keine Berechtigung.';
         } else {
-            $success = 'Liste wurde gelöscht.';
+            $_SESSION['flash_success'] = 'Liste wurde gelöscht.';
         }
+        header('Location: lists.php');
+        exit;
     }
 
     // Logout

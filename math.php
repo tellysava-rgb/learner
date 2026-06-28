@@ -7,6 +7,13 @@ $person_id   = $_SESSION['person_id'];
 $person_name = $_SESSION['person_name'];
 $error       = '';
 $success     = '';
+$warning     = '';
+
+// Formularwerte (Defaults)
+$type      = 'multiplication';
+$from      = 1;
+$to        = 10;
+$list_name = '';
 
 if (($_POST['action'] ?? '') === 'logout') {
     csrf_validate();
@@ -16,9 +23,9 @@ if (($_POST['action'] ?? '') === 'logout') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'generate') {
     csrf_validate();
 
-    $type     = $_POST['type'] ?? 'multiplication'; // multiplication | division
-    $from     = max(1, intval($_POST['from'] ?? 1));
-    $to       = min(20, intval($_POST['to'] ?? 10));
+    $type      = $_POST['type'] ?? 'multiplication';
+    $from      = max(1, intval($_POST['from'] ?? 1));
+    $to        = min(20, intval($_POST['to'] ?? 10));
     $list_name = trim($_POST['list_name'] ?? '');
 
     if ($from > $to) {
@@ -26,15 +33,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'gener
     } elseif (!$list_name) {
         $error = 'Bitte gib einen Listennamen ein.';
     } else {
-        // Prüfen ob bereits eine Liste mit diesem Namen existiert
-        $stmt_check = $pdo->prepare("SELECT id FROM lists WHERE person_id = ? AND name = ?");
-        $stmt_check->execute([$person_id, $list_name]);
-        if ($stmt_check->fetch()) {
-            $error = "Eine Liste mit dem Namen \"{$list_name}\" existiert bereits. Bitte wähle einen anderen Namen.";
+        // Typ-basierter Duplikat-Check
+        $desc_prefix = ($type === 'multiplication') ? 'Multiplikation%' : 'Division%';
+        $stmt_check = $pdo->prepare("SELECT id, name FROM lists WHERE person_id = ? AND description LIKE ?");
+        $stmt_check->execute([$person_id, $desc_prefix]);
+        $existing = $stmt_check->fetch();
+
+        if ($existing && !($_POST['confirmed'] ?? false)) {
+            $type_label = ($type === 'multiplication') ? 'Multiplikations' : 'Divisions';
+            $warning = 'Es existiert bereits eine ' . $type_label . 'liste: "' . htmlspecialchars($existing['name']) . '". Möchtest du trotzdem eine neue erstellen?';
         }
     }
 
-    if (!$error) {
+    if (!$error && !$warning) {
         $pdo->beginTransaction();
         try {
             if ($type === 'multiplication') {
@@ -57,7 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'gener
                 $success = "Multiplikationstabelle erstellt: $count Karten in der Liste \"$list_name\".";
 
             } else {
-                // Division
                 $lang_a = 'Aufgabe';
                 $lang_b = 'Ergebnis';
                 $stmt_list = $pdo->prepare("INSERT INTO lists (person_id, name, description, language_a, language_b, is_public) VALUES (?,?,?,?,?,0)");
@@ -147,11 +157,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'gener
                     <label class="form-label fw-semibold">Typ</label>
                     <div>
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="type" id="type_mul" value="multiplication" checked>
-                            <label class="form-check-label" for="type_mul">Multiplikation (× )</label>
+                            <input class="form-check-input" type="radio" name="type" id="type_mul" value="multiplication"
+                                   <?= $type === 'multiplication' ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="type_mul">Multiplikation (×)</label>
                         </div>
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="type" id="type_div" value="division">
+                            <input class="form-check-input" type="radio" name="type" id="type_div" value="division"
+                                   <?= $type === 'division' ? 'checked' : '' ?>>
                             <label class="form-check-label" for="type_div">Division (÷)</label>
                         </div>
                     </div>
@@ -160,19 +172,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'gener
                 <div class="row g-3 mb-3">
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Von</label>
-                        <input type="number" name="from" class="form-control" value="1" min="1" max="20">
+                        <input type="number" name="from" class="form-control" value="<?= $from ?>" min="1" max="20">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Bis</label>
-                        <input type="number" name="to" class="form-control" value="10" min="1" max="20">
+                        <input type="number" name="to" class="form-control" value="<?= $to ?>" min="1" max="20">
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <label class="form-label fw-semibold">Listenname</label>
                     <input type="text" name="list_name" class="form-control"
+                           value="<?= htmlspecialchars($list_name) ?>"
                            placeholder="z.B. Einmaleins 1-10" required maxlength="200">
                 </div>
+
+                <?php if ($warning): ?>
+                <div class="alert alert-warning mb-3">
+                    <?= $warning ?>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" name="confirmed" id="confirmed" value="1" required>
+                        <label class="form-check-label" for="confirmed">Ja, trotzdem neue Liste erstellen</label>
+                    </div>
+                </div>
+                <?php endif; ?>
 
                 <div class="alert alert-light border small mb-4">
                     <strong>Beispiel (Multiplikation 1–3):</strong><br>

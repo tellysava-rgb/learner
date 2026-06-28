@@ -5,8 +5,9 @@ require_person();
 
 $person_id   = $_SESSION['person_id'];
 $person_name = $_SESSION['person_name'];
-$error       = '';
-$success     = '';
+$error   = $_SESSION['flash_error'] ?? '';
+$success = $_SESSION['flash_success'] ?? '';
+unset($_SESSION['flash_error'], $_SESSION['flash_success']);
 
 // Liste laden und Besitzer prüfen
 $list_id = intval($_GET['list_id'] ?? $_POST['list_id'] ?? 0);
@@ -22,6 +23,8 @@ if (!$list) {
     header('Location: home.php');
     exit;
 }
+
+$filter = $_GET['filter'] ?? 'all';
 
 // --- POST-Aktionen ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -43,8 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->prepare("INSERT INTO cards (list_id, word_a, word_b, desc_a, desc_b) VALUES (?, ?, ?, ?, ?)");
                 $stmt->execute([$list_id, $word_a, $word_b, $desc_a ?: null, $desc_b ?: null]);
                 $card_id = (int) $pdo->lastInsertId();
-
-                // card_progress für diese Person anlegen
                 $stmt = $pdo->prepare("
                     INSERT INTO card_progress (person_id, card_id, status)
                     VALUES (?, ?, 'queued')
@@ -52,7 +53,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ");
                 $stmt->execute([$person_id, $card_id]);
                 $pdo->commit();
-                $success = 'Karte wurde hinzugefügt.';
+                $_SESSION['flash_success'] = 'Karte wurde hinzugefügt.';
+                header("Location: edit.php?list_id={$list_id}&filter={$filter}");
+                exit;
             } catch (Exception $e) {
                 $pdo->rollBack();
                 $error = 'Fehler beim Hinzufügen der Karte.';
@@ -71,13 +74,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($word_a === '' || $word_b === '') {
             $error = 'Beide Sprachfelder sind Pflicht.';
         } else {
-            // Sicherstellen dass die Karte zur Liste gehört
             $stmt = $pdo->prepare("UPDATE cards SET word_a=?, word_b=?, desc_a=?, desc_b=? WHERE id=? AND list_id=?");
             $stmt->execute([$word_a, $word_b, $desc_a ?: null, $desc_b ?: null, $card_id, $list_id]);
             if ($stmt->rowCount() === 0) {
                 $error = 'Karte nicht gefunden.';
             } else {
-                $success = 'Karte gespeichert.';
+                $_SESSION['flash_success'] = 'Karte gespeichert.';
+                header("Location: edit.php?list_id={$list_id}&filter={$filter}");
+                exit;
             }
         }
     }
@@ -88,10 +92,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare("DELETE FROM cards WHERE id = ? AND list_id = ?");
         $stmt->execute([$card_id, $list_id]);
         if ($stmt->rowCount() === 0) {
-            $error = 'Karte nicht gefunden.';
+            $_SESSION['flash_error'] = 'Karte nicht gefunden.';
         } else {
-            $success = 'Karte wurde gelöscht.';
+            $_SESSION['flash_success'] = 'Karte wurde gelöscht.';
         }
+        header("Location: edit.php?list_id={$list_id}&filter={$filter}");
+        exit;
     }
 
     // Karte archivieren
@@ -103,7 +109,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ON DUPLICATE KEY UPDATE status = 'archived'
         ");
         $stmt->execute([$person_id, $card_id]);
-        $success = 'Karte wurde archiviert.';
+        $_SESSION['flash_success'] = 'Karte wurde archiviert.';
+        header("Location: edit.php?list_id={$list_id}&filter={$filter}");
+        exit;
     }
 
     // Karte reaktivieren (archiviert → aktiv)
@@ -116,7 +124,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ON DUPLICATE KEY UPDATE status = 'active', leitner_box = 1, next_due_date = ?
         ");
         $stmt->execute([$person_id, $card_id, $today, $today]);
-        $success = 'Karte wurde reaktiviert.';
+        $_SESSION['flash_success'] = 'Karte wurde reaktiviert.';
+        header("Location: edit.php?list_id={$list_id}&filter={$filter}");
+        exit;
     }
 
     // Logout
@@ -141,8 +151,6 @@ $cards = $stmt->fetchAll();
 // Edit-Formular: welche Karte?
 $edit_card_id = intval($_GET['edit'] ?? 0);
 
-// Filter
-$filter = $_GET['filter'] ?? 'all';
 $filtered_cards = match($filter) {
     'active'   => array_filter($cards, fn($c) => $c['status'] === 'active'),
     'queued'   => array_filter($cards, fn($c) => $c['status'] === 'queued'),

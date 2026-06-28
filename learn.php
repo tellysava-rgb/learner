@@ -265,7 +265,7 @@ function activate_daily_cards(PDO $pdo, int $person_id, array $list_ids, string 
         SELECT cp.card_id FROM card_progress cp
         JOIN cards c ON c.id = cp.card_id
         WHERE cp.person_id = ? AND c.list_id IN ($placeholders) AND cp.status = 'queued'
-        ORDER BY cp.id
+        ORDER BY RAND()
         LIMIT {$to_activate}
     ");
     $stmt->execute($params);
@@ -296,7 +296,7 @@ function build_leitner_queue(PDO $pdo, int $person_id, array $list_ids, string $
           AND c.list_id IN ($placeholders)
           AND cp.status = 'active'
           AND cp.next_due_date <= ?
-        ORDER BY priority, cp.leitner_box, cp.next_due_date
+        ORDER BY priority, RAND()
         LIMIT {$limit}
     ");
     $stmt->execute(array_merge([$today, $today, $person_id], $list_ids, [$today]));
@@ -544,7 +544,10 @@ $is_retry  = isset($state['answered'][$current['id']]);
 
 <?php else: ?>
 <!-- ==================== SETUP ==================== -->
-<h1 class="h4 mb-4">Leitner-Session starten</h1>
+<div class="d-flex align-items-center gap-3 mb-4">
+    <a href="home.php" class="btn btn-sm btn-outline-secondary">← Startseite</a>
+    <h1 class="h4 mb-0">Leitner-Session starten</h1>
+</div>
 
 <?php if ($setup_error): ?>
 <div class="alert alert-danger"><?= htmlspecialchars($setup_error) ?></div>

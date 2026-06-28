@@ -146,7 +146,7 @@ function activate_queued_cards(PDO $pdo, int $person_id, array $list_ids, int $l
         WHERE cp.person_id = ?
           AND c.list_id IN ($placeholders)
           AND cp.status = 'queued'
-        ORDER BY cp.id
+        ORDER BY RAND()
         LIMIT {$limit}
     ");
     $stmt->execute($params);
