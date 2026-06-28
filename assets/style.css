@@ -1,0 +1,30 @@
+/* Learner – minimales Custom-CSS, Rest über Bootstrap */
+
+body {
+    background-color: #f8f9fa;
+}
+
+/* Karte beim Lernen etwas grösser wirken lassen */
+.card.shadow {
+    border: none;
+}
+
+/* Navbar etwas kompakter auf Mobile */
+@media (max-width: 576px) {
+    .navbar-brand {
+        font-size: 1rem;
+    }
+}
+
+/* Fortschrittsbalken */
+.progress {
+    border-radius: 4px;
+}
+
+/* Tabelle auf Mobile lesbar */
+@media (max-width: 576px) {
+    .table-responsive .table th,
+    .table-responsive .table td {
+        font-size: 0.8rem;
+    }
+}
