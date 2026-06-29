@@ -5,6 +5,15 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [1.1.0] - 2026-06-29
+
+### Neu
+- Einstellungen auf Produktion zugänglich (Login + CSRF-Schutz) — Config-Werte bleiben Localhost-only
+- Einstellungen: Deploy-Bereich mit Link zu deploy.php (erscheint nur wenn deploy.php vorhanden)
+- Einstellungen-Link in Navbar auf allen Umgebungen sichtbar
+
+---
+
 ## [1.0.0] - 2026-06-29
 
 ### Erste stabile, getestete Version

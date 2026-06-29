@@ -224,9 +224,7 @@ if ($person_id) {
         <a class="navbar-brand fw-bold" href="home.php"><?= APP_NAME ?></a>
         <?php if ($person_id): ?>
         <div class="d-flex align-items-center gap-3 ms-auto">
-            <?php if (in_array(strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? '')[0]), ['localhost', '127.0.0.1'], true)): ?>
             <a href="settings.php" class="text-white-50 small text-decoration-none">Einstellungen</a>
-            <?php endif; ?>
             <?= streak_badge() ?>
             <span class="text-white small"><?= htmlspecialchars($person_name) ?></span>
             <form method="post" class="d-inline">

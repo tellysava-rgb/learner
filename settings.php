@@ -3,17 +3,11 @@ require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/db.php';
 require_login();
 
-// Nur auf Localhost zugänglich
-$host = $_SERVER['HTTP_HOST'] ?? '';
-if (!in_array(strtolower(explode(':', $host)[0]), ['localhost', '127.0.0.1'], true)) {
-    http_response_code(403);
-    die('Diese Seite ist nur in der lokalen Entwicklungsumgebung verfügbar.');
-}
-
 $person_name = $_SESSION['person_name'] ?? '';
 $config_path = __DIR__ . '/config.php';
 $success     = $_SESSION['flash_success'] ?? '';
 $errors      = $_SESSION['flash_errors']  ?? [];
+$is_local    = in_array(strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? '')[0]), ['localhost', '127.0.0.1'], true);
 unset($_SESSION['flash_success'], $_SESSION['flash_errors']);
 
 // --- POST ---
@@ -179,7 +173,9 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
 
     <div class="d-flex align-items-center gap-2 mb-4">
         <h1 class="h4 mb-0">Einstellungen</h1>
-        <span class="badge bg-warning text-dark">Localhost only</span>
+        <?php if ($is_local): ?>
+        <span class="badge bg-warning text-dark">Localhost</span>
+        <?php endif; ?>
     </div>
 
     <?php if ($success): ?>
@@ -193,6 +189,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
     </div>
     <?php endif; ?>
 
+    <?php if ($is_local): ?>
     <form method="post" style="max-width:640px;">
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="save_settings">
@@ -324,6 +321,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
         </div>
 
     </form>
+    <?php endif; ?>
 
     <form method="post" class="mt-4" style="max-width:640px;">
         <?= csrf_field() ?>
@@ -378,6 +376,27 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
         </div>
 
     </form>
+
+    <?php if (file_exists(__DIR__ . '/deploy.php')): ?>
+    <div class="mt-4" style="max-width:640px;">
+        <div class="card">
+            <div class="list-group list-group-flush">
+                <div class="list-group-item bg-light py-2">
+                    <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing:.05em;">Deployment</span>
+                </div>
+                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                    <div class="flex-grow-1">
+                        <span class="fw-medium">Update von GitHub</span>
+                        <span class="text-muted small ms-2">Neueste Version vom Repository laden</span>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <a href="deploy.php" class="btn btn-sm btn-outline-primary">Deploy</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
 </div>
 
