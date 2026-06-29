@@ -11,7 +11,8 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 - Einstellungen: Passwort ändern — aktuelles Passwort bestätigen, neues Passwort setzen (CSRF-geschützt, Login erforderlich)
 
 ### Behoben
-- index.php: install.php-Existenzprüfung entfernt — Datei ist jetzt im Git-Repo und durch Localhost-Guard auf Produktion geschützt
+- install.php: Localhost-Guard entfernt — Datei muss für Ersteinrichtung auf Produktion aufrufbar sein, wird danach manuell gelöscht
+- index.php: Sicherheitswarnung blockiert App nur auf Produktion wenn install.php noch existiert — auf Localhost kein Block
 
 ---
 

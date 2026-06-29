@@ -1,12 +1,4 @@
 <?php
-// Nur auf Localhost zugänglich — auf Produktion HTTP 403
-$_host = strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? '')[0]);
-if (!in_array($_host, ['localhost', '127.0.0.1'], true)) {
-    http_response_code(403);
-    die('install.php ist nur in der lokalen Entwicklungsumgebung zugänglich.');
-}
-unset($_host);
-
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 

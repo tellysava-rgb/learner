@@ -1,6 +1,15 @@
 <?php
 require_once __DIR__ . '/auth.php';
 
+// Auf Produktion: install.php muss nach der Ersteinrichtung gelöscht werden
+$_host = strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? '')[0]);
+if (file_exists(__DIR__ . '/install.php') && !in_array($_host, ['localhost', '127.0.0.1'], true)) {
+    die('<div style="font-family:sans-serif;max-width:500px;margin:60px auto;padding:20px;border:2px solid #dc3545;border-radius:8px;color:#dc3545;">
+        <strong>Sicherheitswarnung:</strong> install.php existiert noch auf dem Server. Bitte lösche diese Datei, bevor du die App nutzt.
+    </div>');
+}
+unset($_host);
+
 // Bereits eingeloggt → zur Startseite
 if (!empty($_SESSION['authenticated'])) {
     header('Location: home.php');
