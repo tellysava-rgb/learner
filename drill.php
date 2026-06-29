@@ -432,7 +432,7 @@ if (!$state && !$done_data) {
 <div class="learn-card mx-auto mb-4" id="flip-card" style="max-width:540px; cursor:pointer;" onclick="flipCard()">
     <div class="text-center p-5" style="min-height:280px;">
         <p class="text-muted small mb-2"><?= htmlspecialchars($card_data['language_a']) ?></p>
-        <div class="fw-bold fs-1 mb-1"><?= htmlspecialchars($card_data['word_a']) ?></div>
+        <div class="fw-bold fs-2 mb-1"><?= htmlspecialchars($card_data['word_a']) ?></div>
         <?php if ($card_data['desc_a']): ?>
         <p class="text-muted mb-0"><?= htmlspecialchars($card_data['desc_a']) ?></p>
         <?php endif; ?>
@@ -440,7 +440,7 @@ if (!$state && !$done_data) {
         <div id="card-back" style="display:none;">
             <hr class="my-3">
             <p class="text-muted small mb-1"><?= htmlspecialchars($card_data['language_b']) ?></p>
-            <div class="fw-bold fs-2 text-success mb-0"><?= htmlspecialchars($card_data['word_b']) ?></div>
+            <div class="fw-bold fs-3 text-success mb-0"><?= htmlspecialchars($card_data['word_b']) ?></div>
             <?php if ($card_data['desc_b']): ?>
             <p class="text-muted mt-1 mb-0"><?= htmlspecialchars($card_data['desc_b']) ?></p>
             <?php endif; ?>
@@ -491,6 +491,11 @@ if (!$state && !$done_data) {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// Verhindert dass bfcache eine aufgeklappte Karte mit sichtbarer Antwort wiederherstellt
+window.addEventListener('pageshow', function (e) {
+    if (e.persisted) window.location.reload();
+});
+
 <?php if ($state && $card_data): ?>
 function flipCard() {
     var card = document.getElementById('flip-card');

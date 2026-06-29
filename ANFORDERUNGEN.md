@@ -232,9 +232,10 @@ card_progress Tabelle:
 ### Kartendarstellung
 - Karte zentriert, max. Breite 540px (`max-width:540px; margin: 0 auto`)
 - Innenabstand `p-5`, Mindesthöhe 280px
-- Frage in `fs-1` (gross), Antwort in `fs-2` (mittelgross)
+- Frage in `fs-2`, Antwort in `fs-3` — bewusst kleiner als `fs-1` damit lange Texte max. 2 Zeilen benötigen
 - Flip-Animation: Karte faltet sich horizontal (`scaleX(0)` → Inhalt tauschen → `scaleX(1)`, 150ms)
 - Antwort-Buttons erscheinen erst nach Abschluss der Animation (300ms)
+- `pageshow`-Listener verhindert dass bfcache eine bereits aufgeklappte Karte wiederherstellt
 - Gleiche Karte und Animation wie im Drill-Modus
 
 ### Session

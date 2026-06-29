@@ -499,14 +499,14 @@ $is_retry  = isset($state['answered'][$current['id']]);
      id="learn-card" style="max-width:540px; cursor:pointer;" onclick="flipCard()">
     <div class="text-center p-5" style="min-height:280px;">
         <p class="text-muted small mb-2"><?= htmlspecialchars($qa['q_lang']) ?></p>
-        <div class="fw-bold fs-1 mb-1"><?= htmlspecialchars($qa['q']) ?></div>
+        <div class="fw-bold fs-2 mb-1"><?= htmlspecialchars($qa['q']) ?></div>
         <?php if ($qa['q_desc']): ?>
         <p class="text-muted mb-0"><?= htmlspecialchars($qa['q_desc']) ?></p>
         <?php endif; ?>
         <div id="learn-answer" style="display:none;">
             <hr class="my-3">
             <p class="text-muted small mb-1"><?= htmlspecialchars($qa['a_lang']) ?></p>
-            <div class="fw-bold fs-2 text-success mb-0"><?= htmlspecialchars($qa['a']) ?></div>
+            <div class="fw-bold fs-3 text-success mb-0"><?= htmlspecialchars($qa['a']) ?></div>
             <?php if ($qa['a_desc']): ?>
             <p class="text-muted mt-1 mb-0"><?= htmlspecialchars($qa['a_desc']) ?></p>
             <?php endif; ?>
@@ -650,6 +650,10 @@ $lang_b = $preset_list ? htmlspecialchars($preset_list['language_b']) : 'B';
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+window.addEventListener('pageshow', function (e) {
+    if (e.persisted) window.location.reload();
+});
+
 <?php if ($state && $current): ?>
 (function () {
     var modal = new bootstrap.Modal(document.getElementById('leaveModal'));

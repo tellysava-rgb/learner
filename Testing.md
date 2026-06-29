@@ -112,6 +112,8 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Antwort-Buttons erscheinen erst nach Abschluss der Animation. _(v0.6.2)_
 [ ] Flip-Animation identisch in Leitner und Drill. _(v0.6.2)_
 [ ] Funktioniert per Finger auf dem iPhone (Touch-Event). _(v0.6.2)_
+[ ] Langer Text (z.B. 35+ Zeichen): Frage benötigt max. 2 Zeilen auf der Karte. _(v0.7.1)_
+[ ] Dieselbe Karte erscheint erneut → Antwort ist verdeckt, Flip muss manuell ausgelöst werden. _(v0.7.1)_
 
 ### Session verlassen _(v0.5.0)_
 

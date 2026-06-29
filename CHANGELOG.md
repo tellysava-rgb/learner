@@ -5,6 +5,16 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [0.7.1] - 2026-06-29
+
+### Behoben
+- Drill + Leitner: Karte erscheint aufgeklappt wenn Browser sie aus bfcache wiederherstellt — pageshow-Listener erzwingt Reload
+
+### Verbessert
+- Karten: Schriftgrösse Frage fs-2 (statt fs-1), Antwort fs-3 (statt fs-2) — lange Texte benötigen max. 2 Zeilen
+
+---
+
 ## [0.7.0] - 2026-06-28
 
 ### Neu
