@@ -202,6 +202,13 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Ungültiger Wert (ausserhalb Bereich) → Fehlermeldung(en), config.php unverändert. _(v0.6.4)_
 [ ] Session-Timeout: neuer Wert wirkt (z.B. 1 Min. → nach 1 Min. Inaktivität abgemeldet). _(v0.6.4)_
 
+### Passwort ändern _(v0.8.0)_
+
+[ ] Falsches aktuelles Passwort → Fehlermeldung, Passwort unverändert. _(v0.8.0)_
+[ ] Neues Passwort unter 8 Zeichen → Fehlermeldung. _(v0.8.0)_
+[ ] Neues Passwort und Wiederholung stimmen nicht überein → Fehlermeldung. _(v0.8.0)_
+[ ] Korrektes aktuelles Passwort + gültiges neues Passwort → Flash "Passwort erfolgreich geändert.", Login mit neuem Passwort möglich. _(v0.8.0)_
+
 ---
 
 ## 9. Statistik 

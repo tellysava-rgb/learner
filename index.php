@@ -1,13 +1,6 @@
 <?php
 require_once __DIR__ . '/auth.php';
 
-// install.php-Schutz: falls install.php noch existiert → App sperren
-if (file_exists(__DIR__ . '/install.php')) {
-    die('<div style="font-family:sans-serif;max-width:500px;margin:60px auto;padding:20px;border:2px solid #dc3545;border-radius:8px;color:#dc3545;">
-        <strong>Sicherheitswarnung:</strong> install.php existiert noch auf dem Server. Bitte lösche diese Datei manuell, bevor du die App nutzt.
-    </div>');
-}
-
 // Bereits eingeloggt → zur Startseite
 if (!empty($_SESSION['authenticated'])) {
     header('Location: home.php');

@@ -5,6 +5,16 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [0.8.0] - 2026-06-29
+
+### Neu
+- Einstellungen: Passwort ändern — aktuelles Passwort bestätigen, neues Passwort setzen (CSRF-geschützt, Login erforderlich)
+
+### Behoben
+- index.php: install.php-Existenzprüfung entfernt — Datei ist jetzt im Git-Repo und durch Localhost-Guard auf Produktion geschützt
+
+---
+
 ## [0.7.1] - 2026-06-29
 
 ### Behoben

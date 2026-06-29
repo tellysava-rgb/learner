@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/db.php';
 require_login();
 
 // Nur auf Localhost zugänglich
@@ -21,6 +22,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (($_POST['action'] ?? '') === 'logout') {
         logout();
+    }
+
+    if (($_POST['action'] ?? '') === 'change_password') {
+        $cur_pw  = $_POST['current_password'] ?? '';
+        $new_pw  = $_POST['new_password']     ?? '';
+        $new_pw2 = $_POST['new_password2']    ?? '';
+
+        $stmt = $pdo->prepare("SELECT value FROM settings WHERE `key` = 'password_hash'");
+        $stmt->execute();
+        $hash = $stmt->fetchColumn();
+
+        if (!$hash || !password_verify($cur_pw, $hash)) {
+            $_SESSION['flash_errors'] = ['Aktuelles Passwort ist falsch.'];
+        } elseif (mb_strlen($new_pw) < 8) {
+            $_SESSION['flash_errors'] = ['Neues Passwort muss mindestens 8 Zeichen haben.'];
+        } elseif ($new_pw !== $new_pw2) {
+            $_SESSION['flash_errors'] = ['Die neuen Passwörter stimmen nicht überein.'];
+        } else {
+            $new_hash = password_hash($new_pw, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("UPDATE settings SET `value` = ? WHERE `key` = 'password_hash'");
+            $stmt->execute([$new_hash]);
+            $_SESSION['flash_success'] = 'Passwort erfolgreich geändert.';
+        }
+        header('Location: settings.php');
+        exit;
     }
 
     if (($_POST['action'] ?? '') === 'save_settings') {
@@ -295,6 +321,60 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
         <div class="mt-3">
             <button type="submit" class="btn btn-primary">Alle speichern</button>
             <span class="text-muted small ms-3">Dauerhaft in config.php geschrieben.</span>
+        </div>
+
+    </form>
+
+    <form method="post" class="mt-4" style="max-width:640px;">
+        <?= csrf_field() ?>
+        <input type="hidden" name="action" value="change_password">
+
+        <div class="card">
+            <div class="list-group list-group-flush">
+
+                <div class="list-group-item bg-light py-2">
+                    <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing:.05em;">Sicherheit</span>
+                </div>
+
+                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                    <div class="flex-grow-1">
+                        <span class="fw-medium">Aktuelles Passwort</span>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <input type="password" class="form-control form-control-sm"
+                               name="current_password" autocomplete="current-password"
+                               style="width:200px;" required>
+                    </div>
+                </div>
+
+                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                    <div class="flex-grow-1">
+                        <span class="fw-medium">Neues Passwort</span>
+                        <span class="text-muted small ms-2">Min. 8 Zeichen</span>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <input type="password" class="form-control form-control-sm"
+                               name="new_password" autocomplete="new-password"
+                               minlength="8" style="width:200px;" required>
+                    </div>
+                </div>
+
+                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                    <div class="flex-grow-1">
+                        <span class="fw-medium">Neues Passwort (Wiederholung)</span>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <input type="password" class="form-control form-control-sm"
+                               name="new_password2" autocomplete="new-password"
+                               style="width:200px;" required>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <button type="submit" class="btn btn-outline-danger">Passwort ändern</button>
         </div>
 
     </form>
