@@ -6,14 +6,14 @@
 $_db_credentials = [
 
     'dev' => [
-        'host' => 'localhost',         // Datenbankserver (lokal: localhost)
-        'name' => 'learner',           // Name der Datenbank
-        'user' => 'root',              // Datenbankbenutzer
-        'pass' => '',                  // Passwort (lokal oft leer)
+        'host' => 'localhost',         // Datenbankserver (lokal immer localhost)
+        'name' => 'learner',           // Name der lokalen Datenbank
+        'user' => 'root',              // Datenbankbenutzer lokal
+        'pass' => '',                  // Datenbankpasswort lokal (oft leer)
     ],
 
     'prod' => [
-        'host' => 'localhost',         // Meist localhost, auch auf dem Webserver
+        'host' => 'localhost',         // Datenbankserver (beim Hoster meist localhost)
         'name' => 'dein_db_name',      // Name der Datenbank beim Hoster
         'user' => 'dein_db_benutzer',  // Datenbankbenutzer beim Hoster
         'pass' => 'dein_db_passwort',  // Datenbankpasswort beim Hoster
