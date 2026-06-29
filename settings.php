@@ -382,9 +382,25 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
     $deploy_exists = file_exists(__DIR__ . '/deploy.php');
     $deploy_config = __DIR__ . '/deploy-config.php';
     $deploy_token  = '';
+    $github_version = null;
     if ($deploy_exists && file_exists($deploy_config)) {
         require_once $deploy_config;
         $deploy_token = defined('DEPLOY_TOKEN') ? DEPLOY_TOKEN : '';
+
+        // GitHub-Version via cURL abrufen
+        if (defined('GITHUB_OWNER') && defined('GITHUB_REPO') && function_exists('curl_init')) {
+            $ch = curl_init('https://raw.githubusercontent.com/' . GITHUB_OWNER . '/' . GITHUB_REPO . '/main/config.php');
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => 5,
+                CURLOPT_USERAGENT      => 'PHP-Deploy/1.0',
+            ]);
+            $remote = curl_exec($ch);
+            curl_close($ch);
+            if ($remote && preg_match("/define\('APP_VERSION',\s*'([^']+)'\)/", $remote, $m)) {
+                $github_version = $m[1];
+            }
+        }
     }
     ?>
     <?php if ($deploy_exists && $deploy_token !== ''): ?>
@@ -394,14 +410,29 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                 <div class="list-group-item bg-light py-2">
                     <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing:.05em;">Deployment</span>
                 </div>
-                <div class="list-group-item d-flex align-items-center gap-3 py-2">
-                    <div class="flex-grow-1">
-                        <span class="fw-medium">Update von GitHub</span>
-                        <span class="text-muted small ms-2">Neueste Version vom Repository laden</span>
+                <div class="list-group-item py-3">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="text-center">
+                            <div class="text-muted small mb-1">Installiert</div>
+                            <span class="badge bg-secondary fs-6">v<?= htmlspecialchars(APP_VERSION) ?></span>
+                        </div>
+                        <div class="text-muted fs-5">→</div>
+                        <div class="text-center">
+                            <div class="text-muted small mb-1">GitHub (main)</div>
+                            <?php if ($github_version !== null): ?>
+                                <?php $up_to_date = ($github_version === APP_VERSION); ?>
+                                <span class="badge fs-6 <?= $up_to_date ? 'bg-success' : 'bg-primary' ?>">
+                                    v<?= htmlspecialchars($github_version) ?>
+                                </span>
+                            <?php else: ?>
+                                <span class="badge bg-warning text-dark fs-6">unbekannt</span>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                    <div class="flex-shrink-0">
-                        <a href="deploy.php?token=<?= htmlspecialchars($deploy_token) ?>" class="btn btn-sm btn-outline-primary">Deploy</a>
-                    </div>
+                    <?php if (isset($up_to_date) && $up_to_date): ?>
+                    <div class="text-success small mb-2">✓ Bereits auf dem neuesten Stand</div>
+                    <?php endif; ?>
+                    <a href="deploy.php?token=<?= htmlspecialchars($deploy_token) ?>" class="btn btn-sm btn-outline-primary">Deploy starten</a>
                 </div>
             </div>
         </div>
