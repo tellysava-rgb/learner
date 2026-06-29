@@ -1,6 +1,6 @@
 <?php
 define('APP_NAME', 'Learners');
-define('APP_VERSION', '0.8.0');
+define('APP_VERSION', '1.0.0');
 define('TIMEZONE', 'Europe/Zurich');
 define('SESSION_TIMEOUT', 3600); // 60 Minuten
 

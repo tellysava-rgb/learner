@@ -5,6 +5,21 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [1.0.0] - 2026-06-29
+
+### Erste stabile, getestete Version
+
+- Leitner-System (5 Fächer, konfigurierbare Intervalle, Mehrfach-Listen, Click-to-Flip)
+- Drill-Modus (Incremental Rehearsal, 9:1-Verhältnis, Timer, Leitner-Übergang)
+- Listen verwalten, Karten bearbeiten, CSV-Import/Export, öffentliche Listen entdecken
+- Mathe-Generator (Multiplikation + Division)
+- Statistik-Dashboard, Streak-Badge in Navbar
+- Einstellungen (Localhost): alle Konfigurationswerte, Passwort ändern
+- install.php für Ersteinrichtung auf Produktion, db-credentials.example.php als Vorlage
+- CSRF-Schutz, Prepared Statements, Session-Timeout, Passwort als Hash
+
+---
+
 ## [0.8.0] - 2026-06-29
 
 ### Neu
