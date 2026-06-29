@@ -377,7 +377,16 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
 
     </form>
 
-    <?php if (file_exists(__DIR__ . '/deploy.php')): ?>
+    <?php
+    $deploy_exists = file_exists(__DIR__ . '/deploy.php');
+    $deploy_config = __DIR__ . '/deploy-config.php';
+    $deploy_token  = '';
+    if ($deploy_exists && file_exists($deploy_config)) {
+        require_once $deploy_config;
+        $deploy_token = defined('DEPLOY_TOKEN') ? DEPLOY_TOKEN : '';
+    }
+    ?>
+    <?php if ($deploy_exists && $deploy_token !== ''): ?>
     <div class="mt-4" style="max-width:640px;">
         <div class="card">
             <div class="list-group list-group-flush">
@@ -390,7 +399,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                         <span class="text-muted small ms-2">Neueste Version vom Repository laden</span>
                     </div>
                     <div class="flex-shrink-0">
-                        <a href="deploy.php" class="btn btn-sm btn-outline-primary">Deploy</a>
+                        <a href="deploy.php?token=<?= htmlspecialchars($deploy_token) ?>" class="btn btn-sm btn-outline-primary">Deploy</a>
                     </div>
                 </div>
             </div>
