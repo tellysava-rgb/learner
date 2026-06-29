@@ -1,4 +1,5 @@
 db-credentials.php
+config-runtime.php
 deploy.php
 deploy-config.php
 *.log

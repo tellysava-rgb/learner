@@ -5,6 +5,17 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [1.4.0] - 2026-06-29
+
+### Neu
+- config-runtime.php (gitignored): speichert laufzeitspezifische Einstellungen — wird nie per Deploy überschrieben
+- Einstellungen-Form auf allen Umgebungen sichtbar (nicht mehr localhost-only)
+
+### Verbessert
+- settings.php schreibt in config-runtime.php statt config.php — Prod-Einstellungen überleben jeden Deploy
+
+---
+
 ## [1.3.0] - 2026-06-29
 
 ### Neu

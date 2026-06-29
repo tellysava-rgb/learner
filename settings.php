@@ -3,9 +3,9 @@ require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/db.php';
 require_login();
 
-$person_name = $_SESSION['person_name'] ?? '';
-$config_path = __DIR__ . '/config.php';
-$success     = $_SESSION['flash_success'] ?? '';
+$person_name    = $_SESSION['person_name'] ?? '';
+$runtime_path   = __DIR__ . '/config-runtime.php';
+$success        = $_SESSION['flash_success'] ?? '';
 $errors      = $_SESSION['flash_errors']  ?? [];
 $is_local    = in_array(strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? '')[0]), ['localhost', '127.0.0.1'], true);
 unset($_SESSION['flash_success'], $_SESSION['flash_errors']);
@@ -71,55 +71,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (empty($errs)) {
-            $c = file_get_contents($config_path);
-
-            $c = preg_replace(
-                "/define\('APP_NAME',\s*'[^']*'\);/",
-                "define('APP_NAME', '{$app_name}');",
-                $c
-            );
             $timeout_sec = $vals['session_timeout_min'] * 60;
-            $c = preg_replace(
-                "/define\('SESSION_TIMEOUT',\s*\d+\)[^\n]*/",
-                "define('SESSION_TIMEOUT', {$timeout_sec}); // {$vals['session_timeout_min']} Minuten",
-                $c
-            );
-            $c = preg_replace(
-                "/define\('DAILY_CARD_LIMIT',\s*\d+\)[^\n]*/",
-                "define('DAILY_CARD_LIMIT', {$vals['daily_card_limit']});",
-                $c
-            );
-            $c = preg_replace(
-                "/define\('LEITNER_DEFAULT_CARDS',\s*\d+\)[^\n]*/",
-                "define('LEITNER_DEFAULT_CARDS', {$vals['leitner_default_cards']});",
-                $c
-            );
-            $drill_sec = $vals['drill_minutes'] * 60;
-            $c = preg_replace(
-                "/define\('DRILL_SESSION_SECONDS',\s*\d+\)[^\n]*/",
-                "define('DRILL_SESSION_SECONDS', {$drill_sec}); // {$vals['drill_minutes']} Minuten",
-                $c
-            );
-            $c = preg_replace(
-                "/define\('DRILL_TOO_HARD_LIMIT',\s*\d+\)[^\n]*/",
-                "define('DRILL_TOO_HARD_LIMIT', {$vals['drill_too_hard']});",
-                $c
-            );
-            $c = preg_replace(
-                "/define\('DRILL_MASTERY_THRESHOLD',\s*\d+\)[^\n]*/",
-                "define('DRILL_MASTERY_THRESHOLD', {$vals['drill_mastery']}); // {$vals['drill_mastery']}× hintereinander korrekt = gemeistert",
-                $c
-            );
-            $c = preg_replace(
-                "/define\('DRILL_KNOWN_RATIO',\s*\d+\)[^\n]*/",
-                "define('DRILL_KNOWN_RATIO', {$vals['drill_known_ratio']}); // {$vals['drill_known_ratio']} bekannte Karten pro 1 neue/unbekannte",
-                $c
-            );
+            $drill_sec   = $vals['drill_minutes'] * 60;
 
-            if (file_put_contents($config_path, $c) !== false) {
+            $runtime = [
+                'APP_NAME'               => $app_name,
+                'SESSION_TIMEOUT'        => $timeout_sec,
+                'DAILY_CARD_LIMIT'       => $vals['daily_card_limit'],
+                'LEITNER_DEFAULT_CARDS'  => $vals['leitner_default_cards'],
+                'DRILL_SESSION_SECONDS'  => $drill_sec,
+                'DRILL_TOO_HARD_LIMIT'   => $vals['drill_too_hard'],
+                'DRILL_MASTERY_THRESHOLD'=> $vals['drill_mastery'],
+                'DRILL_KNOWN_RATIO'      => $vals['drill_known_ratio'],
+            ];
+
+            $lines = "<?php return [\n";
+            foreach ($runtime as $k => $v) {
+                $lines .= is_int($v)
+                    ? "    '{$k}' => {$v},\n"
+                    : "    '{$k}' => " . var_export($v, true) . ",\n";
+            }
+            $lines .= "];\n";
+
+            if (file_put_contents($runtime_path, $lines) !== false) {
                 $_SESSION['flash_success'] = 'Einstellungen gespeichert.';
             } else {
-                $_SESSION['flash_errors'] = ['Fehler beim Schreiben von config.php. Prüfe die Dateirechte.'];
+                $_SESSION['flash_errors'] = ['Fehler beim Schreiben von config-runtime.php. Prüfe die Dateirechte.'];
             }
         } else {
             $_SESSION['flash_errors'] = $errs;
@@ -190,7 +167,6 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
     </div>
     <?php endif; ?>
 
-    <?php if ($is_local): ?>
     <form method="post" style="max-width:640px;">
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="save_settings">
@@ -318,11 +294,10 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
 
         <div class="mt-3">
             <button type="submit" class="btn btn-primary">Alle speichern</button>
-            <span class="text-muted small ms-3">Dauerhaft in config.php geschrieben.</span>
+            <span class="text-muted small ms-3">Dauerhaft in config-runtime.php geschrieben.</span>
         </div>
 
     </form>
-    <?php endif; ?>
 
     <form method="post" class="mt-4" style="max-width:640px;">
         <?= csrf_field() ?>
