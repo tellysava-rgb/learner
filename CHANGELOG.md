@@ -5,6 +5,17 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [1.3.0] - 2026-06-29
+
+### Neu
+- Einstellungen: Versions-Vergleich im Deployment-Bereich (installierte Version vs. GitHub-Version)
+- deploy.php: install.php wird nie deployed — muss einmalig manuell hochgeladen und danach gelöscht werden
+
+### Verbessert
+- Lernkarten: Rahmen dunkler (#adb5bd statt #dee2e6), Schatten stärker — auf iPhone besser sichtbar
+
+---
+
 ## [1.2.0] - 2026-06-29
 
 ### Neu
