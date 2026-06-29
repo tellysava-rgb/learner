@@ -173,6 +173,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
 
     <div class="d-flex align-items-center gap-2 mb-4">
         <h1 class="h4 mb-0">Einstellungen</h1>
+        <span class="badge bg-secondary">v<?= APP_VERSION ?></span>
         <?php if ($is_local): ?>
         <span class="badge bg-warning text-dark">Localhost</span>
         <?php endif; ?>
