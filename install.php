@@ -84,11 +84,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
                 CREATE TABLE IF NOT EXISTS learning_sessions (
-                    id         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                    person_id  INT          NOT NULL,
-                    mode       VARCHAR(20)  NOT NULL,
-                    direction  VARCHAR(10)  NULL DEFAULT NULL,
-                    started_at DATETIME     NOT NULL,
+                    id           INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    person_id    INT          NOT NULL,
+                    mode         VARCHAR(20)  NOT NULL,
+                    direction    VARCHAR(10)  NULL DEFAULT NULL,
+                    started_at   DATETIME     NOT NULL,
+                    completed_at DATETIME     NULL DEFAULT NULL,
                     FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
