@@ -5,6 +5,15 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [1.2.0] - 2026-06-29
+
+### Neu
+- Auto-Migration: fehlende DB-Spalten werden beim ersten Seitenaufruf automatisch ergänzt
+- migrations.php: versionierte Migrationsliste — neue Migrationen am Ende anfügen
+- Migration 1: `completed_at` in `learning_sessions` (behebt Fehler am Ende einer Leitner/Drill-Session)
+
+---
+
 ## [1.1.0] - 2026-06-29
 
 ### Neu

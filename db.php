@@ -32,3 +32,6 @@ try {
 }
 
 unset($_db_host, $_db_is_dev, $_db_creds_file, $_db_env, $_db_credentials);
+
+require_once __DIR__ . '/migrations.php';
+run_pending_migrations($pdo);
