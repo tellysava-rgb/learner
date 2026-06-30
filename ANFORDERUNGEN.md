@@ -249,6 +249,8 @@ card_progress Tabelle:
   - Aktueller Lernstreak (z.B. "5 Tage in Folge!")
   - Kurzer Motivationstext (z.B. "Super gemacht!")
   - Anzahl Karten noch in Warteschlange
+- **Keine Karten fällig:** statt leerer 0/0/0-Zusammenfassung wird eine eigene Meldung angezeigt (✅) mit dem Datum, wann die nächsten Karten fällig werden
+
 
 ---
 
@@ -407,7 +409,7 @@ Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler 
 Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`/`exec` nötig):
 
 - `deploy.php` liegt auf dem Produktiv-Server (nicht im Git-Repo — in `.gitignore`)
-- Aufruf: Deploy-Button in den Einstellungen (settings.php) — Token wird automatisch angehängt
+- Aufruf: Deploy-Button in den Einstellungen (settings.php) — Token wird per POST-Formular übermittelt (nicht als URL-Parameter, verhindert Sichtbarkeit in Server-Logs)
 - Script lädt das GitHub-Repo als ZIP via cURL herunter, entpackt es und kopiert die Dateien
 - Token wird in `deploy-config.php` konfiguriert (ebenfalls in `.gitignore`)
 
@@ -506,6 +508,55 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
   /assets/                 ← CSS, JS
   /templates/              ← CSV-Vorlage zum Download
 ```
+
+---
+
+## MCP-Server _(v2.0.0)_
+
+`mcp-server.php` stellt einen MCP-Endpoint bereit (JSON-RPC 2.0 über HTTP POST, Streamable-HTTP im synchronen Modus — kein SSE). Clients sind Claude Code und n8n Cloud.
+
+### Protokoll & Authentifizierung
+- Protokoll: MCP über HTTP, nur synchroner JSON-Response (kein Streaming/SSE)
+- Stateless: kein serverseitiger Session-Store
+- 3 JSON-RPC-Methoden: `initialize`, `tools/list`, `tools/call`
+- Bearer-Token im `Authorization`-Header (nicht in URL oder Query) — Pflicht auf jedem Request
+- Token in `mcp-config.php` (gitignored, analog `deploy-config.php`)
+- HTTPS verpflichtend auf Produktion (HTTP → HTTP 403)
+
+### Tools
+
+**`list_persons`** — keine Parameter
+- Gibt alle Personen zurück: `[{ id, name }]`
+
+**`list_lists(person_id)`** — Pflichtfeld: `person_id` (integer)
+- Gibt alle Listen einer Person zurück: `{ person: { id, name }, lists: [{ id, name, language_a, language_b }] }`
+
+**`add_cards(list_id, cards[], force?)`**
+- Fügt eine oder mehrere Vokabelkarten in eine Liste ein
+- `cards[]` = Array aus `{ sprache_a_begriff, sprache_b_begriff, beschreibung_a?, beschreibung_b? }`
+- Karten werden nur in `cards`-Tabelle eingefügt — **kein `card_progress`-Eintrag** (lazy-init beim nächsten Leitner-Session-Start)
+- Duplikatprüfung: exakter Vergleich (case-insensitive, getrimmt) auf `word_a + word_b` innerhalb der Ziel-Liste
+- Duplikat + `force = false`: Karte wird nicht eingefügt, Warnung mit gefundener Karte zurückgegeben
+- Duplikat + `force = true`: Karte wird trotzdem eingefügt
+- Limits: max. 50 Karten/Aufruf, Begriff max. 500 Zeichen, Beschreibung max. 1000 Zeichen
+- Antwort: `{ summary, list: { id, name }, results: [{ index, status, card, message? }] }`
+  - `status`: `inserted` / `duplicate` / `error`
+
+### Sicherheit
+- Prepared Statements für alle DB-Zugriffe
+- Keine PHP-Stacktraces nach aussen (generische Fehlermeldungen)
+- Input-Validierung: Pflichtfelder, Typ, Längen, max. Karten-Anzahl
+- Logging: `mcp.log` (gitignored via `*.log`) — Zeitstempel, Umgebung, Methode, Tool, Argumente
+
+### Client-Einrichtung
+- `.mcp.json.example` für Claude Code / VS Code (HTTP-Transport, Token-Header, Dev + Prod)
+- `mcp-einrichtung.md`: Setup-Anleitung inkl. n8n AI Agent Node, Apache `.htaccess`-Workaround
+
+### n8n vs. Claude Code — Duplikat-Verhalten
+| Client | Duplikat-Reaktion |
+|---|---|
+| Claude Code | Warnung anzeigen, erst nach Bestätigung mit `force=true` erneut aufrufen |
+| n8n | Sofort mit `force=true` erneut aufrufen (kein Mensch anwesend) |
 
 ---
 

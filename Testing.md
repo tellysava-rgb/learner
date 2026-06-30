@@ -214,3 +214,53 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 ## 9. Statistik 
 
 
+---
+
+## 10. MCP-Server _(v2.0.0)_
+
+Testvoraussetzung: `mcp-config.php` mit Token vorhanden, Apache läuft lokal.
+Testtools: `curl` oder Claude Code mit `.mcp.json`.
+
+### Authentifizierung _(v2.0.0)_
+[ ] POST ohne Authorization-Header → HTTP 401, JSON-RPC-Fehler. _(v2.0.0)_
+[ ] POST mit falschem Token → HTTP 401. _(v2.0.0)_
+[ ] POST mit korrektem Token → Antwort korrekt. _(v2.0.0)_
+[ ] GET-Request → HTTP 405. _(v2.0.0)_
+[ ] Ungültiger JSON-Body → HTTP 400, JSON-RPC-Fehler. _(v2.0.0)_
+
+### initialize _(v2.0.0)_
+[ ] `initialize`-Request → Response enthält `protocolVersion`, `serverInfo.name = "learner-mcp"`, `serverInfo.version`. _(v2.0.0)_
+
+### tools/list _(v2.0.0)_
+[ ] `tools/list` → Response enthält genau 3 Tools: `list_persons`, `list_lists`, `add_cards`. _(v2.0.0)_
+[ ] `list_lists.inputSchema.required` enthält `person_id`. _(v2.0.0)_
+[ ] `add_cards.inputSchema.required` enthält `list_id` und `cards`. _(v2.0.0)_
+
+### list_persons _(v2.0.0)_
+[ ] `list_persons` → gibt Array aller Personen mit `id` und `name` zurück. _(v2.0.0)_
+
+### list_lists _(v2.0.0)_
+[ ] `list_lists` ohne `person_id` → `isError: true`. _(v2.0.0)_
+[ ] `list_lists` mit ungültiger `person_id` → `isError: true`. _(v2.0.0)_
+[ ] `list_lists` mit gültiger `person_id` → gibt `person` und `lists` (mit `language_a`, `language_b`) zurück. _(v2.0.0)_
+
+### add_cards _(v2.0.0)_
+[ ] `add_cards` ohne `list_id` → `isError: true`. _(v2.0.0)_
+[ ] `add_cards` mit leeren `cards` → `isError: true`. _(v2.0.0)_
+[ ] `add_cards` mit 51 Karten → `isError: true` (Limit 50). _(v2.0.0)_
+[ ] `add_cards` mit gültiger Liste und 1 neuer Karte → `status: "inserted"`, Karte in DB vorhanden. _(v2.0.0)_
+[ ] Kein `card_progress`-Eintrag für neue Karte (lazy-init erst beim Leitner-Start). _(v2.0.0)_
+[ ] Dieselbe Karte nochmals senden (kein force) → `status: "duplicate"`, Warnung mit Originalwerten. _(v2.0.0)_
+[ ] Duplikat mit `force: true` → `status: "inserted"`, Karte trotzdem in DB. _(v2.0.0)_
+[ ] Begriff > 500 Zeichen → `status: "error"` für diese Karte, restliche normal verarbeitet. _(v2.0.0)_
+[ ] Leere `sprache_a_begriff` → `status: "error"`. _(v2.0.0)_
+[ ] `beschreibung_a` leer → `desc_a` ist NULL in DB. _(v2.0.0)_
+[ ] Gemischtes Batch (1 ok, 1 Duplikat, 1 Fehler) → `summary` zeigt korrekte Zahlen. _(v2.0.0)_
+
+### Logging _(v2.0.0)_
+[ ] Nach jedem Request: neuer Eintrag in `mcp.log` mit Zeitstempel, Umgebung, Methode, Tool-Name. _(v2.0.0)_
+
+### Claude Code Integration _(v2.0.0)_
+[ ] `.mcp.json` aus `.mcp.json.example` erstellt, Token eingetragen → Claude Code erkennt `learner-dev` Server. _(v2.0.0)_
+[ ] "Füge [Begriff] zu Liste [Name] von Person [Name] hinzu" → Agent ruft list_persons, list_lists, add_cards auf, zeigt Resultat vor dem Einfügen zur Bestätigung. _(v2.0.0)_
+

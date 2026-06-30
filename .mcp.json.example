@@ -1,0 +1,19 @@
+{
+  "_hinweis": "Diese Datei als .mcp.json kopieren, Tokens eintragen. .mcp.json in .gitignore eintragen damit der Token nicht committet wird.",
+  "mcpServers": {
+    "learner-dev": {
+      "type": "http",
+      "url": "http://localhost/learner/mcp-server.php",
+      "headers": {
+        "Authorization": "Bearer DEV_TOKEN_HIER"
+      }
+    },
+    "learner-prod": {
+      "type": "http",
+      "url": "https://deinserver.ch/learner/mcp-server.php",
+      "headers": {
+        "Authorization": "Bearer PROD_TOKEN_HIER"
+      }
+    }
+  }
+}

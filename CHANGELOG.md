@@ -5,6 +5,22 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.0.0] - 2026-06-30
+
+### Neu
+- MCP-Server (`mcp-server.php`): JSON-RPC 2.0 über HTTP POST (Streamable HTTP, sync), zustandslos
+- Tool `list_persons`: gibt alle Personen zurück
+- Tool `list_lists(person_id)`: gibt Listen einer Person zurück
+- Tool `add_cards(list_id, cards[], force?)`: fügt Vokabelkarten ein, mit Duplikatprüfung
+- Bearer-Token-Authentifizierung via `mcp-config.php` (gitignored)
+- HTTPS-Pflicht auf Produktion
+- Logging in `mcp.log` (gitignored)
+- `.mcp.json.example` für Claude Code / VS Code (HTTP-Transport, Dev + Prod)
+- `mcp-config.example.php` als Token-Vorlage
+- `mcp-einrichtung.md`: Setup-Anleitung für Claude Code und n8n Cloud
+
+---
+
 ## [1.4.3] - 2026-06-30
 
 ### Behoben
