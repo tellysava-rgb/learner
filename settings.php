@@ -371,7 +371,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                 CURLOPT_USERAGENT      => 'PHP-Deploy/1.0',
             ]);
             $remote = curl_exec($ch);
-            curl_close($ch);
+            unset($ch);
             if ($remote && preg_match("/define\('APP_VERSION',\s*'([^']+)'\)/", $remote, $m)) {
                 $github_version = $m[1];
             }

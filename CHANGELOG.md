@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [1.4.3] - 2026-06-30
+
+### Behoben
+- settings.php: Deprecation-Warning `curl_close()` (seit PHP 8.5 deprecated, ohne Effekt seit PHP 8.0) — durch `unset($ch)` ersetzt
+
+---
+
 ## [1.4.2] - 2026-06-30
 
 ### Behoben
