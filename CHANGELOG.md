@@ -5,6 +5,14 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [1.4.2] - 2026-06-30
+
+### Behoben
+- learn.php: Session startet ohne Karten wenn Karten keine card_progress-Einträge haben — lazy-Init stellt sicher dass alle Karten der Liste bei Session-Start als «queued» registriert werden
+- learn.php: Statt leerer Zusammenfassung mit 0/0/0 wird jetzt «Keine Karten fällig» angezeigt, mit dem Datum wann die nächsten Karten fällig werden
+
+---
+
 ## [1.4.1] - 2026-06-30
 
 ### Behoben

@@ -82,6 +82,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin
 
     $today = today();
 
+    // Karten ohne card_progress-Eintrag für diese Person initialisieren (lazy init)
+    $init_ph = implode(',', array_fill(0, count($valid_ids), '?'));
+    $pdo->prepare("
+        INSERT IGNORE INTO card_progress (person_id, card_id, status)
+        SELECT ?, c.id, 'queued' FROM cards c WHERE c.list_id IN ($init_ph)
+    ")->execute(array_merge([$person_id], $valid_ids));
+
     // Täglich 10 Karten aktivieren (queued → active)
     activate_daily_cards($pdo, $person_id, $valid_ids, $today);
 
@@ -89,7 +96,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin
     $queue = build_leitner_queue($pdo, $person_id, $valid_ids, $today, $card_limit);
 
     if (!$queue) {
-        $_SESSION['learn_done'] = ['message' => 'Keine fälligen Karten heute. Gut gemacht!', 'stats' => ['correct' => 0, 'incorrect' => 0, 'promoted' => 0]];
+        // Nächsten Fälligkeitstermin bestimmen
+        $next_stmt = $pdo->prepare("
+            SELECT MIN(cp.next_due_date) FROM card_progress cp
+            JOIN cards c ON c.id = cp.card_id
+            WHERE cp.person_id = ? AND c.list_id IN ($init_ph)
+              AND cp.status = 'active' AND cp.next_due_date > ?
+        ");
+        $next_stmt->execute(array_merge([$person_id], $valid_ids, [$today]));
+        $next_due = $next_stmt->fetchColumn();
+        $_SESSION['learn_done'] = [
+            'stats'    => ['correct' => 0, 'incorrect' => 0, 'promoted' => 0],
+            'next_due' => $next_due ?: null,
+        ];
         header('Location: learn.php?done=1&list_id=' . $valid_ids[0]);
         exit;
     }
@@ -419,11 +438,23 @@ render_setup:
 
 <?php if ($done_data !== null): ?>
 <!-- ==================== SESSION-ZUSAMMENFASSUNG ==================== -->
+<?php
+$total_answered = ($done_data['stats']['correct'] ?? 0) + ($done_data['stats']['incorrect'] ?? 0);
+$no_cards_due   = ($total_answered === 0);
+?>
 <div class="text-center">
+    <?php if ($no_cards_due): ?>
+    <div class="display-6 mb-2">✅</div>
+    <h2 class="h4 mb-2">Keine Karten fällig</h2>
+    <?php if (!empty($done_data['next_due'])): ?>
+    <p class="text-muted mb-4">Nächste Karten fällig am <?= htmlspecialchars(date('d.m.Y', strtotime($done_data['next_due']))) ?>.</p>
+    <?php else: ?>
+    <p class="text-muted mb-4">Alle Karten sind erledigt oder noch nicht aktiv.</p>
+    <?php endif; ?>
+    <?php else: ?>
     <div class="display-6 mb-2">
         <?php
-        $pct = ($done_data['stats']['correct'] ?? 0) + ($done_data['stats']['incorrect'] ?? 0);
-        $pct = $pct > 0 ? round(($done_data['stats']['correct'] ?? 0) / $pct * 100) : 0;
+        $pct = $total_answered > 0 ? round(($done_data['stats']['correct'] ?? 0) / $total_answered * 100) : 0;
         echo $pct >= 80 ? '🎉' : ($pct >= 50 ? '💪' : '📚');
         ?>
     </div>
@@ -434,7 +465,9 @@ render_setup:
         else echo 'Üben macht den Meister!';
         ?>
     </h2>
+    <?php endif; ?>
 
+    <?php if (!$no_cards_due): ?>
     <div class="row g-3 mb-4 justify-content-center">
         <div class="col-auto">
             <div class="card text-center px-4 py-3">
@@ -463,6 +496,7 @@ render_setup:
         </div>
         <?php endif; ?>
     </div>
+    <?php endif; ?>
 
     <?php
     $repeat_ids = $done_data['list_ids'] ?? [];
