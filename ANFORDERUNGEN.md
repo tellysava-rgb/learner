@@ -319,11 +319,12 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 
 ---
 
-## Einstellungsseite (Localhost)
+## Einstellungsseite
 
-- Nur zugänglich wenn `HTTP_HOST` = `localhost` oder `127.0.0.1` — sonst HTTP 403
-- Link "Einstellungen" erscheint in der Navbar der Startseite (home.php) nur auf Localhost
-- Einstellungen werden **dauerhaft in config.php** geschrieben (Regex-Ersatz der jeweiligen Zeile)
+- Zugänglich auf allen Umgebungen (Login + CSRF-Schutz erforderlich)
+- Link "Einstellungen" erscheint in der Navbar der Startseite (home.php) auf allen Umgebungen
+- Einstellungen werden **dauerhaft in `config-runtime.php`** geschrieben (gitignored, wird nie per Deploy überschrieben)
+- Auf Localhost: zusätzlicher "Localhost"-Badge sichtbar
 - PRG-Muster: nach Speichern Redirect auf GET, Flash-Meldung via Session
 
 ### Konfigurierbare Werte (Gruppen: Allgemein / Leitner / Drill)
@@ -337,6 +338,11 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 | Drill | «Musste nachdenken»-Limit | `DRILL_TOO_HARD_LIMIT` | Bewertungen bis Karte aus Session entfernt wird | 1–20 |
 | Drill | Mastery-Schwelle | `DRILL_MASTERY_THRESHOLD` | Aufeinanderfolgende Korrekt-Antworten für «gemeistert» | 1–10 |
 | Drill | Bekannt/Neu-Verhältnis | `DRILL_KNOWN_RATIO` | Bekannte Karten pro neuer Karte in der Rotation | 1–30 |
+
+### Passwort ändern
+- Formular in der Einstellungsseite (Abschnitt «Sicherheit»)
+- Aktuelles Passwort muss bestätigt werden — kein Reset ohne Kenntnis des alten Passworts
+- CSRF-geschützt, Login erforderlich
 
 ---
 
@@ -387,42 +393,53 @@ Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler 
 
 - Einmaliges `install.php` Script das:
   1. Datenbankverbindung prüft
-  2. Alle Tabellen automatisch erstellt
+  2. Alle Tabellen automatisch erstellt (idempotent — `IF NOT EXISTS`)
   3. Globales Passwort setzen lässt
-  4. Sich nach erfolgreicher Installation selbst zu löschen versucht
-  5. Falls Selbst-Löschen nicht möglich (Dateirechte) → App wird gesperrt bis `install.php` manuell entfernt wurde
-- Systemvoraussetzungen in `README.md` dokumentiert (PHP-Version, MySQL-Version)
+- Nach der Ersteinrichtung muss `install.php` **manuell vom Produktiv-Server gelöscht** werden
+- `index.php` erkennt ob `install.php` noch existiert und sperrt die App auf Produktion bis sie gelöscht ist — auf Localhost kein Block
+- `install.php` ist im Git-Repo (nicht gitignored) — beim Deploy wird sie automatisch übersprungen (in `deploy.php` Skip-Liste)
+- **DB-Migrationen:** `migrations.php` wird bei jedem Request automatisch aufgerufen — fehlende Spalten/Tabellen werden ergänzt ohne manuellen SQL-Eingriff
 
 ---
 
 ## Deployment auf Produktiv-Server
 
-Neue Versionen werden via Webhook-Deploy eingespielt:
+Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`/`exec` nötig):
 
 - `deploy.php` liegt auf dem Produktiv-Server (nicht im Git-Repo — in `.gitignore`)
-- Aufruf via Browser: `https://deinserver.ch/learner/deploy.php?token=GEHEIM`
-- Script prüft Token und führt `git pull origin main` aus
+- Aufruf: Deploy-Button in den Einstellungen (settings.php) — Token wird automatisch angehängt
+- Script lädt das GitHub-Repo als ZIP via cURL herunter, entpackt es und kopiert die Dateien
 - Token wird in `deploy-config.php` konfiguriert (ebenfalls in `.gitignore`)
 
-**Voraussetzungen auf dem Server:**
-- Das Verzeichnis muss ein Git-Repo sein (`git clone` bei Erstinstallation)
-- PHP muss `exec()` erlauben — beim Hoster prüfen
-- SSH-Key oder HTTPS-Credentials für GitHub hinterlegt
+**Dateien die nie per Deploy überschrieben werden (Skip-Liste in deploy.php):**
+- `db-credentials.php` — Datenbankzugangsdaten
+- `config-runtime.php` — Laufzeit-Einstellungen (Prod-spezifisch)
+- `deploy.php` — das Deploy-Script selbst
+- `deploy-config.php` — Deploy-Token und GitHub-Konfiguration
+- `install.php` — Erstinstallations-Script (manuell verwalten)
 
-**Sicherheit:**
-- Token zufällig generieren: `php -r "echo bin2hex(random_bytes(32));"`
-- `deploy.php` und `deploy-config.php` nie committen
-- Nur `git pull` — kein weiterer Shell-Zugriff möglich
+**Voraussetzungen auf dem Server:**
+- PHP mit cURL-Extension (auf den meisten Hostern verfügbar)
+- GitHub-Repo muss **public** sein (kein Token für Download nötig)
+- Schreibrechte im App-Verzeichnis
+
+**Konfiguration (`deploy-config.php`):**
+- `DEPLOY_TOKEN` — schützt die deploy.php-URL, zufällig generieren: `php -r "echo bin2hex(random_bytes(32));"`
+- `GITHUB_OWNER` — GitHub-Benutzername
+- `GITHUB_REPO` — Repository-Name
+
+**Versions-Vergleich in Einstellungen:**
+- settings.php zeigt installierte Version und GitHub-Version nebeneinander
+- Grün = aktuell, Blau = Update verfügbar
 
 ---
 
 ## Versionsverwaltung & GitHub
 
-- **Privates GitHub-Repository**
+- **Öffentliches GitHub-Repository** (public — ermöglicht ZIP-Download ohne Token)
 - **Semantic Versioning:** `MAJOR.MINOR.PATCH` (Start: `1.0.0`)
-- **README.md** mit Projektbeschreibung, Installationsanleitung, Systemvoraussetzungen, Konfiguration
 - **CHANGELOG.md** mit Versionshistorie aller Änderungen
-- **`.gitignore`** schliesst aus: `db-credentials.php` (Zugangsdaten), `install.php` (nach Installation), `deploy.php`, `deploy-config.php`, temporäre Dateien
+- **`.gitignore`** schliesst aus: `db-credentials.php`, `config-runtime.php`, `deploy.php`, `deploy-config.php`, temporäre Dateien
 
 ---
 
@@ -464,27 +481,30 @@ Neue Versionen werden via Webhook-Deploy eingespielt:
 
 ```
 /learner/
-  install.php         ← Erstinstallation, Tabellen erstellen, Passwort setzen
-  config.php          ← Konfiguration (Zeitzone, Intervalle etc., keine Credentials)
-  auth.php            ← Session-Start, Timeout, CSRF-Funktionen, require_login/person, today()
-  index.php           ← Login (globales Passwort)
-  home.php            ← Personenwahl / Startseite / Dashboard
-  learn.php           ← Leitner-Session
-  drill.php           ← Drill-Modus (Incremental Rehearsal, ~10 Min.)
-  lists.php           ← Listen verwalten (erstellen, umbenennen, löschen)
-  edit.php            ← Karte hinzufügen / bearbeiten / löschen
-  discover.php        ← Öffentliche Listen entdecken & kopieren
-  import.php          ← CSV Upload mit Formatbeschreibung
-  export.php          ← CSV Export
-  stats.php           ← Statistik-Dashboard
-  math.php            ← Mathe-Generator (Multiplikation + Division)
-  settings.php        ← Einstellungsseite (nur Localhost, schreibt in config.php)
-  db.php              ← Umgebungserkennung + DB-Verbindung (committet, keine Credentials)
-  db-credentials.php  ← Zugangsdaten Dev + Prod (in .gitignore, nie committen)
-  deploy.php          ← Webhook-Deploy via Browser (in .gitignore)
-  deploy-config.php   ← Deploy-Token (in .gitignore)
-  /assets/            ← CSS, JS
-  /templates/         ← CSV-Vorlage zum Download
+  install.php              ← Erstinstallation: Tabellen erstellen, Passwort setzen (manuell löschen nach Setup)
+  config.php               ← Statische Konfiguration (Zeitzone, Intervalle, Version, Standardwerte)
+  config-runtime.php       ← Laufzeit-Einstellungen pro Umgebung (gitignored, nie deployed, schreibt settings.php)
+  migrations.php           ← Auto-Migrationen: fehlende DB-Spalten werden beim Start automatisch ergänzt
+  auth.php                 ← Session-Start, Timeout, CSRF-Funktionen, require_login/person, today()
+  db.php                   ← Umgebungserkennung + DB-Verbindung + Migrationen
+  db-credentials.php       ← Zugangsdaten Dev + Prod (gitignored, nie committen)
+  db-credentials.example.php ← Vorlage für db-credentials.php (committet)
+  index.php                ← Login (globales Passwort)
+  home.php                 ← Personenwahl / Startseite / Dashboard
+  learn.php                ← Leitner-Session
+  drill.php                ← Drill-Modus (Incremental Rehearsal)
+  lists.php                ← Listen verwalten (erstellen, umbenennen, löschen)
+  edit.php                 ← Karte hinzufügen / bearbeiten / löschen
+  discover.php             ← Öffentliche Listen entdecken & kopieren
+  import.php               ← CSV Upload mit Formatbeschreibung
+  export.php               ← CSV Export
+  stats.php                ← Statistik-Dashboard
+  math.php                 ← Mathe-Generator (Multiplikation + Division)
+  settings.php             ← Einstellungsseite (alle Umgebungen, schreibt in config-runtime.php)
+  deploy.php               ← ZIP-Deploy via Browser (gitignored)
+  deploy-config.php        ← Deploy-Token + GitHub-Konfiguration (gitignored)
+  /assets/                 ← CSS, JS
+  /templates/              ← CSV-Vorlage zum Download
 ```
 
 ---
