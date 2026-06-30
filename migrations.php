@@ -7,7 +7,7 @@ function run_pending_migrations(PDO $pdo): void {
     // Migrations-Liste: ID => SQL
     // Jede Migration einmalig und in Reihenfolge ausführen.
     $migrations = [
-        1 => "ALTER TABLE learning_sessions ADD COLUMN completed_at DATETIME NULL DEFAULT NULL",
+        1 => "ALTER TABLE learning_sessions ADD COLUMN IF NOT EXISTS completed_at DATETIME NULL DEFAULT NULL",
     ];
 
     // db_version aus settings lesen — falls Tabelle noch nicht existiert (vor install.php): abbrechen
