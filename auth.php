@@ -84,7 +84,7 @@ function breadcrumb(array $items): string {
         if ($i === $last) {
             $html .= '<li class="breadcrumb-item active" aria-current="page">' . htmlspecialchars($label) . '</li>';
         } else {
-            $html .= '<li class="breadcrumb-item"><a href="' . htmlspecialchars($url) . '">' . htmlspecialchars($label) . '</a></li>';
+            $html .= '<li class="breadcrumb-item"><a href="' . htmlspecialchars($url, ENT_QUOTES) . '">' . htmlspecialchars($label, ENT_QUOTES) . '</a></li>';
         }
     }
     $html .= '</ol></nav>';

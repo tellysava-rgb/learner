@@ -59,6 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Person wechseln (abmelden als Person)
     if ($action === 'switch_person') {
         unset($_SESSION['person_id'], $_SESSION['person_name'], $_SESSION['streak'], $_SESSION['streak_date']);
+        session_regenerate_id(true);
         header('Location: home.php');
         exit;
     }
@@ -109,11 +110,6 @@ if ($person_id) {
         $queued_counts[$list['id']] = (int) $stmt->fetchColumn();
     }
 
-    // Letzte verwendete Listen für Vorschlag
-    $last_used_ids = array_column(
-        array_filter($own_lists, fn($l) => $l['last_used_at'] !== null),
-        'id'
-    );
 }
 
 // Öffentliche Listen anderer Personen (Discover-Vorschau auf Startseite)

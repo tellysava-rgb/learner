@@ -5,6 +5,18 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [1.4.1] - 2026-06-30
+
+### Behoben
+- learn.php: Undefined-array-key-Warnings auf der Session-Zusammenfassung wenn keine fälligen Karten vorhanden waren (stats-Array war leer)
+- learn.php: XSS-Lücke — json_encode in script-Block ohne JSON_HEX_TAG; Listensprachnamen mit `</script>` hätten Script-Kontext brechen können
+- auth.php: htmlspecialchars() in breadcrumb() ohne ENT_QUOTES — defensiver Flag ergänzt
+- home.php: session_regenerate_id() fehlte beim switch_person-Handler (inkonsistent mit select_person/create_person)
+- deploy.php: Vorhersagbarer Temp-Pfad via time() ersetzt durch tempnam() und random_bytes(8)
+- deploy.php / settings.php: Deploy-Token wird nicht mehr als GET-Parameter übergeben (war in Server-Logs sichtbar) — Deploy-Button nutzt jetzt POST-Formular
+
+---
+
 ## [1.4.0] - 2026-06-29
 
 ### Neu

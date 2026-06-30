@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin
     $queue = build_leitner_queue($pdo, $person_id, $valid_ids, $today, $card_limit);
 
     if (!$queue) {
-        $_SESSION['learn_done'] = ['message' => 'Keine fälligen Karten heute. Gut gemacht!', 'stats' => []];
+        $_SESSION['learn_done'] = ['message' => 'Keine fälligen Karten heute. Gut gemacht!', 'stats' => ['correct' => 0, 'incorrect' => 0, 'promoted' => 0]];
         header('Location: learn.php?done=1&list_id=' . $valid_ids[0]);
         exit;
     }
@@ -248,7 +248,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
 
 function activate_daily_cards(PDO $pdo, int $person_id, array $list_ids, string $today): void {
     $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
-    $params = array_merge([$person_id], $list_ids, [DAILY_CARD_LIMIT]);
 
     // Wie viele wurden heute schon aktiviert?
     $stmt = $pdo->prepare("
@@ -423,8 +422,8 @@ render_setup:
 <div class="text-center">
     <div class="display-6 mb-2">
         <?php
-        $pct = $done_data['stats']['correct'] + $done_data['stats']['incorrect'];
-        $pct = $pct > 0 ? round($done_data['stats']['correct'] / $pct * 100) : 0;
+        $pct = ($done_data['stats']['correct'] ?? 0) + ($done_data['stats']['incorrect'] ?? 0);
+        $pct = $pct > 0 ? round(($done_data['stats']['correct'] ?? 0) / $pct * 100) : 0;
         echo $pct >= 80 ? '🎉' : ($pct >= 50 ? '💪' : '📚');
         ?>
     </div>
@@ -439,19 +438,19 @@ render_setup:
     <div class="row g-3 mb-4 justify-content-center">
         <div class="col-auto">
             <div class="card text-center px-4 py-3">
-                <div class="h3 text-success"><?= $done_data['stats']['correct'] ?></div>
+                <div class="h3 text-success"><?= $done_data['stats']['correct'] ?? 0 ?></div>
                 <div class="small text-muted">Gewusst</div>
             </div>
         </div>
         <div class="col-auto">
             <div class="card text-center px-4 py-3">
-                <div class="h3 text-danger"><?= $done_data['stats']['incorrect'] ?></div>
+                <div class="h3 text-danger"><?= $done_data['stats']['incorrect'] ?? 0 ?></div>
                 <div class="small text-muted">Nicht gewusst</div>
             </div>
         </div>
         <div class="col-auto">
             <div class="card text-center px-4 py-3">
-                <div class="h3 text-primary"><?= $done_data['stats']['promoted'] ?></div>
+                <div class="h3 text-primary"><?= $done_data['stats']['promoted'] ?? 0 ?></div>
                 <div class="small text-muted">Aufgestiegen</div>
             </div>
         </div>
@@ -699,7 +698,7 @@ function adjustCards(delta) {
 const langMap = <?= json_encode(array_combine(
     array_column($all_lists, 'id'),
     array_map(fn($l) => ['a' => $l['language_a'], 'b' => $l['language_b']], $all_lists)
-)) ?>;
+), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 
 function updateDirLabels() {
     const first = document.querySelector('input[name="list_ids[]"]:checked');

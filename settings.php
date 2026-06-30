@@ -407,7 +407,10 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                     <?php if (isset($up_to_date) && $up_to_date): ?>
                     <div class="text-success small mb-2">✓ Bereits auf dem neuesten Stand</div>
                     <?php endif; ?>
-                    <a href="deploy.php?token=<?= htmlspecialchars($deploy_token) ?>" class="btn btn-sm btn-outline-primary">Deploy starten</a>
+                    <form method="post" action="deploy.php" class="d-inline">
+                        <input type="hidden" name="token" value="<?= htmlspecialchars($deploy_token) ?>">
+                        <button type="submit" class="btn btn-sm btn-outline-primary">Deploy starten</button>
+                    </form>
                 </div>
             </div>
         </div>
