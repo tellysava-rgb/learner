@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/includes/auth.php';
 
 // Auf Produktion: install.php muss nach der Ersteinrichtung gelöscht werden
 $_host = strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? '')[0]);
@@ -21,7 +21,7 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
 
-    require_once __DIR__ . '/db.php';
+    require_once __DIR__ . '/includes/db.php';
     $stmt = $pdo->prepare("SELECT value FROM settings WHERE `key` = 'password_hash'");
     $stmt->execute();
     $row = $stmt->fetch();

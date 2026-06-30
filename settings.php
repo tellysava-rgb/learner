@@ -1,10 +1,10 @@
 <?php
-require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/db.php';
 require_login();
 
 $person_name    = $_SESSION['person_name'] ?? '';
-$runtime_path   = __DIR__ . '/config-runtime.php';
+$runtime_path   = __DIR__ . '/includes/config-runtime.php';
 $success        = $_SESSION['flash_success'] ?? '';
 $errors      = $_SESSION['flash_errors']  ?? [];
 $is_local    = in_array(strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? '')[0]), ['localhost', '127.0.0.1'], true);
@@ -355,7 +355,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
 
     <?php
     $deploy_exists = file_exists(__DIR__ . '/deploy.php');
-    $deploy_config = __DIR__ . '/deploy-config.php';
+    $deploy_config = __DIR__ . '/includes/deploy-config.php';
     $deploy_token  = '';
     $github_version = null;
     if ($deploy_exists && file_exists($deploy_config)) {

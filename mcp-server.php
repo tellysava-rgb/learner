@@ -15,10 +15,10 @@ set_exception_handler(function (): never {
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
-require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/db.php';
 
-$_mcp_cfg = __DIR__ . '/mcp-config.php';
+$_mcp_cfg = __DIR__ . '/includes/mcp-config.php';
 if (!file_exists($_mcp_cfg)) {
     mcp_die(null, -32603, 'Serverkonfiguration fehlt', 500);
 }
