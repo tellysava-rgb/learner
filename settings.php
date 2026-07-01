@@ -364,7 +364,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
 
         // GitHub-Version via cURL abrufen
         if (defined('GITHUB_OWNER') && defined('GITHUB_REPO') && function_exists('curl_init')) {
-            $ch = curl_init('https://raw.githubusercontent.com/' . GITHUB_OWNER . '/' . GITHUB_REPO . '/main/config.php');
+            $ch = curl_init('https://raw.githubusercontent.com/' . GITHUB_OWNER . '/' . GITHUB_REPO . '/main/includes/config.php');
             curl_setopt_array($ch, [
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_TIMEOUT        => 5,
