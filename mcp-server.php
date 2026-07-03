@@ -65,10 +65,11 @@ switch ($method) {
             'serverInfo'      => ['name' => 'learner-mcp', 'version' => APP_VERSION],
             'instructions'    => 'Workflow zum Hinzufügen von Vokabeln: '
                 . '1. list_persons aufrufen, dem User die Personen zeigen und fragen für wen. '
-                . '2. list_lists aufrufen, dem User ALLE Listen anzeigen und explizit fragen in welche Liste. '
-                . '3. Bei Verben: Grundform (Infinitiv) in der Beschreibung der jeweiligen Sprache ergänzen. Bei unregelmässigen Verben: zusätzlich in der deutschen Beschreibung vermerken, dass das Verb unregelmässig ist. '
-                . '4. Die einzufügenden Karten (Begriff + Übersetzung + Beschreibungen) dem User zur Bestätigung zeigen, BEVOR add_cards aufgerufen wird. '
-                . '5. Erst nach Bestätigung des Users add_cards aufrufen.',
+                . '2. list_lists aufrufen, dem User ALLE Listen anzeigen und explizit fragen in welche Liste. Anhand language_a/language_b bestimmen, welche Seite Deutsch ist. '
+                . '3. Begriff (Fremdsprache): exakter Begriff — bei Verben die Grundform (Infinitiv), bei unregelmässigen Verben alle drei Formen (z.B. "go / went / gone"). Begriff (Deutsch): exakter Begriff. '
+                . '4. Beschreibung (Fremdsprache): Beispielsatz mit dem exakten fremdsprachigen Begriff. Beschreibung (Deutsch): beschreibt die Bedeutung genauer, OHNE den fremdsprachigen Begriff zu nennen — bei unregelmässigen Verben ggf. vermerken, dass es sich um ein unregelmässiges Verb handelt; bei mehrdeutigen Begriffen den konkreten Verwendungskontext angeben. NIEMALS den fremdsprachigen Begriff in der deutschen Beschreibung wiederholen — das ist ein Fehler, der Lernkarten unbrauchbar macht. '
+                . '5. Die einzufügenden Karten (Begriff + Übersetzung + Beschreibungen) dem User zur Bestätigung zeigen, BEVOR add_cards aufgerufen wird. '
+                . '6. Erst nach Bestätigung des Users add_cards aufrufen.',
         ]);
 
     case 'notifications/initialized':
@@ -229,7 +230,7 @@ function mcp_tools_schema(): array {
         ],
         [
             'name'        => 'add_cards',
-            'description' => 'Fügt Vokabelkarten in eine Liste ein. Fehlende Felder (Übersetzung, Beschreibung) vor dem Aufruf ergänzen. Bei Verben: Grundform (Infinitiv) in der Beschreibung ergänzen; bei unregelmässigen Verben zusätzlich in der deutschen Beschreibung vermerken. WICHTIG: Alle Karten (Begriff A, Begriff B, Beschreibungen) dem User zur Sichtprüfung vorlegen und Bestätigung abwarten, bevor dieses Tool aufgerufen wird. Bei Duplikat-Warnung: in Claude Code erst nach Rückfrage mit force=true, in n8n immer direkt force=true.',
+            'description' => 'Fügt Vokabelkarten in eine Liste ein. Regeln für die Felder: Begriff (Fremdsprache) exakt, bei Verben Grundform, bei unregelmässigen Verben alle drei Formen. Begriff (Deutsch) exakt. Beschreibung (Fremdsprache): Beispielsatz mit dem exakten fremdsprachigen Begriff. Beschreibung (Deutsch): beschreibt die Bedeutung genauer OHNE den fremdsprachigen Begriff zu nennen, vermerkt ggf. unregelmässiges Verb, klärt bei Mehrdeutigkeit den Verwendungskontext. WICHTIG: Der fremdsprachige Begriff darf NIEMALS in der deutschen Beschreibung auftauchen. WICHTIG: Alle Karten (Begriff A, Begriff B, Beschreibungen) dem User zur Sichtprüfung vorlegen und Bestätigung abwarten, bevor dieses Tool aufgerufen wird. Bei Duplikat-Warnung: in Claude Code erst nach Rückfrage mit force=true, in n8n immer direkt force=true.',
             'inputSchema' => [
                 'type'       => 'object',
                 'properties' => [
@@ -240,10 +241,10 @@ function mcp_tools_schema(): array {
                         'items'    => [
                             'type'       => 'object',
                             'properties' => [
-                                'sprache_a_begriff' => ['type' => 'string', 'maxLength' => 500, 'description' => 'Begriff in Sprache A'],
-                                'sprache_b_begriff' => ['type' => 'string', 'maxLength' => 500, 'description' => 'Begriff in Sprache B'],
-                                'beschreibung_a'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Optionale Beschreibung zu Sprache A. Bei Verben: Grundform ergänzen. Wenn Sprache A Deutsch ist und das Verb unregelmässig ist: dies hier vermerken.'],
-                                'beschreibung_b'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Optionale Beschreibung zu Sprache B. Bei Verben: Grundform ergänzen. Wenn Sprache B Deutsch ist und das Verb unregelmässig ist: dies hier vermerken.'],
+                                'sprache_a_begriff' => ['type' => 'string', 'maxLength' => 500, 'description' => 'Exakter Begriff in Sprache A. Falls Sprache A die Fremdsprache ist und es sich um ein Verb handelt: Grundform (Infinitiv); bei unregelmässigen Verben alle drei Formen (z.B. "go / went / gone"). Falls Sprache A Deutsch ist: exakter deutscher Begriff.'],
+                                'sprache_b_begriff' => ['type' => 'string', 'maxLength' => 500, 'description' => 'Exakter Begriff in Sprache B. Falls Sprache B die Fremdsprache ist und es sich um ein Verb handelt: Grundform (Infinitiv); bei unregelmässigen Verben alle drei Formen (z.B. "go / went / gone"). Falls Sprache B Deutsch ist: exakter deutscher Begriff.'],
+                                'beschreibung_a'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Optionale Beschreibung zu Sprache A. Falls Sprache A die Fremdsprache ist: Beispielsatz mit dem exakten fremdsprachigen Begriff. Falls Sprache A Deutsch ist: beschreibt die Bedeutung genauer OHNE den fremdsprachigen Begriff zu nennen (NIEMALS den fremdsprachigen Begriff hier wiederholen), vermerkt ggf. unregelmässiges Verb, klärt bei Mehrdeutigkeit den Verwendungskontext.'],
+                                'beschreibung_b'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Optionale Beschreibung zu Sprache B. Falls Sprache B die Fremdsprache ist: Beispielsatz mit dem exakten fremdsprachigen Begriff. Falls Sprache B Deutsch ist: beschreibt die Bedeutung genauer OHNE den fremdsprachigen Begriff zu nennen (NIEMALS den fremdsprachigen Begriff hier wiederholen), vermerkt ggf. unregelmässiges Verb, klärt bei Mehrdeutigkeit den Verwendungskontext.'],
                             ],
                             'required' => ['sprache_a_begriff', 'sprache_b_begriff'],
                         ],

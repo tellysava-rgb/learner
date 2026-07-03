@@ -536,7 +536,12 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 **`add_cards(list_id, cards[], force?)`**
 - Fügt eine oder mehrere Vokabelkarten in eine Liste ein
 - `cards[]` = Array aus `{ sprache_a_begriff, sprache_b_begriff, beschreibung_a?, beschreibung_b? }`
-- Bei Verben: Agent soll Grundform (Infinitiv) in der Beschreibung ergänzen. Bei unregelmässigen Verben: zusätzlich in der deutschen Beschreibung vermerken, dass das Verb unregelmässig ist. Steht in der Tool-Beschreibung (`add_cards`, `beschreibung_a`/`beschreibung_b`) und in den `initialize`-Instructions — keine serverseitige Validierung, reine Agent-Anweisung _(v2.0.2)_
+- Feld-Regeln für den Agent (in Tool-Beschreibung, Feld-Beschreibungen und `initialize`-Instructions — keine serverseitige Validierung, reine Agent-Anweisung) _(v2.0.2, verschärft v2.0.4)_:
+  - Begriff (Fremdsprache): exakt — bei Verben Grundform (Infinitiv), bei unregelmässigen Verben alle drei Formen (z.B. "go / went / gone")
+  - Begriff (Deutsch): exakt
+  - Beschreibung (Fremdsprache): Beispielsatz mit dem exakten fremdsprachigen Begriff
+  - Beschreibung (Deutsch): beschreibt die Bedeutung genauer, **ohne den fremdsprachigen Begriff zu nennen** — bei unregelmässigen Verben ggf. vermerken, bei Mehrdeutigkeit den Verwendungskontext klären
+  - Bekannter Fehlerfall, der zur Verschärfung führte: Agent schrieb den fremdsprachigen Begriff versehentlich in die deutsche Beschreibung (z.B. `bounced` in der Beschreibung zu `unzustellbar`) — jetzt explizit verboten
 - Karten werden nur in `cards`-Tabelle eingefügt — **kein `card_progress`-Eintrag** (lazy-init beim nächsten Leitner-Session-Start)
 - Duplikatprüfung: exakter Vergleich (case-insensitive, getrimmt) auf `word_a + word_b` innerhalb der Ziel-Liste
 - Duplikat + `force = false`: Karte wird nicht eingefügt, Warnung mit gefundener Karte zurückgegeben

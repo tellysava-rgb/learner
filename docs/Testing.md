@@ -266,7 +266,9 @@ Testtools: `curl` oder Claude Code mit `.mcp.json`.
 ### Claude Code Integration _(v2.0.0)_
 [ ] `.mcp.json` aus `.mcp.json.example` erstellt, Token eingetragen → Claude Code erkennt `learner-dev` Server. _(v2.0.0)_
 [ ] "Füge [Begriff] zu Liste [Name] von Person [Name] hinzu" → Agent ruft list_persons, list_lists, add_cards auf, zeigt Resultat vor dem Einfügen zur Bestätigung. _(v2.0.0)_
-[ ] "Füge das Verb [X] hinzu" → Agent ergänzt Grundform (Infinitiv) in der Beschreibung; bei unregelmässigem Verb wird dies in der deutschen Beschreibung vermerkt. _(v2.0.2)_
+[ ] "Füge das Verb [X] hinzu" → Begriff (Fremdsprache) ist Grundform, bei unregelmässigem Verb alle drei Formen; Beschreibung (Fremdsprache) ist Beispielsatz mit dem Begriff; Beschreibung (Deutsch) beschreibt die Bedeutung und vermerkt ggf. "unregelmässiges Verb". _(v2.0.2, verschärft v2.0.4)_
+[ ] Kritischer Test: Deutsche Beschreibung enthält an keiner Stelle den fremdsprachigen Begriff (auch nicht in Anführungszeichen oder als Beispiel) — z.B. bei "bounced"/"unzustellbar" darf "bounced" nicht in der deutschen Beschreibung auftauchen. _(v2.0.4)_
+[ ] Mehrdeutiger Begriff (z.B. Wort mit mehreren Bedeutungen) → deutsche Beschreibung nennt den konkreten Verwendungskontext. _(v2.0.4)_
 
 ### ChatGPT / Claude Desktop Integration _(v2.0.1)_
 [ ] ChatGPT-Konnektor mit URL `.../mcp-server.php?token=...` eingerichtet → `tools/list` liefert alle 3 Tools. _(v2.0.1)_

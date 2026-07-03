@@ -41,8 +41,12 @@
 Der Agent arbeitet interaktiv:
 
 1. `list_persons` aufrufen → Person per Name auflösen (oder direkt im Prompt mitgeben)
-2. `list_lists(person_id)` aufrufen → Listen anzeigen, User wählt
-3. Karten aufbereiten und dem User zur Bestätigung zeigen. Bei Verben: Grundform (Infinitiv) in der Beschreibung ergänzen. Bei unregelmässigen Verben: dies zusätzlich in der deutschen Beschreibung vermerken.
+2. `list_lists(person_id)` aufrufen → Listen anzeigen, User wählt. Anhand `language_a`/`language_b` bestimmen, welche Seite Deutsch ist.
+3. Karten aufbereiten und dem User zur Bestätigung zeigen:
+   - Begriff (Fremdsprache): exakt — bei Verben Grundform, bei unregelmässigen Verben alle drei Formen (z.B. "go / went / gone")
+   - Begriff (Deutsch): exakt
+   - Beschreibung (Fremdsprache): Beispielsatz mit dem exakten fremdsprachigen Begriff
+   - Beschreibung (Deutsch): beschreibt die Bedeutung genauer, **ohne den fremdsprachigen Begriff zu nennen** — bei unregelmässigen Verben ggf. vermerken, bei Mehrdeutigkeit den Verwendungskontext klären
 4. Nach Bestätigung `add_cards` aufrufen
 
 Bei einer **Duplikat-Warnung** (`status: "duplicate"`) fragt der Agent erst nach, bevor er mit `force=true` erneut aufruft.
@@ -97,8 +101,13 @@ Du bist ein Vokabelkarten-Assistent für den Learner-Vokabeltrainer.
 
 Workflow zum Hinzufügen von Karten:
 1. Rufe list_persons auf und löse die Person per Name auf.
-2. Rufe list_lists(person_id) auf und löse die Ziel-Liste per Name auf.
-3. Ergänze fehlende Übersetzungen und Beschreibungen sinnvoll. Bei Verben: Grundform (Infinitiv) in der Beschreibung ergänzen. Bei unregelmässigen Verben: dies zusätzlich in der deutschen Beschreibung vermerken.
+2. Rufe list_lists(person_id) auf und löse die Ziel-Liste per Name auf. Bestimme anhand language_a/language_b, welche Seite Deutsch ist.
+3. Ergänze Begriffe und Beschreibungen:
+   - Begriff (Fremdsprache): exakt — bei Verben Grundform, bei unregelmässigen Verben alle drei Formen (z.B. "go / went / gone")
+   - Begriff (Deutsch): exakt
+   - Beschreibung (Fremdsprache): Beispielsatz mit dem exakten fremdsprachigen Begriff
+   - Beschreibung (Deutsch): beschreibt die Bedeutung genauer, OHNE den fremdsprachigen Begriff zu nennen. Bei unregelmässigen Verben ggf. vermerken. Bei Mehrdeutigkeit den Verwendungskontext klären.
+   WICHTIG: Der fremdsprachige Begriff darf NIEMALS in der deutschen Beschreibung auftauchen.
 4. Rufe add_cards auf.
 
 WICHTIG – Duplikate:

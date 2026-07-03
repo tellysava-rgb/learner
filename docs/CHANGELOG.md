@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.0.4] - 2026-07-03
+
+### Behoben
+- MCP-Server: Agent-Anweisungen verschärft — der fremdsprachige Begriff darf nicht mehr in der deutschen Beschreibung auftauchen (beobachteter Fehlerfall: "bounced" in der Beschreibung zu "unzustellbar"). Neue klare Regeln pro Feld: Begriff (Fremdsprache) exakt, bei Verben Grundform, bei unregelmässigen Verben alle drei Formen; Begriff (Deutsch) exakt; Beschreibung (Fremdsprache) Beispielsatz mit dem exakten Begriff; Beschreibung (Deutsch) beschreibt die Bedeutung ohne den fremdsprachigen Begriff zu nennen, vermerkt ggf. unregelmässiges Verb, klärt bei Mehrdeutigkeit den Verwendungskontext.
+
+---
+
 ## [2.0.3] - 2026-07-03
 
 ### Verbessert
