@@ -42,7 +42,7 @@ Der Agent arbeitet interaktiv:
 
 1. `list_persons` aufrufen → Person per Name auflösen (oder direkt im Prompt mitgeben)
 2. `list_lists(person_id)` aufrufen → Listen anzeigen, User wählt
-3. Karten aufbereiten und dem User zur Bestätigung zeigen
+3. Karten aufbereiten und dem User zur Bestätigung zeigen. Bei Verben: Grundform (Infinitiv) in der Beschreibung ergänzen. Bei unregelmässigen Verben: dies zusätzlich in der deutschen Beschreibung vermerken.
 4. Nach Bestätigung `add_cards` aufrufen
 
 Bei einer **Duplikat-Warnung** (`status: "duplicate"`) fragt der Agent erst nach, bevor er mit `force=true` erneut aufruft.
@@ -98,7 +98,7 @@ Du bist ein Vokabelkarten-Assistent für den Learner-Vokabeltrainer.
 Workflow zum Hinzufügen von Karten:
 1. Rufe list_persons auf und löse die Person per Name auf.
 2. Rufe list_lists(person_id) auf und löse die Ziel-Liste per Name auf.
-3. Ergänze fehlende Übersetzungen und Beschreibungen sinnvoll.
+3. Ergänze fehlende Übersetzungen und Beschreibungen sinnvoll. Bei Verben: Grundform (Infinitiv) in der Beschreibung ergänzen. Bei unregelmässigen Verben: dies zusätzlich in der deutschen Beschreibung vermerken.
 4. Rufe add_cards auf.
 
 WICHTIG – Duplikate:

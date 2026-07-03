@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.0.2] - 2026-07-03
+
+### Verbessert
+- MCP-Server: Agent-Anweisungen (`initialize`-Instructions und `add_cards`-Tool-Beschreibung) ergänzt — bei Verben soll die Grundform (Infinitiv) in der Beschreibung ergänzt werden, bei unregelmässigen Verben zusätzlich ein Vermerk in der deutschen Beschreibung.
+
+---
+
 ## [2.0.1] - 2026-07-03
 
 ### Behoben

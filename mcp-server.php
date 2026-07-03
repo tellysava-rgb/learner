@@ -66,8 +66,9 @@ switch ($method) {
             'instructions'    => 'Workflow zum Hinzufügen von Vokabeln: '
                 . '1. list_persons aufrufen, dem User die Personen zeigen und fragen für wen. '
                 . '2. list_lists aufrufen, dem User ALLE Listen anzeigen und explizit fragen in welche Liste. '
-                . '3. Die einzufügenden Karten (Begriff + Übersetzung + Beschreibungen) dem User zur Bestätigung zeigen, BEVOR add_cards aufgerufen wird. '
-                . '4. Erst nach Bestätigung des Users add_cards aufrufen.',
+                . '3. Bei Verben: Grundform (Infinitiv) in der Beschreibung der jeweiligen Sprache ergänzen. Bei unregelmässigen Verben: zusätzlich in der deutschen Beschreibung vermerken, dass das Verb unregelmässig ist. '
+                . '4. Die einzufügenden Karten (Begriff + Übersetzung + Beschreibungen) dem User zur Bestätigung zeigen, BEVOR add_cards aufgerufen wird. '
+                . '5. Erst nach Bestätigung des Users add_cards aufrufen.',
         ]);
 
     case 'notifications/initialized':
@@ -228,7 +229,7 @@ function mcp_tools_schema(): array {
         ],
         [
             'name'        => 'add_cards',
-            'description' => 'Fügt Vokabelkarten in eine Liste ein. Fehlende Felder (Übersetzung, Beschreibung) vor dem Aufruf ergänzen. WICHTIG: Alle Karten (Begriff A, Begriff B, Beschreibungen) dem User zur Sichtprüfung vorlegen und Bestätigung abwarten, bevor dieses Tool aufgerufen wird. Bei Duplikat-Warnung: in Claude Code erst nach Rückfrage mit force=true, in n8n immer direkt force=true.',
+            'description' => 'Fügt Vokabelkarten in eine Liste ein. Fehlende Felder (Übersetzung, Beschreibung) vor dem Aufruf ergänzen. Bei Verben: Grundform (Infinitiv) in der Beschreibung ergänzen; bei unregelmässigen Verben zusätzlich in der deutschen Beschreibung vermerken. WICHTIG: Alle Karten (Begriff A, Begriff B, Beschreibungen) dem User zur Sichtprüfung vorlegen und Bestätigung abwarten, bevor dieses Tool aufgerufen wird. Bei Duplikat-Warnung: in Claude Code erst nach Rückfrage mit force=true, in n8n immer direkt force=true.',
             'inputSchema' => [
                 'type'       => 'object',
                 'properties' => [
@@ -241,8 +242,8 @@ function mcp_tools_schema(): array {
                             'properties' => [
                                 'sprache_a_begriff' => ['type' => 'string', 'maxLength' => 500, 'description' => 'Begriff in Sprache A'],
                                 'sprache_b_begriff' => ['type' => 'string', 'maxLength' => 500, 'description' => 'Begriff in Sprache B'],
-                                'beschreibung_a'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Optionale Beschreibung zu Sprache A'],
-                                'beschreibung_b'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Optionale Beschreibung zu Sprache B'],
+                                'beschreibung_a'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Optionale Beschreibung zu Sprache A. Bei Verben: Grundform ergänzen. Wenn Sprache A Deutsch ist und das Verb unregelmässig ist: dies hier vermerken.'],
+                                'beschreibung_b'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Optionale Beschreibung zu Sprache B. Bei Verben: Grundform ergänzen. Wenn Sprache B Deutsch ist und das Verb unregelmässig ist: dies hier vermerken.'],
                             ],
                             'required' => ['sprache_a_begriff', 'sprache_b_begriff'],
                         ],

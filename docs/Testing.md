@@ -258,6 +258,7 @@ Testtools: `curl` oder Claude Code mit `.mcp.json`.
 [ ] Leere `sprache_a_begriff` → `status: "error"`. _(v2.0.0)_
 [ ] `beschreibung_a` leer → `desc_a` ist NULL in DB. _(v2.0.0)_
 [ ] Gemischtes Batch (1 ok, 1 Duplikat, 1 Fehler) → `summary` zeigt korrekte Zahlen. _(v2.0.0)_
+[ ] `tools/list` → `add_cards`-Beschreibung sowie `beschreibung_a`/`beschreibung_b`-Feldbeschreibungen erwähnen Grundform-Ergänzung bei Verben und Vermerk bei unregelmässigen Verben in der deutschen Beschreibung. _(v2.0.2)_
 
 ### Logging _(v2.0.0)_
 [ ] Nach jedem Request: neuer Eintrag in `mcp.log` mit Zeitstempel, Umgebung, Methode, Tool-Name. _(v2.0.0)_
@@ -265,6 +266,7 @@ Testtools: `curl` oder Claude Code mit `.mcp.json`.
 ### Claude Code Integration _(v2.0.0)_
 [ ] `.mcp.json` aus `.mcp.json.example` erstellt, Token eingetragen → Claude Code erkennt `learner-dev` Server. _(v2.0.0)_
 [ ] "Füge [Begriff] zu Liste [Name] von Person [Name] hinzu" → Agent ruft list_persons, list_lists, add_cards auf, zeigt Resultat vor dem Einfügen zur Bestätigung. _(v2.0.0)_
+[ ] "Füge das Verb [X] hinzu" → Agent ergänzt Grundform (Infinitiv) in der Beschreibung; bei unregelmässigem Verb wird dies in der deutschen Beschreibung vermerkt. _(v2.0.2)_
 
 ### ChatGPT / Claude Desktop Integration _(v2.0.1)_
 [ ] ChatGPT-Konnektor mit URL `.../mcp-server.php?token=...` eingerichtet → `tools/list` liefert alle 3 Tools. _(v2.0.1)_
