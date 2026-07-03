@@ -2,20 +2,22 @@
 
 ## Voraussetzungen
 
-1. `mcp-config.php` aus `mcp-config.example.php` erstellen und Token setzen:
+1. `includes/mcp-config.php` aus `includes/mcp-config.example.php` erstellen und Token setzen:
    ```
    php -r "echo bin2hex(random_bytes(32));"
    ```
-   Separater Token für Dev und Prod empfohlen.
+   Denselben Token auf Dev und Prod verwenden (einfachste Lösung).
 
 2. Auf Produktion: HTTPS ist Pflicht. HTTP-Requests werden mit HTTP 403 abgewiesen.
+
+3. Die `includes/mcp-config.php` ist gitignored — manuell per FTP auf den Produktionsserver kopieren.
 
 ---
 
 ## Claude Code / VS Code
 
 `.mcp.json.example` als `.mcp.json` im Projektverzeichnis kopieren und Tokens eintragen.
-`.mcp.json` in `.gitignore` eintragen (Tokens nicht committen).
+`.mcp.json` ist in `.gitignore` (Tokens nicht committen).
 
 ```json
 {
@@ -23,12 +25,12 @@
     "learner-dev": {
       "type": "http",
       "url": "http://localhost/learner/mcp-server.php",
-      "headers": { "Authorization": "Bearer DEV_TOKEN" }
+      "headers": { "Authorization": "Bearer DEIN_TOKEN" }
     },
     "learner-prod": {
       "type": "http",
-      "url": "https://deinserver.ch/learner/mcp-server.php",
-      "headers": { "Authorization": "Bearer PROD_TOKEN" }
+      "url": "https://lernen.springpunkt.ch/mcp-server.php",
+      "headers": { "Authorization": "Bearer DEIN_TOKEN" }
     }
   }
 }
@@ -36,14 +38,47 @@
 
 ### Workflow in Claude Code
 
-Der Agent arbeitet interaktiv in drei Schritten:
+Der Agent arbeitet interaktiv:
 
-1. `list_persons` aufrufen → Person per Name auflösen
-2. `list_lists(person_id)` aufrufen → Liste per Name auflösen
-3. Fehlende Felder (Übersetzung, Beschreibung) ergänzen, Resultat zur Kontrolle zeigen
+1. `list_persons` aufrufen → Person per Name auflösen (oder direkt im Prompt mitgeben)
+2. `list_lists(person_id)` aufrufen → Listen anzeigen, User wählt
+3. Karten aufbereiten und dem User zur Bestätigung zeigen
 4. Nach Bestätigung `add_cards` aufrufen
 
 Bei einer **Duplikat-Warnung** (`status: "duplicate"`) fragt der Agent erst nach, bevor er mit `force=true` erneut aufruft.
+
+---
+
+## ChatGPT / claude.ai Browser
+
+Diese Clients unterstützen keinen Authorization-Header für eigene Konnektoren.
+Als Workaround: Token als Query-Parameter in der URL:
+
+```
+https://lernen.springpunkt.ch/mcp-server.php?token=DEIN_TOKEN
+```
+
+**Hinweis:** claude.ai erfordert OAuth für Browser-Konnektoren — funktioniert dort aktuell nicht ohne OAuth-Implementierung.
+
+---
+
+## Claude Desktop App (Mac)
+
+Claude Desktop unterstützt HTTP-MCP nicht nativ. Workaround via `mcp-remote` (Node.js erforderlich):
+
+In `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "learner": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://lernen.springpunkt.ch/mcp-server.php",
+               "--header", "Authorization:Bearer DEIN_TOKEN"]
+    }
+  }
+}
+```
 
 ---
 
@@ -52,8 +87,8 @@ Bei einer **Duplikat-Warnung** (`status: "duplicate"`) fragt der Agent erst nach
 **Verbindung:**
 - Node: **MCP Client Tool**
 - Transport: **HTTP**
-- URL: `https://deinserver.ch/learner/mcp-server.php`
-- Authentication: **Header Auth** → `Authorization: Bearer PROD_TOKEN`
+- URL: `https://lernen.springpunkt.ch/mcp-server.php`
+- Authentication: **Header Auth** → `Authorization: Bearer DEIN_TOKEN`
 
 **Agent Instructions (System Prompt):**
 

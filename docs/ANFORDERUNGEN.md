@@ -511,17 +511,19 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 
 ---
 
-## MCP-Server _(v2.0.0)_
+## MCP-Server _(v2.0.0, erweitert v2.0.1)_
 
-`mcp-server.php` stellt einen MCP-Endpoint bereit (JSON-RPC 2.0 über HTTP POST, Streamable-HTTP im synchronen Modus — kein SSE). Clients sind Claude Code und n8n Cloud.
+`mcp-server.php` stellt einen MCP-Endpoint bereit (JSON-RPC 2.0 über HTTP POST, Streamable-HTTP im synchronen Modus — kein SSE). Clients sind Claude Code, Claude Desktop (via `mcp-remote`), ChatGPT und n8n Cloud. claude.ai Browser-Konnektoren funktionieren aktuell **nicht** (siehe unten).
 
 ### Protokoll & Authentifizierung
 - Protokoll: MCP über HTTP, nur synchroner JSON-Response (kein Streaming/SSE)
 - Stateless: kein serverseitiger Session-Store
 - 3 JSON-RPC-Methoden: `initialize`, `tools/list`, `tools/call`
-- Bearer-Token im `Authorization`-Header (nicht in URL oder Query) — Pflicht auf jedem Request
+- Bearer-Token im `Authorization`-Header — Pflicht auf jedem Request
+- Fallback _(v2.0.1)_: Token als `?token=`-Query-Parameter, für Clients ohne Header-Unterstützung (ChatGPT)
 - Token in `mcp-config.php` (gitignored, analog `deploy-config.php`)
 - HTTPS verpflichtend auf Produktion (HTTP → HTTP 403)
+- **claude.ai Browser-Konnektoren verlangen OAuth** — mit reinem Bearer-/Query-Token nicht nutzbar. Ohne OAuth-Implementierung bleibt claude.ai als Client aussen vor _(v2.0.1)_
 
 ### Tools
 
@@ -550,7 +552,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 
 ### Client-Einrichtung
 - `.mcp.json.example` für Claude Code / VS Code (HTTP-Transport, Token-Header, Dev + Prod)
-- `mcp-einrichtung.md`: Setup-Anleitung inkl. n8n AI Agent Node, Apache `.htaccess`-Workaround
+- `mcp-einrichtung.md`: Setup-Anleitung inkl. n8n AI Agent Node, ChatGPT (Query-Token), Claude Desktop (`mcp-remote`), Apache `.htaccess`-Workaround
 
 ### n8n vs. Claude Code — Duplikat-Verhalten
 | Client | Duplikat-Reaktion |

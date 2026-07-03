@@ -216,20 +216,22 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 
 ---
 
-## 10. MCP-Server _(v2.0.0)_
+## 10. MCP-Server _(v2.0.0, erweitert v2.0.1)_
 
 Testvoraussetzung: `mcp-config.php` mit Token vorhanden, Apache läuft lokal.
 Testtools: `curl` oder Claude Code mit `.mcp.json`.
 
-### Authentifizierung _(v2.0.0)_
-[ ] POST ohne Authorization-Header → HTTP 401, JSON-RPC-Fehler. _(v2.0.0)_
-[ ] POST mit falschem Token → HTTP 401. _(v2.0.0)_
-[ ] POST mit korrektem Token → Antwort korrekt. _(v2.0.0)_
+### Authentifizierung _(v2.0.0, erweitert v2.0.1)_
+[ ] POST ohne Authorization-Header und ohne `?token=` → HTTP 401, JSON-RPC-Fehler. _(v2.0.0)_
+[ ] POST mit falschem Token (Header oder Query) → HTTP 401. _(v2.0.0)_
+[ ] POST mit korrektem Token im Authorization-Header → Antwort korrekt. _(v2.0.0)_
+[ ] POST ohne Authorization-Header, aber mit korrektem `?token=`-Query-Parameter → Antwort korrekt. _(v2.0.1)_
 [ ] GET-Request → HTTP 405. _(v2.0.0)_
 [ ] Ungültiger JSON-Body → HTTP 400, JSON-RPC-Fehler. _(v2.0.0)_
 
-### initialize _(v2.0.0)_
+### initialize _(v2.0.0, erweitert v2.0.1)_
 [ ] `initialize`-Request → Response enthält `protocolVersion`, `serverInfo.name = "learner-mcp"`, `serverInfo.version`. _(v2.0.0)_
+[ ] `initialize`-Response enthält `instructions` mit dem Vokabel-Workflow (Person → Liste → Bestätigung → add_cards). _(v2.0.1)_
 
 ### tools/list _(v2.0.0)_
 [ ] `tools/list` → Response enthält genau 3 Tools: `list_persons`, `list_lists`, `add_cards`. _(v2.0.0)_
@@ -263,4 +265,10 @@ Testtools: `curl` oder Claude Code mit `.mcp.json`.
 ### Claude Code Integration _(v2.0.0)_
 [ ] `.mcp.json` aus `.mcp.json.example` erstellt, Token eingetragen → Claude Code erkennt `learner-dev` Server. _(v2.0.0)_
 [ ] "Füge [Begriff] zu Liste [Name] von Person [Name] hinzu" → Agent ruft list_persons, list_lists, add_cards auf, zeigt Resultat vor dem Einfügen zur Bestätigung. _(v2.0.0)_
+
+### ChatGPT / Claude Desktop Integration _(v2.0.1)_
+[ ] ChatGPT-Konnektor mit URL `.../mcp-server.php?token=...` eingerichtet → `tools/list` liefert alle 3 Tools. _(v2.0.1)_
+[ ] ChatGPT: Karte über den Connector hinzufügen → Karte erscheint korrekt in der DB. _(v2.0.1)_
+[ ] Claude Desktop via `mcp-remote` mit Authorization-Header eingerichtet → Server erreichbar. _(v2.0.1)_
+[ ] claude.ai Browser-Konnektor (ohne OAuth) → schlägt wie erwartet fehl (bekannte Einschränkung, kein Bug). _(v2.0.1)_
 

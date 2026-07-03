@@ -5,14 +5,14 @@
       "type": "http",
       "url": "http://localhost/learner/mcp-server.php",
       "headers": {
-        "Authorization": "Bearer DEV_TOKEN_HIER"
+        "Authorization": "Bearer DEIN_TOKEN"
       }
     },
     "learner-prod": {
       "type": "http",
-      "url": "https://deinserver.ch/learner/mcp-server.php",
+      "url": "https://lernen.springpunkt.ch/mcp-server.php",
       "headers": {
-        "Authorization": "Bearer PROD_TOKEN_HIER"
+        "Authorization": "Bearer DEIN_TOKEN"
       }
     }
   }

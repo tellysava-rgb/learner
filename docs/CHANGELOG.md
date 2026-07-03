@@ -5,6 +5,18 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.0.1] - 2026-07-03
+
+### Behoben
+- MCP-Server: Token wurde nur im `Authorization`-Header akzeptiert — ChatGPT und Claude Desktop (Browser-basierte Konnektoren) können diesen Header nicht setzen und scheiterten mit "Ungültiger Token". Fallback: Token wird jetzt zusätzlich als `?token=`-Query-Parameter akzeptiert.
+- `.mcp.json` / `.mcp.json.example`: Prod-URL zeigte noch auf `/learner/mcp-server.php` (404 seit Verzeichnis-Refactoring) — korrigiert auf `mcp-server.php` an der Domain-Wurzel.
+
+### Verbessert
+- MCP `initialize`-Response enthält jetzt `instructions` mit dem Vokabel-Workflow (Person → Liste → Bestätigung → add_cards).
+- `mcp-einrichtung.md`: Anleitungen für ChatGPT (Query-Token) und Claude Desktop (`mcp-remote`) ergänzt; Hinweis dass claude.ai Browser-Konnektoren OAuth voraussetzen und aktuell nicht funktionieren.
+
+---
+
 ## [2.0.0] - 2026-06-30
 
 ### Neu

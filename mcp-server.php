@@ -63,6 +63,11 @@ switch ($method) {
             'protocolVersion' => '2025-03-26',
             'capabilities'    => ['tools' => new stdClass()],
             'serverInfo'      => ['name' => 'learner-mcp', 'version' => APP_VERSION],
+            'instructions'    => 'Workflow zum Hinzufügen von Vokabeln: '
+                . '1. list_persons aufrufen, dem User die Personen zeigen und fragen für wen. '
+                . '2. list_lists aufrufen, dem User ALLE Listen anzeigen und explizit fragen in welche Liste. '
+                . '3. Die einzufügenden Karten (Begriff + Übersetzung + Beschreibungen) dem User zur Bestätigung zeigen, BEVOR add_cards aufgerufen wird. '
+                . '4. Erst nach Bestätigung des Users add_cards aufrufen.',
         ]);
 
     case 'notifications/initialized':
@@ -212,7 +217,7 @@ function mcp_tools_schema(): array {
         ],
         [
             'name'        => 'list_lists',
-            'description' => 'Gibt alle Vokabellisten einer Person zurück (id, name, Sprachen). Zweiter Schritt: Liste per Name auflösen, dann add_cards aufrufen.',
+            'description' => 'Gibt alle Vokabellisten einer Person zurück (id, name, Sprachen). Zweiter Schritt: Listen dem User anzeigen und explizit fragen welche Liste verwendet werden soll — niemals eine Liste ohne Rückfrage auswählen.',
             'inputSchema' => [
                 'type'       => 'object',
                 'properties' => [
@@ -223,7 +228,7 @@ function mcp_tools_schema(): array {
         ],
         [
             'name'        => 'add_cards',
-            'description' => 'Fügt Vokabelkarten in eine Liste ein. Fehlende Felder (Übersetzung, Beschreibung) sollen vor dem Aufruf ergänzt werden. Bei Duplikat-Warnung: in Claude Code erst nach Rückfrage mit force=true, in n8n immer direkt force=true.',
+            'description' => 'Fügt Vokabelkarten in eine Liste ein. Fehlende Felder (Übersetzung, Beschreibung) vor dem Aufruf ergänzen. WICHTIG: Alle Karten (Begriff A, Begriff B, Beschreibungen) dem User zur Sichtprüfung vorlegen und Bestätigung abwarten, bevor dieses Tool aufgerufen wird. Bei Duplikat-Warnung: in Claude Code erst nach Rückfrage mit force=true, in n8n immer direkt force=true.',
             'inputSchema' => [
                 'type'       => 'object',
                 'properties' => [
@@ -265,7 +270,8 @@ function mcp_bearer_token(): string {
     if (preg_match('/^Bearer\s+(\S+)$/i', trim($auth), $m)) {
         return $m[1];
     }
-    return '';
+    // Fallback: Token als Query-Parameter (für claude.ai Browser-Connector)
+    return isset($_GET['token']) ? trim((string)$_GET['token']) : '';
 }
 
 function mcp_ok(mixed $id, array $result): never {
