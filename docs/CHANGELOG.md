@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.0.3] - 2026-07-03
+
+### Verbessert
+- `deploy.php` ist nicht mehr in `.gitignore` — jetzt im Git-Repo versioniert (Historie/Diffs nachvollziehbar). Das Deploy-Token bleibt getrennt in `includes/deploy-config.php`, weiterhin gitignored und über die Skip-Liste geschützt. Produktions-Kopie von `deploy.php` muss bei Änderungen weiterhin manuell per FTP aktualisiert werden (schützt sich selbst vor Überschreiben durch den eigenen Deploy-Lauf).
+
+---
+
 ## [2.0.2] - 2026-07-03
 
 ### Verbessert

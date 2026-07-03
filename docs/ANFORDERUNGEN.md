@@ -408,10 +408,10 @@ Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler 
 
 Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`/`exec` nötig):
 
-- `deploy.php` liegt auf dem Produktiv-Server (nicht im Git-Repo — in `.gitignore`)
+- `deploy.php` ist im Git-Repo versioniert _(v2.0.3)_ — schützt sich aber über die eigene Skip-Liste selbst vor Überschreiben, muss also bei Änderungen weiterhin manuell per FTP auf den Produktiv-Server kopiert werden
 - Aufruf: Deploy-Button in den Einstellungen (settings.php) — Token wird per POST-Formular übermittelt (nicht als URL-Parameter, verhindert Sichtbarkeit in Server-Logs)
 - Script lädt das GitHub-Repo als ZIP via cURL herunter, entpackt es und kopiert die Dateien
-- Token wird in `deploy-config.php` konfiguriert (ebenfalls in `.gitignore`)
+- Token wird in `deploy-config.php` konfiguriert (bleibt in `.gitignore` — Trennung von Logik und Geheimnis)
 
 **Dateien die nie per Deploy überschrieben werden (Skip-Liste in deploy.php):**
 - `db-credentials.php` — Datenbankzugangsdaten
@@ -441,7 +441,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 - **Öffentliches GitHub-Repository** (public — ermöglicht ZIP-Download ohne Token)
 - **Semantic Versioning:** `MAJOR.MINOR.PATCH` (Start: `1.0.0`)
 - **CHANGELOG.md** mit Versionshistorie aller Änderungen
-- **`.gitignore`** schliesst aus: `db-credentials.php`, `config-runtime.php`, `deploy.php`, `deploy-config.php`, temporäre Dateien
+- **`.gitignore`** schliesst aus: `db-credentials.php`, `config-runtime.php`, `deploy-config.php`, temporäre Dateien _(`deploy.php` seit v2.0.3 im Repo versioniert)_
 
 ---
 
@@ -503,7 +503,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
   stats.php                ← Statistik-Dashboard
   math.php                 ← Mathe-Generator (Multiplikation + Division)
   settings.php             ← Einstellungsseite (alle Umgebungen, schreibt in config-runtime.php)
-  deploy.php               ← ZIP-Deploy via Browser (gitignored)
+  deploy.php               ← ZIP-Deploy via Browser (im Repo versioniert, schützt sich selbst vor Überschreiben)
   deploy-config.php        ← Deploy-Token + GitHub-Konfiguration (gitignored)
   /assets/                 ← CSS, JS
   /templates/              ← CSV-Vorlage zum Download

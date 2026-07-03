@@ -1,6 +1,5 @@
 db-credentials.php
 config-runtime.php
-deploy.php
 deploy-config.php
 mcp-config.php
 .mcp.json
@@ -8,3 +7,4 @@ mcp-config.php
 
 Checkliste.md
 CLAUDE.md
+Testing.md
