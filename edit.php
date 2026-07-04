@@ -139,9 +139,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Karten laden mit Fortschritt dieser Person
 $stmt = $pdo->prepare("
-    SELECT c.id, c.word_a, c.word_b, c.desc_a, c.desc_b, c.created_at,
+    SELECT c.id, c.word_a, c.word_b, c.desc_a, c.desc_b,
            COALESCE(cp.status, 'queued') AS status,
-           cp.leitner_box, cp.next_due_date, cp.drill_mastery
+           cp.leitner_box, cp.drill_mastery
     FROM cards c
     LEFT JOIN card_progress cp ON cp.card_id = c.id AND cp.person_id = ?
     WHERE c.list_id = ?

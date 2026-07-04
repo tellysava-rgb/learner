@@ -181,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
     $state['answered'][$card_id] = ($state['answered'][$card_id] ?? 0) + 1;
 
     // Aktuellen Leitner-Stand laden
-    $stmt = $pdo->prepare("SELECT leitner_box, next_due_date FROM card_progress WHERE person_id = ? AND card_id = ?");
+    $stmt = $pdo->prepare("SELECT leitner_box FROM card_progress WHERE person_id = ? AND card_id = ?");
     $stmt->execute([$person_id, $card_id]);
     $cp = $stmt->fetch();
     $current_box = (int) ($cp['leitner_box'] ?? 1);
@@ -365,7 +365,7 @@ if ($state) {
     $card_id = $state['queue'][0] ?? null;
     if ($card_id) {
         $stmt = $pdo->prepare("
-            SELECT c.*, cp.leitner_box, cp.next_due_date,
+            SELECT c.*, cp.leitner_box,
                    l.language_a, l.language_b
             FROM cards c
             JOIN card_progress cp ON cp.card_id = c.id AND cp.person_id = ?

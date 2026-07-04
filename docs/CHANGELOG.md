@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.0.7] - 2026-07-04
+
+### Behoben
+- Toten Code entfernt: `stats.php` — ungenutzte Variable `$filter_list`; `learn.php` — `next_due_date` wurde an zwei Stellen mitgeladen, aber nie gelesen; `edit.php` — `created_at` und `next_due_date` wurden mitgeladen, aber nie gelesen (kein Verhaltensunterschied, nur überflüssige SELECT-Spalten/Variable entfernt).
+
+---
+
 ## [2.0.6] - 2026-07-04
 
 ### Behoben

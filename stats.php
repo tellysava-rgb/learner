@@ -182,17 +182,6 @@ foreach ($stmt->fetchAll() as $row) {
 }
 $drill_total = $drill_stats['known'] + $drill_stats['unknown'];
 $drill_pct   = $drill_total > 0 ? round($drill_stats['known'] / $drill_total * 100) : 0;
-
-// Aktuelle Liste für Filter-Anzeige
-$filter_list = null;
-if ($filter_list_id) {
-    foreach ($own_lists as $l) {
-        if ($l['id'] === $filter_list_id) {
-            $filter_list = $l;
-            break;
-        }
-    }
-}
 ?>
 <!DOCTYPE html>
 <html lang="de">
