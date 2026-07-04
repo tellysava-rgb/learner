@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.0.5] - 2026-07-04
+
+### Verbessert
+- Reine Versions-Erhöhung ohne inhaltliche Code-Änderung (auf ausdrücklichen Wunsch).
+
+---
+
 ## [2.0.4] - 2026-07-03
 
 ### Behoben
