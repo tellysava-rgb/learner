@@ -1,6 +1,6 @@
 <?php
 // deploy.php — Deploy via GitHub ZIP-Download (public repo, kein Token nötig)
-// NICHT im Git-Repo: in .gitignore eingetragen
+// Schützt sich über die eigene Skip-Liste vor Überschreiben — Änderungen manuell per FTP auf Prod kopieren
 // Aufruf: https://deinserver.ch/learner/deploy.php?token=DEPLOY_TOKEN
 
 $config_file = __DIR__ . '/includes/deploy-config.php';

@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.0.6] - 2026-07-04
+
+### Behoben
+- `deploy.php`: veralteter Kommentar entfernt ("NICHT im Git-Repo: in .gitignore eingetragen" — stimmte seit v2.0.3 nicht mehr, die Datei ist seither versioniert).
+
+---
+
 ## [2.0.5] - 2026-07-04
 
 ### Verbessert
