@@ -60,6 +60,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // Liste migrieren (alle Karten inkl. Fortschritt in eine andere eigene Liste verschieben)
+    if ($action === 'migrate') {
+        $source_id = intval($_POST['source_list_id'] ?? 0);
+        $target_id = intval($_POST['target_list_id'] ?? 0);
+
+        if (!$source_id || !$target_id || $source_id === $target_id) {
+            $_SESSION['flash_error'] = 'Ungültige Auswahl.';
+        } else {
+            // Beide Listen müssen der aktuellen Person gehören
+            $stmt = $pdo->prepare("SELECT id FROM lists WHERE id IN (?, ?) AND person_id = ?");
+            $stmt->execute([$source_id, $target_id, $person_id]);
+            if (count($stmt->fetchAll()) !== 2) {
+                $_SESSION['flash_error'] = 'Liste nicht gefunden oder keine Berechtigung.';
+            } else {
+                // card_progress hängt an card_id, nicht an list_id — bleibt beim Verschieben unverändert erhalten
+                $stmt = $pdo->prepare("UPDATE cards SET list_id = ? WHERE list_id = ?");
+                $stmt->execute([$target_id, $source_id]);
+                $moved = $stmt->rowCount();
+                $_SESSION['flash_success'] = $moved . ' Karte' . ($moved != 1 ? 'n' : '') . ' migriert.';
+            }
+        }
+        header('Location: lists.php');
+        exit;
+    }
+
     // Liste löschen
     if ($action === 'delete') {
         $list_id = intval($_POST['list_id'] ?? 0);
@@ -133,7 +158,7 @@ if ($edit_id) {
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Meine Listen', '']]) ?></div>
 
-<div class="container mt-2" style="max-width:960px;">
+<div class="container mt-2">
 
     <div class="d-flex align-items-center gap-3 mb-4">
         <h1 class="h4 mb-0 me-auto">Meine Listen</h1>
@@ -250,6 +275,12 @@ if ($edit_id) {
                     <a href="import.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary">Import</a>
                     <a href="export.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary">Export</a>
                     <a href="lists.php?edit=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary">Umbenennen</a>
+                    <?php if (count($lists) > 1): ?>
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                            data-bs-toggle="modal" data-bs-target="#migrateModal<?= $list['id'] ?>">
+                        Migrieren
+                    </button>
+                    <?php endif; ?>
                     <button type="button" class="btn btn-sm btn-outline-danger"
                             onclick="confirmDelete(<?= $list['id'] ?>, <?= htmlspecialchars(json_encode($list['name'])) ?>)">
                         Löschen
@@ -265,6 +296,44 @@ if ($edit_id) {
 
 </div>
 
+<!-- Migrations-Modals (eines pro Liste) -->
+<?php foreach ($lists as $list): if (count($lists) <= 1) break; ?>
+<div class="modal fade" id="migrateModal<?= $list['id'] ?>" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" onsubmit="return confirmMigrate(this)">
+        <?= csrf_field() ?>
+        <input type="hidden" name="action" value="migrate">
+        <input type="hidden" name="source_list_id" value="<?= $list['id'] ?>">
+        <input type="hidden" name="source_lang" value="<?= htmlspecialchars($list['language_a'] . ' → ' . $list['language_b']) ?>">
+        <div class="modal-header">
+          <h5 class="modal-title">"<?= htmlspecialchars($list['name']) ?>" migrieren</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-muted">
+            Alle Karten von "<?= htmlspecialchars($list['name']) ?>" werden inkl. Lernfortschritt (Leitner-Fach, Drill-Status) in die Zielliste verschoben.
+            "<?= htmlspecialchars($list['name']) ?>" bleibt danach leer bestehen und kann bei Bedarf manuell gelöscht werden.
+          </p>
+          <label class="form-label">Zielliste</label>
+          <select name="target_list_id" class="form-select" required>
+            <?php foreach ($lists as $other): if ($other['id'] === $list['id']) continue; ?>
+            <option value="<?= $other['id'] ?>" data-lang="<?= htmlspecialchars($other['language_a'] . ' → ' . $other['language_b']) ?>">
+                <?= htmlspecialchars($other['name']) ?> (<?= htmlspecialchars($other['language_a']) ?> → <?= htmlspecialchars($other['language_b']) ?>)
+            </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+          <button type="submit" class="btn btn-primary">Migrieren</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<?php endforeach; ?>
+
 <!-- Lösch-Bestätigungsformular (versteckt) -->
 <form method="post" id="delete-form" style="display:none;">
     <?= csrf_field() ?>
@@ -279,6 +348,16 @@ function confirmDelete(id, name) {
         document.getElementById('delete-list-id').value = id;
         document.getElementById('delete-form').submit();
     }
+}
+
+function confirmMigrate(form) {
+    var select     = form.querySelector('select[name="target_list_id"]');
+    var targetLang = select.options[select.selectedIndex].dataset.lang;
+    var sourceLang = form.querySelector('input[name="source_lang"]').value;
+    if (targetLang !== sourceLang) {
+        return confirm('Die Sprachpaare unterscheiden sich (' + sourceLang + ' vs. ' + targetLang + '). Trotzdem migrieren?');
+    }
+    return true;
 }
 </script>
 </body>

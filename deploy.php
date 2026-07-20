@@ -126,6 +126,8 @@ try {
             continue;
         }
 
+        // Match nur per basename(), nicht per Pfad — funktioniert unabhängig davon,
+        // ob die Datei im Root oder in includes/ liegt. Nicht auf Pfadvergleich ändern.
         if (in_array(basename($rel), $protected, true)) {
             $skipped++;
             continue;

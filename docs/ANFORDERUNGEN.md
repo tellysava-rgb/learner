@@ -45,6 +45,7 @@
 - **Session-Verlassen-Warnung:** Während einer aktiven Leitner- oder Drill-Session (Karte wird angezeigt) löst jeder Link-Klick einen Bestätigungsdialog aus: "Achtung: die laufende Session wird dadurch automatisch beendet" — mit "Verlassen" und "Abbrechen"
 - **Session-Abbruch:** Bei Bestätigung wird die Session server-seitig beendet (`$_SESSION['drill']` bzw. `$_SESSION['learn']` wird gelöscht) bevor zur Zielseite navigiert wird — verhindert Geisterzustände im Hintergrund
 - **Streak-Badge in Navbar:** Das 🔥-Badge mit Streak-Anzahl wird auf allen Seiten angezeigt (via Session-Cache, einmal täglich berechnet auf home.php). Verschwindet wenn heute und gestern kein Lerntag war.
+- **Container-Breite:** `lists.php` nutzt dieselbe (Bootstrap-Standard-)Container-Breite wie die Startseite `home.php` — kein eigenes `max-width` mehr _(v2.1.0)_
 
 ---
 
@@ -70,6 +71,16 @@
 - **Besitzer:** Die Person die eine Liste erstellt ist automatisch Besitzer — keine Übertragung möglich
 - **Nur der Besitzer** kann seine Liste bearbeiten, umbenennen, löschen, importieren und exportieren
 - **Privat-Flag** pro Liste — private Listen sind für andere Personen nicht sichtbar
+
+### Liste migrieren _(v2.1.0)_
+- Auf **Meine Listen** steht pro Liste ein Button **"Migrieren"** zwischen "Umbenennen" und "Löschen" — ausgeblendet wenn keine weitere eigene Liste existiert
+- Öffnet ein Auswahlfenster: Zielliste wählen (nur eigene Listen, die Quellliste selbst ist ausgeschlossen)
+- Alle Karten der Quellliste werden per `list_id`-Änderung in die Zielliste verschoben — der komplette Lernfortschritt pro Karte (`card_progress`: Leitner-Fach, `next_due_date`, Drill-Mastery, `drill_too_hard`) bleibt erhalten, da er an `card_id` hängt, nicht an `list_id`
+- **Sprachpaar-Mismatch:** Unterscheiden sich die Sprachpaare von Quelle und Ziel (z.B. Deutsch→Englisch vs. Deutsch→Französisch), erscheint eine Warnung die der User bestätigen muss, bevor migriert wird
+- **Duplikate in der Zielliste** (gleiche Wörter bereits vorhanden) werden nicht geprüft — beide Einträge bleiben nebeneinander bestehen
+- Migration ist nur zwischen **eigenen** Listen derselben Person möglich — keine Vermischung mit Listen anderer Personen
+- Die Quellliste bleibt nach der Migration **leer bestehen** — der User löscht sie bei Bedarf manuell
+- Vergangene `learning_sessions`/`session_lists`-Einträge bleiben unverändert (historisch, kein Bezug zur aktuellen `list_id` der Karten)
 
 ### Metadaten pro Liste
 | Feld | Pflicht |
@@ -483,14 +494,6 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 
 ```
 /learner/
-  install.php              ← Erstinstallation: Tabellen erstellen, Passwort setzen (manuell löschen nach Setup)
-  config.php               ← Statische Konfiguration (Zeitzone, Intervalle, Version, Standardwerte)
-  config-runtime.php       ← Laufzeit-Einstellungen pro Umgebung (gitignored, nie deployed, schreibt settings.php)
-  migrations.php           ← Auto-Migrationen: fehlende DB-Spalten werden beim Start automatisch ergänzt
-  auth.php                 ← Session-Start, Timeout, CSRF-Funktionen, require_login/person, today()
-  db.php                   ← Umgebungserkennung + DB-Verbindung + Migrationen
-  db-credentials.php       ← Zugangsdaten Dev + Prod (gitignored, nie committen)
-  db-credentials.example.php ← Vorlage für db-credentials.php (committet)
   index.php                ← Login (globales Passwort)
   home.php                 ← Personenwahl / Startseite / Dashboard
   learn.php                ← Leitner-Session
@@ -503,10 +506,23 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
   stats.php                ← Statistik-Dashboard
   math.php                 ← Mathe-Generator (Multiplikation + Division)
   settings.php             ← Einstellungsseite (alle Umgebungen, schreibt in config-runtime.php)
-  deploy.php               ← ZIP-Deploy via Browser (im Repo versioniert, schützt sich selbst vor Überschreiben)
-  deploy-config.php        ← Deploy-Token + GitHub-Konfiguration (gitignored)
-  /assets/                 ← CSS, JS
-  /templates/              ← CSV-Vorlage zum Download
+  install.php               ← Erstinstallation: Tabellen erstellen, Passwort setzen (manuell löschen nach Setup)
+  mcp-server.php            ← MCP-Endpoint für Agenten (JSON-RPC über HTTP)
+  deploy.php                ← ZIP-Deploy via Browser (im Repo versioniert, schützt sich selbst vor Überschreiben)
+  /assets/                  ← CSS, JS
+  /templates/               ← CSV-Vorlage zum Download
+  /includes/                ← reine Library-/Config-Dateien, nie direkt per URL aufgerufen
+    config.php                 ← Statische Konfiguration (Zeitzone, Intervalle, Version, Standardwerte)
+    config-runtime.php         ← Laufzeit-Einstellungen pro Umgebung (gitignored, nie deployed, schreibt settings.php)
+    migrations.php             ← Auto-Migrationen: fehlende DB-Spalten werden beim Start automatisch ergänzt
+    auth.php                   ← Session-Start, Timeout, CSRF-Funktionen, require_login/person, today()
+    db.php                     ← Umgebungserkennung + DB-Verbindung + Migrationen
+    db-credentials.php         ← Zugangsdaten Dev + Prod (gitignored, nie committen)
+    db-credentials.example.php ← Vorlage für db-credentials.php (committet)
+    deploy-config.php          ← Deploy-Token + GitHub-Konfiguration (gitignored)
+    mcp-config.php             ← MCP-Token (gitignored)
+  /docs/                    ← Dokumentation ausser CLAUDE.md
+    ANFORDERUNGEN.md, CHANGELOG.md, Checkliste.md, Testing.md, mcp-einrichtung.md
 ```
 
 ---

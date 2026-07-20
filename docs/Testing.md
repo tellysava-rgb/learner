@@ -44,6 +44,17 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 
 ### Listen verwalten 
 
+[ ] lists.php: Container-Breite ist identisch mit home.php (kein schmalerer Inhalt mehr). _(v2.1.0)_
+[ ] lists.php: bei genau einer eigenen Liste ist kein "Migrieren"-Button sichtbar. _(v2.1.0)_
+[ ] Liste migrieren: Button "Migrieren" steht zwischen "Umbenennen" und "Löschen". _(v2.1.0)_
+[ ] Liste migrieren: Auswahlfenster zeigt alle eigenen Listen ausser der Quellliste selbst als Ziel. _(v2.1.0)_
+[ ] Liste migrieren: nach Migration sind alle Karten in der Zielliste, Quellliste ist leer (0 Karten). _(v2.1.0)_
+[ ] Liste migrieren: Lernfortschritt (Leitner-Fach, next_due_date, Drill-Mastery) einer migrierten Karte bleibt exakt erhalten. _(v2.1.0)_
+[ ] Liste migrieren: gleiches Sprachpaar Quelle/Ziel → keine Warnung, Migration läuft direkt durch. _(v2.1.0)_
+[ ] Liste migrieren: unterschiedliches Sprachpaar Quelle/Ziel → Warnung erscheint, Abbrechen verhindert Migration. _(v2.1.0)_
+[ ] Liste migrieren: unterschiedliches Sprachpaar, Warnung bestätigt → Migration wird trotzdem ausgeführt. _(v2.1.0)_
+[ ] Liste migrieren: bereits vorhandenes gleiches Wort in Zielliste → keine Duplikat-Warnung, beide Karten bleiben bestehen. _(v2.1.0)_
+[ ] Liste migrieren: Versuch mit manipulierter Zielliste einer anderen Person (z.B. per DevTools) → Fehlermeldung, keine Migration. _(v2.1.0)_
 
 ### Karten bearbeiten _(v0.6.1)_
 

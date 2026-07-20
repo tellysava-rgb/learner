@@ -1,3 +1,5 @@
+# Dateinamen ohne führenden Slash wirken unterordnerübergreifend — greift z.B.
+# unverändert weiter, egal ob die Datei im Root oder in includes/ liegt.
 db-credentials.php
 config-runtime.php
 deploy-config.php

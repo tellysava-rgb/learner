@@ -5,6 +5,16 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.1.0] - 2026-07-20
+
+### Neu
+- **Liste migrieren:** Auf "Meine Listen" können alle Karten einer eigenen Liste per Button "Migrieren" (zwischen "Umbenennen" und "Löschen") in eine andere eigene Liste verschoben werden. Der komplette Lernfortschritt pro Karte (Leitner-Fach, Fälligkeitsdatum, Drill-Mastery) bleibt erhalten, da er an die Karte selbst hängt. Bei unterschiedlichen Sprachpaaren zwischen Quelle und Ziel erscheint eine Bestätigungswarnung. Duplikate in der Zielliste werden nicht geprüft. Die Quellliste bleibt danach leer bestehen.
+
+### Verbessert
+- `lists.php` nutzt jetzt dieselbe Container-Breite wie die Startseite (kein eigenes `max-width` mehr).
+
+---
+
 ## [2.0.7] - 2026-07-04
 
 ### Behoben
