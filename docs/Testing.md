@@ -98,6 +98,14 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] MCP `add_cards`: Feld länger als 200 Zeichen wird mit Fehlermeldung abgelehnt. _(v2.4.0)_
 [ ] MCP-Agent befüllt `phonetik_b` nur bei Listen mit `speech_lang_b`, lässt es bei Listen ohne Sprachcode leer. _(v2.4.0)_
 
+### MCP: bestehende Karten lesen/ändern _(v2.6.0)_
+
+[ ] MCP `list_cards`: gibt Listen-Metadaten + alle Karten inkl. `card_id` und `phonetik_b` zurück (verifiziert gegen Dev-DB). _(v2.6.0)_
+[ ] MCP `update_card`: einzelnes Feld (z.B. `phonetik_b`) ändern → nur dieses Feld ändert sich, restliche Felder bleiben unverändert (verifiziert gegen Dev-DB). _(v2.6.0)_
+[ ] MCP `update_card`: leerer `sprache_a_begriff`/`sprache_b_begriff` wird mit Fehlermeldung abgelehnt (verifiziert). _(v2.6.0)_
+[ ] MCP `update_card`: unbekannte `card_id` liefert Fehlermeldung, keine Änderung (verifiziert). _(v2.6.0)_
+[ ] MCP-Agent zeigt vor `update_card`-Aufrufen dem User pro Karte alt → neu und wartet auf Bestätigung, ändert nie ungefragt automatisch.
+
 ### Direktlink pro Karte _(v2.5.0, überarbeitet v2.5.2, Icon v2.5.3)_
 
 [ ] edit.php: Augen-Symbol-Button ("Karte ansehen") steht als erstes in der Aktionsleiste, vor "Bearbeiten". _(v2.5.3)_

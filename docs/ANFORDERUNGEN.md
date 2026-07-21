@@ -594,6 +594,17 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 - Antwort: `{ summary, list: { id, name }, results: [{ index, status, card, message? }] }`
   - `status`: `inserted` / `duplicate` / `error`
 
+**`list_cards(list_id)`** _(v2.6.0)_ — Pflichtfeld: `list_id` (integer)
+- Gibt Listen-Metadaten plus alle bestehenden Karten zurück: `{ list: { id, name, language_a, language_b, speech_lang_b }, cards: [{ card_id, sprache_a_begriff, sprache_b_begriff, beschreibung_a, beschreibung_b, phonetik_b }] }`
+- Dient zum Prüfen bestehender Karten (z.B. Schreibweise, fehlende Lautschrift) vor gezielten `update_card`-Aufrufen — reines Lese-Tool, keine Änderung
+
+**`update_card(card_id, ...)`** _(v2.6.0)_ — Pflichtfeld: `card_id` (integer)
+- Ändert gezielt einzelne Felder einer bestehenden Karte: `sprache_a_begriff?`, `sprache_b_begriff?`, `beschreibung_a?`, `beschreibung_b?`, `phonetik_b?` — nur übergebene Felder werden geändert, alle anderen bleiben unverändert
+- `sprache_a_begriff`/`sprache_b_begriff` dürfen, falls angegeben, nicht leer sein — `beschreibung_a/b`/`phonetik_b` können mit leerem String geleert werden
+- Gleiche Feld-Regeln wie `add_cards` (Dialekt-Konsistenz, Lautschrift-Stil), gleiche Zeichenlimits
+- **Agent-Pflicht:** vor dem Aufruf dem User pro Karte zeigen was sich ändert (alt → neu) und Bestätigung abwarten — niemals `list_cards`-Ergebnisse ungefragt automatisch mit `update_card` ändern
+- Antwort: `{ summary, card: { card_id, sprache_a_begriff, sprache_b_begriff, beschreibung_a, beschreibung_b, phonetik_b } }` (Werte nach der Änderung)
+
 ### Sicherheit
 - Prepared Statements für alle DB-Zugriffe
 - Keine PHP-Stacktraces nach aussen (generische Fehlermeldungen)

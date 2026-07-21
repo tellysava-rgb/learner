@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.6.0] - 2026-07-21
+
+### Neu
+- **MCP: bestehende Karten lesen/ändern.** Zwei neue Tools ergänzen `add_cards`: `list_cards(list_id)` liest alle Karten einer Liste (inkl. `card_id` und `phonetik_b`), `update_card(card_id, ...)` ändert gezielt einzelne Felder einer bestehenden Karte, ohne die übrigen anzutasten. Ermöglicht Agenten (z.B. bei Wartungsarbeiten wie Rechtschreib-Korrekturen oder nachträglichem Ergänzen von Lautschrift) auch bestehende Karten zu bearbeiten, nicht nur neue anzulegen. Agent muss dem User vor jeder Änderung alt → neu zeigen und Bestätigung abwarten.
+
+---
+
 ## [2.5.3] - 2026-07-21
 
 ### Verbessert

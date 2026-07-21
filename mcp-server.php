@@ -70,7 +70,8 @@ switch ($method) {
                 . '4. Beschreibung (Fremdsprache): Beispielsatz mit dem exakten fremdsprachigen Begriff. Beschreibung (Deutsch): beschreibt die Bedeutung genauer, OHNE den fremdsprachigen Begriff zu nennen — bei unregelmässigen Verben ggf. vermerken, dass es sich um ein unregelmässiges Verb handelt; bei mehrdeutigen Begriffen den konkreten Verwendungskontext angeben. NIEMALS den fremdsprachigen Begriff in der deutschen Beschreibung wiederholen — das ist ein Fehler, der Lernkarten unbrauchbar macht. '
                 . '5. Hat die Liste ein speech_lang_b (z.B. "en-GB" vs. "en-US"): Schreibweise und Wortwahl von Begriff UND Beispielsatz in Sprache B müssen zu diesem Dialekt passen (z.B. en-GB → "colour", "lorry", "flat"; en-US → "color", "truck", "apartment"). Zusätzlich phonetik_b mit vereinfachter Lautschrift füllen (Silben mit Bindestrich, betonte Silbe GROSS, keine IPA-Zeichen, z.B. "toh-ken-eye-ZAY-shun") — hat die Liste kein speech_lang_b, phonetik_b leer lassen. '
                 . '6. Die einzufügenden Karten (Begriff + Übersetzung + Beschreibungen + ggf. Lautschrift) dem User zur Bestätigung zeigen, BEVOR add_cards aufgerufen wird. '
-                . '7. Erst nach Bestätigung des Users add_cards aufrufen.',
+                . '7. Erst nach Bestätigung des Users add_cards aufrufen. '
+                . 'Workflow zum Prüfen/Korrigieren BESTEHENDER Karten (z.B. Schreibweise, fehlende Lautschrift): list_cards(list_id) aufrufen, Änderungen (alt → neu) dem User pro Karte zeigen und Bestätigung abwarten, danach erst update_card je Karte aufrufen. Niemals list_cards-Ergebnisse ungefragt automatisch mit update_card ändern.',
         ]);
 
     case 'notifications/initialized':
@@ -88,6 +89,8 @@ switch ($method) {
             'list_persons' => tool_list_persons($pdo),
             'list_lists'   => tool_list_lists($pdo, $args),
             'add_cards'    => tool_add_cards($pdo, $args),
+            'list_cards'   => tool_list_cards($pdo, $args),
+            'update_card'  => tool_update_card($pdo, $args),
             default        => tool_error("Unbekanntes Tool: $name"),
         };
         mcp_ok($id, $result);
@@ -212,6 +215,98 @@ function tool_add_cards(PDO $pdo, array $args): array {
     ]);
 }
 
+function tool_list_cards(PDO $pdo, array $args): array {
+    $list_id = isset($args['list_id']) ? (int)$args['list_id'] : 0;
+    if ($list_id <= 0) {
+        return tool_error('list_id ist erforderlich (positive Ganzzahl)');
+    }
+
+    $stmt = $pdo->prepare("SELECT id, name, language_a, language_b, speech_lang_b FROM lists WHERE id = ?");
+    $stmt->execute([$list_id]);
+    $list = $stmt->fetch();
+    if (!$list) {
+        return tool_error("Liste mit id=$list_id nicht gefunden");
+    }
+
+    $stmt = $pdo->prepare("SELECT id, word_a, word_b, desc_a, desc_b, phonetic_b FROM cards WHERE list_id = ? ORDER BY created_at");
+    $stmt->execute([$list_id]);
+    $cards = array_map(fn($c) => [
+        'card_id'           => (int)$c['id'],
+        'sprache_a_begriff' => $c['word_a'],
+        'sprache_b_begriff' => $c['word_b'],
+        'beschreibung_a'    => $c['desc_a'],
+        'beschreibung_b'    => $c['desc_b'],
+        'phonetik_b'        => $c['phonetic_b'],
+    ], $stmt->fetchAll());
+
+    return mcp_text(['list' => $list, 'cards' => $cards]);
+}
+
+function tool_update_card(PDO $pdo, array $args): array {
+    $card_id = isset($args['card_id']) ? (int)$args['card_id'] : 0;
+    if ($card_id <= 0) {
+        return tool_error('card_id ist erforderlich (positive Ganzzahl)');
+    }
+
+    $stmt = $pdo->prepare("SELECT id, list_id, word_a, word_b, desc_a, desc_b, phonetic_b FROM cards WHERE id = ?");
+    $stmt->execute([$card_id]);
+    $card = $stmt->fetch();
+    if (!$card) {
+        return tool_error("Karte mit id=$card_id nicht gefunden");
+    }
+
+    // Nur übergebene Felder aktualisieren — Rest bleibt unverändert
+    $fields = [
+        'sprache_a_begriff' => ['word_a', 500],
+        'sprache_b_begriff' => ['word_b', 500],
+        'beschreibung_a'    => ['desc_a', 1000],
+        'beschreibung_b'    => ['desc_b', 1000],
+        'phonetik_b'        => ['phonetic_b', 200],
+    ];
+
+    foreach (['sprache_a_begriff', 'sprache_b_begriff'] as $required_key) {
+        if (array_key_exists($required_key, $args) && trim((string)$args[$required_key]) === '') {
+            return tool_error("$required_key darf nicht leer sein");
+        }
+    }
+
+    $updates = [];
+    $params  = [];
+    foreach ($fields as $arg_key => [$column, $max_len]) {
+        if (!array_key_exists($arg_key, $args)) continue;
+        $val = trim((string)$args[$arg_key]);
+        if (mb_strlen($val) > $max_len) {
+            return tool_error("$arg_key darf maximal $max_len Zeichen haben");
+        }
+        $updates[] = "`$column` = ?";
+        $params[]  = $val !== '' ? $val : null;
+    }
+
+    if (!$updates) {
+        return tool_error('Mindestens ein zu änderndes Feld ist erforderlich');
+    }
+
+    $params[] = $card_id;
+    $stmt = $pdo->prepare("UPDATE cards SET " . implode(', ', $updates) . " WHERE id = ?");
+    $stmt->execute($params);
+
+    $stmt = $pdo->prepare("SELECT id, word_a, word_b, desc_a, desc_b, phonetic_b FROM cards WHERE id = ?");
+    $stmt->execute([$card_id]);
+    $updated = $stmt->fetch();
+
+    return mcp_text([
+        'summary' => "Karte $card_id aktualisiert",
+        'card'    => [
+            'card_id'           => (int)$updated['id'],
+            'sprache_a_begriff' => $updated['word_a'],
+            'sprache_b_begriff' => $updated['word_b'],
+            'beschreibung_a'    => $updated['desc_a'],
+            'beschreibung_b'    => $updated['desc_b'],
+            'phonetik_b'        => $updated['phonetic_b'],
+        ],
+    ]);
+}
+
 // -------------------------------------------------------
 // Tool-Schema (tools/list)
 // -------------------------------------------------------
@@ -259,6 +354,33 @@ function mcp_tools_schema(): array {
                     'force' => ['type' => 'boolean', 'description' => 'Duplikate trotzdem einfügen wenn true (default: false)'],
                 ],
                 'required' => ['list_id', 'cards'],
+            ],
+        ],
+        [
+            'name'        => 'list_cards',
+            'description' => 'Gibt alle bestehenden Karten einer Liste zurück (inkl. card_id, Begriffe, Beschreibungen, phonetik_b). Zum Prüfen/Korrigieren bestehender Karten (z.B. Schreibweise, fehlende Lautschrift) — danach update_card pro zu ändernder Karte aufrufen. NIEMALS Karten ungefragt automatisch ändern: dem User immer zuerst zeigen was sich ändern würde und Bestätigung abwarten, bevor update_card aufgerufen wird.',
+            'inputSchema' => [
+                'type'       => 'object',
+                'properties' => [
+                    'list_id' => ['type' => 'integer', 'description' => 'ID der Liste (von list_lists)'],
+                ],
+                'required' => ['list_id'],
+            ],
+        ],
+        [
+            'name'        => 'update_card',
+            'description' => 'Ändert einzelne Felder einer bestehenden Karte (von list_cards). Nur die übergebenen Felder werden geändert, alle anderen bleiben unverändert. sprache_a_begriff/sprache_b_begriff dürfen nicht leer sein falls angegeben. Gleiche Feld-Regeln wie bei add_cards (Dialekt-Konsistenz, Lautschrift-Stil). WICHTIG: dem User vor dem Aufruf immer zeigen, was sich pro Karte ändert (alt → neu), und Bestätigung abwarten.',
+            'inputSchema' => [
+                'type'       => 'object',
+                'properties' => [
+                    'card_id'           => ['type' => 'integer', 'description' => 'ID der Karte (card_id von list_cards)'],
+                    'sprache_a_begriff' => ['type' => 'string', 'maxLength' => 500, 'description' => 'Neuer Begriff Sprache A (optional, nicht leer falls angegeben)'],
+                    'sprache_b_begriff' => ['type' => 'string', 'maxLength' => 500, 'description' => 'Neuer Begriff Sprache B (optional, nicht leer falls angegeben)'],
+                    'beschreibung_a'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Neue Beschreibung Sprache A (optional, leerer String löscht sie)'],
+                    'beschreibung_b'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Neue Beschreibung Sprache B (optional, leerer String löscht sie)'],
+                    'phonetik_b'        => ['type' => 'string', 'maxLength' => 200, 'description' => 'Neue Lautschrift (optional, leerer String löscht sie), gleicher Stil wie bei add_cards'],
+                ],
+                'required' => ['card_id'],
             ],
         ],
     ];
