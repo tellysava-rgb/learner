@@ -56,6 +56,20 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Liste migrieren: bereits vorhandenes gleiches Wort in Zielliste → keine Duplikat-Warnung, beide Karten bleiben bestehen. _(v2.1.0)_
 [ ] Liste migrieren: Versuch mit manipulierter Zielliste einer anderen Person (z.B. per DevTools) → Fehlermeldung, keine Migration. _(v2.1.0)_
 
+### Aussprache-Sprachcode & Audio _(v2.2.0)_
+
+[ ] Liste erstellen/bearbeiten: Feld "Aussprache-Sprachcode" mit Autovervollständigung (Datalist) zeigt kuratierte Vorschläge. _(v2.2.0)_
+[ ] Gültiger Code (z.B. en-GB) wird gespeichert und beim erneuten Öffnen des Bearbeiten-Formulars korrekt vorausgefüllt. _(v2.2.0)_
+[ ] Ungültiger Code (z.B. en-UK) wird beim Speichern abgelehnt, Fehlermeldung erscheint. _(v2.2.0)_
+[ ] Code in falscher Gross-/Kleinschreibung (z.B. EN-gb) wird automatisch zu en-GB normalisiert gespeichert. _(v2.2.0)_
+[ ] Leeres Feld ist zulässig (Code bleibt optional). _(v2.2.0)_
+[ ] Leitner-Karte: 🔊-Button erscheint nur auf der Seite, wo Sprache B angezeigt wird (abhängig von Lernrichtung A→B / B→A / Gemischt). _(v2.2.0)_
+[ ] Leitner-Karte: Liste ohne Aussprache-Code → kein 🔊-Button sichtbar. _(v2.2.0)_
+[ ] Drill-Karte: 🔊-Button erscheint nur auf der Rückseite (Sprache B), sofern Code gesetzt. _(v2.2.0)_
+[ ] Klick auf 🔊-Button spielt den Begriff ab und löst NICHT das Umdrehen der Karte aus. _(v2.2.0)_
+[ ] "Entdecken" → Liste kopieren: Aussprache-Code der Originalliste wird in die Kopie übernommen. _(v2.2.0)_
+[ ] MCP `list_lists`: Antwort enthält `speech_lang_b` je Liste. _(v2.2.0)_
+
 ### Karten bearbeiten _(v0.6.1)_
 
 [ ] Aktionsbuttons zeigen nur Icons (kein Text). _(v0.6.1)_

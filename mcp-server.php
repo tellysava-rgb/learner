@@ -68,8 +68,9 @@ switch ($method) {
                 . '2. list_lists aufrufen, dem User ALLE Listen anzeigen und explizit fragen in welche Liste. Anhand language_a/language_b bestimmen, welche Seite Deutsch ist. '
                 . '3. Begriff (Fremdsprache): exakter Begriff — bei Verben die Grundform (Infinitiv), bei unregelmässigen Verben alle drei Formen (z.B. "go / went / gone"). Begriff (Deutsch): exakter Begriff. '
                 . '4. Beschreibung (Fremdsprache): Beispielsatz mit dem exakten fremdsprachigen Begriff. Beschreibung (Deutsch): beschreibt die Bedeutung genauer, OHNE den fremdsprachigen Begriff zu nennen — bei unregelmässigen Verben ggf. vermerken, dass es sich um ein unregelmässiges Verb handelt; bei mehrdeutigen Begriffen den konkreten Verwendungskontext angeben. NIEMALS den fremdsprachigen Begriff in der deutschen Beschreibung wiederholen — das ist ein Fehler, der Lernkarten unbrauchbar macht. '
-                . '5. Die einzufügenden Karten (Begriff + Übersetzung + Beschreibungen) dem User zur Bestätigung zeigen, BEVOR add_cards aufgerufen wird. '
-                . '6. Erst nach Bestätigung des Users add_cards aufrufen.',
+                . '5. Hat die Liste ein speech_lang_b (z.B. "en-GB" vs. "en-US"): Schreibweise und Wortwahl von Begriff UND Beispielsatz in Sprache B müssen zu diesem Dialekt passen (z.B. en-GB → "colour", "lorry", "flat"; en-US → "color", "truck", "apartment"). '
+                . '6. Die einzufügenden Karten (Begriff + Übersetzung + Beschreibungen) dem User zur Bestätigung zeigen, BEVOR add_cards aufgerufen wird. '
+                . '7. Erst nach Bestätigung des Users add_cards aufrufen.',
         ]);
 
     case 'notifications/initialized':
@@ -119,7 +120,7 @@ function tool_list_lists(PDO $pdo, array $args): array {
         return tool_error("Person mit id=$person_id nicht gefunden");
     }
 
-    $stmt = $pdo->prepare("SELECT id, name, language_a, language_b FROM lists WHERE person_id = ? ORDER BY name");
+    $stmt = $pdo->prepare("SELECT id, name, language_a, language_b, speech_lang_b FROM lists WHERE person_id = ? ORDER BY name");
     $stmt->execute([$person_id]);
     $lists = $stmt->fetchAll();
 
@@ -219,7 +220,7 @@ function mcp_tools_schema(): array {
         ],
         [
             'name'        => 'list_lists',
-            'description' => 'Gibt alle Vokabellisten einer Person zurück (id, name, Sprachen). Zweiter Schritt: Listen dem User anzeigen und explizit fragen welche Liste verwendet werden soll — niemals eine Liste ohne Rückfrage auswählen.',
+            'description' => 'Gibt alle Vokabellisten einer Person zurück (id, name, Sprachen, speech_lang_b). Zweiter Schritt: Listen dem User anzeigen und explizit fragen welche Liste verwendet werden soll — niemals eine Liste ohne Rückfrage auswählen. speech_lang_b (z.B. "en-GB") gibt den Dialekt vor, falls gesetzt — Schreibweise/Wortwahl in add_cards muss dazu passen.',
             'inputSchema' => [
                 'type'       => 'object',
                 'properties' => [
@@ -230,7 +231,7 @@ function mcp_tools_schema(): array {
         ],
         [
             'name'        => 'add_cards',
-            'description' => 'Fügt Vokabelkarten in eine Liste ein. Regeln für die Felder: Begriff (Fremdsprache) exakt, bei Verben Grundform, bei unregelmässigen Verben alle drei Formen. Begriff (Deutsch) exakt. Beschreibung (Fremdsprache): Beispielsatz mit dem exakten fremdsprachigen Begriff. Beschreibung (Deutsch): beschreibt die Bedeutung genauer OHNE den fremdsprachigen Begriff zu nennen, vermerkt ggf. unregelmässiges Verb, klärt bei Mehrdeutigkeit den Verwendungskontext. WICHTIG: Der fremdsprachige Begriff darf NIEMALS in der deutschen Beschreibung auftauchen. WICHTIG: Alle Karten (Begriff A, Begriff B, Beschreibungen) dem User zur Sichtprüfung vorlegen und Bestätigung abwarten, bevor dieses Tool aufgerufen wird. Bei Duplikat-Warnung: in Claude Code erst nach Rückfrage mit force=true, in n8n immer direkt force=true.',
+            'description' => 'Fügt Vokabelkarten in eine Liste ein. Regeln für die Felder: Begriff (Fremdsprache) exakt, bei Verben Grundform, bei unregelmässigen Verben alle drei Formen. Begriff (Deutsch) exakt. Beschreibung (Fremdsprache): Beispielsatz mit dem exakten fremdsprachigen Begriff. Beschreibung (Deutsch): beschreibt die Bedeutung genauer OHNE den fremdsprachigen Begriff zu nennen, vermerkt ggf. unregelmässiges Verb, klärt bei Mehrdeutigkeit den Verwendungskontext. WICHTIG: Der fremdsprachige Begriff darf NIEMALS in der deutschen Beschreibung auftauchen. Hat die Zielliste (aus list_lists) ein speech_lang_b gesetzt, müssen Schreibweise und Wortwahl des fremdsprachigen Begriffs und Beispielsatzes zu diesem Dialekt passen (z.B. en-GB vs. en-US). WICHTIG: Alle Karten (Begriff A, Begriff B, Beschreibungen) dem User zur Sichtprüfung vorlegen und Bestätigung abwarten, bevor dieses Tool aufgerufen wird. Bei Duplikat-Warnung: in Claude Code erst nach Rückfrage mit force=true, in n8n immer direkt force=true.',
             'inputSchema' => [
                 'type'       => 'object',
                 'properties' => [

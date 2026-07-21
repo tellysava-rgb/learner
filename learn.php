@@ -366,7 +366,7 @@ if ($state) {
     if ($card_id) {
         $stmt = $pdo->prepare("
             SELECT c.*, cp.leitner_box,
-                   l.language_a, l.language_b
+                   l.language_a, l.language_b, l.speech_lang_b
             FROM cards c
             JOIN card_progress cp ON cp.card_id = c.id AND cp.person_id = ?
             JOIN lists l ON l.id = c.list_id
@@ -385,17 +385,26 @@ if (isset($_GET['done']) && isset($_SESSION['learn_done'])) {
 }
 
 // Lernrichtung auf Karte anwenden
+// Aussprache-Button (Web Speech API) gilt ausschliesslich für Sprache B — q_audio/a_audio
+// ist der vorzulesende Text (word_b) auf der Seite, wo Sprache B angezeigt wird, sonst null.
 function get_question_answer(array $card, string $direction): array {
-    if ($direction === 'b_to_a') {
-        return ['q' => $card['word_b'], 'a' => $card['word_a'], 'q_desc' => $card['desc_b'], 'a_desc' => $card['desc_a'], 'q_lang' => $card['language_b'], 'a_lang' => $card['language_a']];
+    $b_first = ($direction === 'b_to_a') || ($direction === 'mixed' && $card['id'] % 2 === 0);
+    $speech_lang_b = $card['speech_lang_b'] ?? null;
+
+    if ($b_first) {
+        return [
+            'q' => $card['word_b'], 'a' => $card['word_a'],
+            'q_desc' => $card['desc_b'], 'a_desc' => $card['desc_a'],
+            'q_lang' => $card['language_b'], 'a_lang' => $card['language_a'],
+            'q_audio' => $speech_lang_b ? $card['word_b'] : null, 'a_audio' => null,
+        ];
     }
-    if ($direction === 'mixed') {
-        // Deterministisch gemischt anhand der card_id
-        if ($card['id'] % 2 === 0) {
-            return ['q' => $card['word_b'], 'a' => $card['word_a'], 'q_desc' => $card['desc_b'], 'a_desc' => $card['desc_a'], 'q_lang' => $card['language_b'], 'a_lang' => $card['language_a']];
-        }
-    }
-    return ['q' => $card['word_a'], 'a' => $card['word_b'], 'q_desc' => $card['desc_a'], 'a_desc' => $card['desc_b'], 'q_lang' => $card['language_a'], 'a_lang' => $card['language_b']];
+    return [
+        'q' => $card['word_a'], 'a' => $card['word_b'],
+        'q_desc' => $card['desc_a'], 'a_desc' => $card['desc_b'],
+        'q_lang' => $card['language_a'], 'a_lang' => $card['language_b'],
+        'q_audio' => null, 'a_audio' => $speech_lang_b ? $card['word_b'] : null,
+    ];
 }
 
 $setup_error = '';
@@ -409,6 +418,7 @@ render_setup:
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Leitner — <?= APP_NAME ?></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -532,14 +542,32 @@ $is_retry  = isset($state['answered'][$current['id']]);
      id="learn-card" style="max-width:540px; cursor:pointer;" onclick="flipCard()">
     <div class="text-center p-5" style="min-height:280px;">
         <p class="text-muted small mb-2"><?= htmlspecialchars($qa['q_lang']) ?></p>
-        <div class="fw-bold fs-2 mb-1"><?= htmlspecialchars($qa['q']) ?></div>
+        <div class="fw-bold fs-2 mb-1">
+            <?= htmlspecialchars($qa['q']) ?>
+            <?php if ($qa['q_audio']): ?>
+            <button type="button" class="btn btn-sm btn-outline-secondary align-middle ms-1"
+                    onclick="event.stopPropagation(); speakWord(this)"
+                    data-speak="<?= htmlspecialchars($qa['q_audio']) ?>" data-lang="<?= htmlspecialchars($current['speech_lang_b']) ?>">
+                <i class="bi bi-volume-up-fill"></i>
+            </button>
+            <?php endif; ?>
+        </div>
         <?php if ($qa['q_desc']): ?>
         <p class="text-muted mb-0"><?= htmlspecialchars($qa['q_desc']) ?></p>
         <?php endif; ?>
         <div id="learn-answer" style="display:none;">
             <hr class="my-3">
             <p class="text-muted small mb-1"><?= htmlspecialchars($qa['a_lang']) ?></p>
-            <div class="fw-bold fs-3 text-success mb-0"><?= htmlspecialchars($qa['a']) ?></div>
+            <div class="fw-bold fs-3 text-success mb-0">
+                <?= htmlspecialchars($qa['a']) ?>
+                <?php if ($qa['a_audio']): ?>
+                <button type="button" class="btn btn-sm btn-outline-secondary align-middle ms-1"
+                        onclick="event.stopPropagation(); speakWord(this)"
+                        data-speak="<?= htmlspecialchars($qa['a_audio']) ?>" data-lang="<?= htmlspecialchars($current['speech_lang_b']) ?>">
+                    <i class="bi bi-volume-up-fill"></i>
+                </button>
+                <?php endif; ?>
+            </div>
             <?php if ($qa['a_desc']): ?>
             <p class="text-muted mt-1 mb-0"><?= htmlspecialchars($qa['a_desc']) ?></p>
             <?php endif; ?>
@@ -705,6 +733,14 @@ window.addEventListener('pageshow', function (e) {
     });
 })();
 <?php endif; ?>
+
+function speakWord(btn) {
+    if (!('speechSynthesis' in window)) return;
+    var u = new SpeechSynthesisUtterance(btn.dataset.speak);
+    u.lang = btn.dataset.lang;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+}
 
 function flipCard() {
     var card = document.getElementById('learn-card');

@@ -310,7 +310,7 @@ $state     = $_SESSION['drill'] ?? null;
 $card_data = null;
 
 if ($state && $state['current_card_id']) {
-    $stmt = $pdo->prepare("SELECT c.*, l.language_a, l.language_b FROM cards c JOIN lists l ON l.id = c.list_id WHERE c.id = ?");
+    $stmt = $pdo->prepare("SELECT c.*, l.language_a, l.language_b, l.speech_lang_b FROM cards c JOIN lists l ON l.id = c.list_id WHERE c.id = ?");
     $stmt->execute([$state['current_card_id']]);
     $card_data = $stmt->fetch() ?: null;
 }
@@ -338,6 +338,7 @@ if (!$state && !$done_data) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Drill — <?= APP_NAME ?></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -440,7 +441,16 @@ if (!$state && !$done_data) {
         <div id="card-back" style="display:none;">
             <hr class="my-3">
             <p class="text-muted small mb-1"><?= htmlspecialchars($card_data['language_b']) ?></p>
-            <div class="fw-bold fs-3 text-success mb-0"><?= htmlspecialchars($card_data['word_b']) ?></div>
+            <div class="fw-bold fs-3 text-success mb-0">
+                <?= htmlspecialchars($card_data['word_b']) ?>
+                <?php if ($card_data['speech_lang_b']): ?>
+                <button type="button" class="btn btn-sm btn-outline-secondary align-middle ms-1"
+                        onclick="event.stopPropagation(); speakWord(this)"
+                        data-speak="<?= htmlspecialchars($card_data['word_b']) ?>" data-lang="<?= htmlspecialchars($card_data['speech_lang_b']) ?>">
+                    <i class="bi bi-volume-up-fill"></i>
+                </button>
+                <?php endif; ?>
+            </div>
             <?php if ($card_data['desc_b']): ?>
             <p class="text-muted mt-1 mb-0"><?= htmlspecialchars($card_data['desc_b']) ?></p>
             <?php endif; ?>
@@ -495,6 +505,14 @@ if (!$state && !$done_data) {
 window.addEventListener('pageshow', function (e) {
     if (e.persisted) window.location.reload();
 });
+
+function speakWord(btn) {
+    if (!('speechSynthesis' in window)) return;
+    var u = new SpeechSynthesisUtterance(btn.dataset.speak);
+    u.lang = btn.dataset.lang;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+}
 
 <?php if ($state && $card_data): ?>
 function flipCard() {

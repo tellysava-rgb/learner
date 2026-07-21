@@ -21,15 +21,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $language_a  = trim($_POST['language_a'] ?? '');
         $language_b  = trim($_POST['language_b'] ?? '');
         $is_public   = isset($_POST['is_public']) ? 1 : 0;
+        $speech_raw  = trim($_POST['speech_lang_b'] ?? '');
+        $speech_lang_b = $speech_raw !== '' ? normalize_speech_lang($speech_raw) : null;
 
         if ($name === '' || $language_a === '' || $language_b === '') {
             $error = 'Name und beide Sprachen sind Pflichtfelder.';
+        } elseif ($speech_raw !== '' && $speech_lang_b === null) {
+            $error = 'Ungültiger Aussprache-Sprachcode. Format: Sprache-Region, z.B. en-GB.';
         } else {
             $stmt = $pdo->prepare("
-                INSERT INTO lists (person_id, name, description, language_a, language_b, is_public)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO lists (person_id, name, description, language_a, language_b, is_public, speech_lang_b)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             ");
-            $stmt->execute([$person_id, $name, $description ?: null, $language_a, $language_b, $is_public]);
+            $stmt->execute([$person_id, $name, $description ?: null, $language_a, $language_b, $is_public, $speech_lang_b]);
             $_SESSION['flash_success'] = 'Liste "' . $name . '" wurde erstellt.';
             header('Location: lists.php');
             exit;
@@ -44,12 +48,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $language_a  = trim($_POST['language_a'] ?? '');
         $language_b  = trim($_POST['language_b'] ?? '');
         $is_public   = isset($_POST['is_public']) ? 1 : 0;
+        $speech_raw  = trim($_POST['speech_lang_b'] ?? '');
+        $speech_lang_b = $speech_raw !== '' ? normalize_speech_lang($speech_raw) : null;
 
         if ($name === '' || $language_a === '' || $language_b === '') {
             $error = 'Name und beide Sprachen sind Pflichtfelder.';
+        } elseif ($speech_raw !== '' && $speech_lang_b === null) {
+            $error = 'Ungültiger Aussprache-Sprachcode. Format: Sprache-Region, z.B. en-GB.';
         } else {
-            $stmt = $pdo->prepare("UPDATE lists SET name=?, description=?, language_a=?, language_b=?, is_public=? WHERE id=? AND person_id=?");
-            $stmt->execute([$name, $description ?: null, $language_a, $language_b, $is_public, $list_id, $person_id]);
+            $stmt = $pdo->prepare("UPDATE lists SET name=?, description=?, language_a=?, language_b=?, is_public=?, speech_lang_b=? WHERE id=? AND person_id=?");
+            $stmt->execute([$name, $description ?: null, $language_a, $language_b, $is_public, $speech_lang_b, $list_id, $person_id]);
             if ($stmt->rowCount() === 0) {
                 $_SESSION['flash_error'] = 'Liste nicht gefunden oder keine Berechtigung.';
             } else {
@@ -107,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Eigene Listen laden
 $stmt = $pdo->prepare("
-    SELECT l.id, l.name, l.description, l.language_a, l.language_b, l.is_public, l.created_at,
+    SELECT l.id, l.name, l.description, l.language_a, l.language_b, l.is_public, l.created_at, l.speech_lang_b,
            COUNT(c.id) AS card_count
     FROM lists l
     LEFT JOIN cards c ON c.list_id = l.id
@@ -117,6 +125,12 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$person_id]);
 $lists = $stmt->fetchAll();
+
+// Vorschläge für Aussprache-Sprachcode-Datalist: kuratierte Codes + bereits verwendete Codes
+$common_speech_langs = ['de-DE','de-CH','de-AT','en-US','en-GB','en-AU','en-CA','fr-FR','fr-CH','fr-CA','it-IT','es-ES','es-MX','pt-PT','pt-BR','nl-NL','pl-PL','ru-RU','ja-JP','zh-CN'];
+$used_speech_langs = $pdo->query("SELECT DISTINCT speech_lang_b FROM lists WHERE speech_lang_b IS NOT NULL")->fetchAll(PDO::FETCH_COLUMN);
+$speech_lang_options = array_unique(array_merge($common_speech_langs, $used_speech_langs));
+sort($speech_lang_options);
 
 // Bearbeitungsformular: welche Liste?
 $edit_id = intval($_GET['edit'] ?? 0);
@@ -201,12 +215,23 @@ if ($edit_id) {
                         <label class="form-check-label" for="create_public">Öffentlich</label>
                     </div>
                 </div>
+                <div class="col-md-6">
+                    <label class="form-label">Aussprache-Sprachcode (Sprache B)</label>
+                    <input type="text" name="speech_lang_b" class="form-control" list="speech-lang-options" maxlength="10" placeholder="z.B. en-US">
+                    <div class="form-text">BCP-47-Format, z.B. <code>en-US</code>, <code>fr-FR</code>, <code>de-CH</code>. Optional — aktiviert den 🔊-Button beim Lernen.</div>
+                </div>
                 <div class="col-12">
                     <button type="submit" class="btn btn-primary">Liste erstellen</button>
                 </div>
             </form>
         </div>
     </div>
+
+    <datalist id="speech-lang-options">
+        <?php foreach ($speech_lang_options as $code): ?>
+        <option value="<?= htmlspecialchars($code) ?>">
+        <?php endforeach; ?>
+    </datalist>
 
     <!-- Bestehende Listen -->
     <?php if (!$lists): ?>
@@ -244,6 +269,11 @@ if ($edit_id) {
                                <?= $list['is_public'] ? 'checked' : '' ?>>
                         <label class="form-check-label small" for="pub_<?= $list['id'] ?>">Öffentlich</label>
                     </div>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" name="speech_lang_b" class="form-control form-control-sm"
+                           list="speech-lang-options" maxlength="10" placeholder="Aussprache-Code, z.B. en-US"
+                           value="<?= htmlspecialchars($list['speech_lang_b'] ?? '') ?>">
                 </div>
                 <div class="col-md-4 d-flex gap-2">
                     <button type="submit" class="btn btn-sm btn-success">Speichern</button>

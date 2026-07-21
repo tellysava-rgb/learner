@@ -29,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 // Neue Liste für diese Person erstellen
                 $stmt = $pdo->prepare("
-                    INSERT INTO lists (person_id, name, description, language_a, language_b, is_public)
-                    VALUES (?, ?, ?, ?, ?, 0)
+                    INSERT INTO lists (person_id, name, description, language_a, language_b, is_public, speech_lang_b)
+                    VALUES (?, ?, ?, ?, ?, 0, ?)
                 ");
                 $stmt->execute([
                     $person_id,
@@ -38,6 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $source['description'],
                     $source['language_a'],
                     $source['language_b'],
+                    $source['speech_lang_b'],
                 ]);
                 $new_list_id = (int) $pdo->lastInsertId();
 

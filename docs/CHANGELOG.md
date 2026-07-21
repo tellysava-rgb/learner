@@ -5,6 +5,14 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.2.0] - 2026-07-21
+
+### Neu
+- **Aussprache-Sprachcode & Audio:** Pro Liste kann ein BCP-47-Sprachcode (z.B. `en-GB`) für Sprache B hinterlegt werden — Eingabe mit Autovervollständigung (kuratierte Vorschläge + bereits verwendete Codes), serverseitig gegen ISO-639-1/ISO-3166-1 validiert und automatisch normalisiert (z.B. `EN-gb` → `en-GB`). Auf Leitner- und Drill-Karten erscheint dort, wo Sprache B angezeigt wird, ein 🔊-Button, der den Begriff per Web Speech API vorliest. Kein Button ohne hinterlegten Code. Der Code wird beim Kopieren einer öffentlichen Liste ("Entdecken") automatisch mitübernommen.
+- **MCP:** `list_lists` gibt neu `speech_lang_b` zurück; der Agent wird angewiesen, Schreibweise und Wortwahl beim Hinzufügen von Karten an den hinterlegten Dialekt anzupassen (z.B. `en-GB` vs. `en-US`).
+
+---
+
 ## [2.1.0] - 2026-07-20
 
 ### Neu
