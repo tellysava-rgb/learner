@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.4.0] - 2026-07-21
+
+### Neu
+- **Lautschrift jetzt auch in CSV-Import/-Export und MCP:** CSV-Format um optionale 5. Spalte `phonetic_b` erweitert (rückwärtskompatibel — alte 4-spaltige CSVs funktionieren weiterhin), Vorlage und Import-Erklärung aktualisiert. MCP-Tool `add_cards` unterstützt neu `phonetik_b` mit derselben vereinfachten Lautschrift-Konvention (Silben mit Bindestrich, betonte Silbe GROSS, keine IPA-Zeichen) wie die manuelle Erfassung — Agent befüllt es nur bei Listen mit gesetztem `speech_lang_b`.
+
+---
+
 ## [2.3.0] - 2026-07-21
 
 ### Neu

@@ -130,7 +130,8 @@
 - Eingabefeld erscheint beim Hinzufügen/Bearbeiten einer Karte (`edit.php`) **nur**, wenn die Liste einen Aussprache-Sprachcode (`speech_lang_b`) hinterlegt hat — bei Listen ohne Sprachzuordnung (z.B. Mathe-Listen) gibt es kein Lautschrift-Feld
 - Anzeige: in der Kartenübersicht (`edit.php`) unter dem Begriff in Sprache B, sowie auf Leitner- und Drill-Karten unter dem Begriff in Sprache B (zusammen mit dem 🔊-Button)
 - Ergänzt die Audio-Wiedergabe, ersetzt sie nicht — beide Mechanismen sind unabhängig nutzbar
-- Kein CSV-Import/-Export, keine MCP-Unterstützung in dieser Version — Erfassung ausschliesslich manuell im Browser
+- **CSV-Import/-Export** unterstützen `phonetic_b` als optionale 5. Spalte _(v2.4.0)_ — siehe Abschnitt "CSV-Format"
+- **MCP `add_cards`** unterstützt `phonetik_b` als optionales Feld, mit derselben vereinfachten Lautschrift-Konvention wie manuell erfasst (Silben mit Bindestrich, betonte Silbe GROSS, keine IPA-Zeichen) — nur befüllen wenn die Liste ein `speech_lang_b` hat, reine Agent-Anweisung ohne serverseitige Validierung _(v2.4.0)_
 
 ### Sprachen
 - Frei definierbar pro Liste (z.B. Deutsch/Englisch, Deutsch/Japanisch)
@@ -172,14 +173,15 @@
 
 ### CSV-Format
 ```
-a,b,desc_a,desc_b
-Diagnose,diagnosis,medizinischer Begriff,"A conclusion, reached by examination"
-Behandlung,treatment,,
+a,b,desc_a,desc_b,phonetic_b
+Diagnose,diagnosis,medizinischer Begriff,"A conclusion, reached by examination",dy-ug-NOH-sis
+Behandlung,treatment,,,
 ```
 - Trennzeichen: **Komma oder Semikolon** — App erkennt automatisch
 - **Encoding: UTF-8**
 - Erste Zeile ist die Kopfzeile (Sprachnamen oder beliebige Spaltenbezeichnungen) — wird beim Import immer übersprungen
 - Felder mit Kommas/Semikolons müssen in **doppelte Anführungszeichen** gesetzt werden
+- 5. Spalte `phonetic_b` (Lautschrift) ist **optional** — fehlt sie (nur 4 Spalten), bleibt das Feld leer; rückwärtskompatibel mit alten CSV-Dateien _(v2.4.0)_
 - Kommas/Semikolons innerhalb von Feldern sind nur erlaubt wenn das Feld korrekt gequotet ist
 - Kein Listenname und keine Sprachen in der CSV — die Liste wird vorher in der App erstellt
 - Import-Seite enthält ausführliche Erklärung und Beispiel
@@ -574,7 +576,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 
 **`add_cards(list_id, cards[], force?)`**
 - Fügt eine oder mehrere Vokabelkarten in eine Liste ein
-- `cards[]` = Array aus `{ sprache_a_begriff, sprache_b_begriff, beschreibung_a?, beschreibung_b? }`
+- `cards[]` = Array aus `{ sprache_a_begriff, sprache_b_begriff, beschreibung_a?, beschreibung_b?, phonetik_b? }` (`phonetik_b` seit v2.4.0, max. 200 Zeichen)
 - Feld-Regeln für den Agent (in Tool-Beschreibung, Feld-Beschreibungen und `initialize`-Instructions — keine serverseitige Validierung, reine Agent-Anweisung) _(v2.0.2, verschärft v2.0.4)_:
   - Begriff (Fremdsprache): exakt — bei Verben Grundform (Infinitiv), bei unregelmässigen Verben alle drei Formen (z.B. "go / went / gone")
   - Begriff (Deutsch): exakt
@@ -582,6 +584,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
   - Beschreibung (Deutsch): beschreibt die Bedeutung genauer, **ohne den fremdsprachigen Begriff zu nennen** — bei unregelmässigen Verben ggf. vermerken, bei Mehrdeutigkeit den Verwendungskontext klären
   - Bekannter Fehlerfall, der zur Verschärfung führte: Agent schrieb den fremdsprachigen Begriff versehentlich in die deutsche Beschreibung (z.B. `bounced` in der Beschreibung zu `unzustellbar`) — jetzt explizit verboten
   - **Dialekt-Konsistenz** _(v2.2.0)_: Hat die Zielliste einen `speech_lang_b`-Code (z.B. `en-GB` vs. `en-US`), müssen Schreibweise und Wortwahl des Begriffs sowie des Beispielsatzes zu diesem Dialekt passen (z.B. `en-GB` → "colour", "lorry", "flat"; `en-US` → "color", "truck", "apartment") — wie bei den übrigen Feld-Regeln reine Agent-Anweisung, keine serverseitige Validierung
+  - **Lautschrift** _(v2.4.0)_: Hat die Zielliste ein `speech_lang_b`, soll `phonetik_b` mit vereinfachter Lautschrift befüllt werden (Silben mit Bindestrich getrennt, betonte Silbe in GROSSBUCHSTABEN, keine IPA-Sonderzeichen, z.B. `toh-ken-eye-ZAY-shun`) — passend zum Dialekt der Liste. Hat die Liste kein `speech_lang_b`, bleibt `phonetik_b` leer.
 - Karten werden nur in `cards`-Tabelle eingefügt — **kein `card_progress`-Eintrag** (lazy-init beim nächsten Leitner-Session-Start)
 - Duplikatprüfung: exakter Vergleich (case-insensitive, getrimmt) auf `word_a + word_b` innerhalb der Ziel-Liste
 - Duplikat + `force = false`: Karte wird nicht eingefügt, Warnung mit gefundener Karte zurückgegeben

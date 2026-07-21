@@ -65,10 +65,11 @@ function parse_csv(string $content): array {
 
         if (count($fields) < 2) continue;
         $rows[] = [
-            'word_a' => trim($fields[0] ?? ''),
-            'word_b' => trim($fields[1] ?? ''),
-            'desc_a' => trim($fields[2] ?? ''),
-            'desc_b' => trim($fields[3] ?? ''),
+            'word_a'     => trim($fields[0] ?? ''),
+            'word_b'     => trim($fields[1] ?? ''),
+            'desc_a'     => trim($fields[2] ?? ''),
+            'desc_b'     => trim($fields[3] ?? ''),
+            'phonetic_b' => trim($fields[4] ?? ''),
         ];
     }
     return $rows;
@@ -233,8 +234,8 @@ if ($import_stage === 'confirm' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                             $imported++;
                         } elseif ($decision === 'new') {
                             // Neue Karte mit neuer ID
-                            $stmt = $pdo->prepare("INSERT INTO cards (list_id, word_a, word_b, desc_a, desc_b) VALUES (?,?,?,?,?)");
-                            $stmt->execute([$list_id, $row['word_a'], $row['word_b'], $row['desc_a'] ?: null, $row['desc_b'] ?: null]);
+                            $stmt = $pdo->prepare("INSERT INTO cards (list_id, word_a, word_b, desc_a, desc_b, phonetic_b) VALUES (?,?,?,?,?,?)");
+                            $stmt->execute([$list_id, $row['word_a'], $row['word_b'], $row['desc_a'] ?: null, $row['desc_b'] ?: null, $row['phonetic_b'] ?: null]);
                             $new_id = (int) $pdo->lastInsertId();
                             $stmt = $pdo->prepare("INSERT INTO card_progress (person_id, card_id, status) VALUES (?,?,'queued')");
                             $stmt->execute([$person_id, $new_id]);
@@ -252,8 +253,8 @@ if ($import_stage === 'confirm' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 // Neue Karte importieren
-                $stmt = $pdo->prepare("INSERT INTO cards (list_id, word_a, word_b, desc_a, desc_b) VALUES (?,?,?,?,?)");
-                $stmt->execute([$list_id, $row['word_a'], $row['word_b'], $row['desc_a'] ?: null, $row['desc_b'] ?: null]);
+                $stmt = $pdo->prepare("INSERT INTO cards (list_id, word_a, word_b, desc_a, desc_b, phonetic_b) VALUES (?,?,?,?,?,?)");
+                $stmt->execute([$list_id, $row['word_a'], $row['word_b'], $row['desc_a'] ?: null, $row['desc_b'] ?: null, $row['phonetic_b'] ?: null]);
                 $new_id = (int) $pdo->lastInsertId();
                 $stmt = $pdo->prepare("INSERT INTO card_progress (person_id, card_id, status) VALUES (?,?,'queued')");
                 $stmt->execute([$person_id, $new_id]);
@@ -408,7 +409,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
             <div class="card-header bg-success text-white"><?= count($clean_rows) ?> neue Karte<?= count($clean_rows) !== 1 ? 'n' : '' ?></div>
             <div class="card-body">
                 <table class="table table-sm small mb-0">
-                    <thead><tr><th><?= htmlspecialchars($list['language_a']) ?></th><th><?= htmlspecialchars($list['language_b']) ?></th><th>Beschreibung A</th><th>Beschreibung B</th></tr></thead>
+                    <thead><tr><th><?= htmlspecialchars($list['language_a']) ?></th><th><?= htmlspecialchars($list['language_b']) ?></th><th>Beschreibung A</th><th>Beschreibung B</th><th>Lautschrift</th></tr></thead>
                     <tbody>
                     <?php foreach (array_slice($clean_rows, 0, 20) as $row): ?>
                     <tr>
@@ -416,10 +417,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
                         <td><?= htmlspecialchars($row['word_b']) ?></td>
                         <td><?= htmlspecialchars($row['desc_a']) ?></td>
                         <td><?= htmlspecialchars($row['desc_b']) ?></td>
+                        <td><?= htmlspecialchars($row['phonetic_b']) ?></td>
                     </tr>
                     <?php endforeach; ?>
                     <?php if (count($clean_rows) > 20): ?>
-                    <tr><td colspan="4" class="text-muted">… und <?= count($clean_rows) - 20 ?> weitere</td></tr>
+                    <tr><td colspan="5" class="text-muted">… und <?= count($clean_rows) - 20 ?> weitere</td></tr>
                     <?php endif; ?>
                     </tbody>
                 </table>
@@ -470,9 +472,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
                     <p>Encoding: <strong>UTF-8</strong></p>
                     <p>Die erste Zeile ist die Kopfzeile (Spaltentitel, z.B. Sprachnamen) und wird übersprungen.</p>
                     <p>Felder mit Kommas oder Semikolons müssen in <strong>doppelte Anführungszeichen</strong> gesetzt werden.</p>
-                    <pre class="bg-white border rounded p-2 small"><code>Deutsch;Englisch;Beschreibung Deutsch;Beschreibung Englisch
-Diagnose;diagnosis;medizinisch;"A conclusion"
-Behandlung;treatment;;</code></pre>
+                    <p>5. Spalte <strong>Lautschrift</strong> (nur Sprache B) ist optional — sinnvoll nur bei Listen mit hinterlegtem Aussprache-Sprachcode.</p>
+                    <pre class="bg-white border rounded p-2 small"><code>Deutsch;Englisch;Beschreibung Deutsch;Beschreibung Englisch;Lautschrift
+Diagnose;diagnosis;medizinisch;"A conclusion";dy-ug-NOH-sis
+Behandlung;treatment;;;</code></pre>
                 </div>
             </div>
         </div>

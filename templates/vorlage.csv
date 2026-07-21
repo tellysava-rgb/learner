@@ -1,4 +1,4 @@
-a,b,desc_a,desc_b
-Diagnose,diagnosis,medizinischer Begriff,"A conclusion reached by examination"
-Behandlung,treatment,,
-Symptom,symptom,,
+a,b,desc_a,desc_b,phonetic_b
+Diagnose,diagnosis,medizinischer Begriff,"A conclusion reached by examination",dy-ug-NOH-sis
+Behandlung,treatment,,,
+Symptom,symptom,,,

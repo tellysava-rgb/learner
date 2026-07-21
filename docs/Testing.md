@@ -87,6 +87,17 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Drill-Karte: Lautschrift erscheint unter dem Begriff in Sprache B auf der Kartenrückseite. _(v2.3.0)_
 [ ] Audio: Bei installierter passender Stimme (z.B. en-GB) auf dem Testgerät wird diese verwendet, nicht die Systemstandardstimme. _(v2.3.0)_
 
+### Lautschrift in CSV & MCP _(v2.4.0)_
+
+[ ] CSV-Export: 5. Spalte "Lautschrift" enthält den Wert von `phonetic_b`, leer wenn nicht gesetzt. _(v2.4.0)_
+[ ] CSV-Import: 5-spaltige CSV (mit Lautschrift) wird korrekt importiert, Wert landet in `phonetic_b`. _(v2.4.0)_
+[ ] CSV-Import: alte 4-spaltige CSV (ohne Lautschrift-Spalte) funktioniert weiterhin fehlerfrei, `phonetic_b` bleibt leer. _(v2.4.0)_
+[ ] Import-Review-Ansicht zeigt eine "Lautschrift"-Spalte in der Vorschau neuer Karten. _(v2.4.0)_
+[ ] Downloadbare CSV-Vorlage enthält die neue Spalte inkl. Beispielwert. _(v2.4.0)_
+[ ] MCP `add_cards`: `phonetik_b` wird korrekt in `phonetic_b` gespeichert (verifiziert gegen Dev-DB). _(v2.4.0)_
+[ ] MCP `add_cards`: Feld länger als 200 Zeichen wird mit Fehlermeldung abgelehnt. _(v2.4.0)_
+[ ] MCP-Agent befüllt `phonetik_b` nur bei Listen mit `speech_lang_b`, lässt es bei Listen ohne Sprachcode leer. _(v2.4.0)_
+
 ### Karten bearbeiten _(v0.6.1)_
 
 [ ] Aktionsbuttons zeigen nur Icons (kein Text). _(v0.6.1)_

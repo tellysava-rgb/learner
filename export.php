@@ -21,7 +21,7 @@ if (!$list) {
 }
 
 // Karten laden
-$stmt = $pdo->prepare("SELECT word_a, word_b, desc_a, desc_b FROM cards WHERE list_id = ? ORDER BY created_at");
+$stmt = $pdo->prepare("SELECT word_a, word_b, desc_a, desc_b, phonetic_b FROM cards WHERE list_id = ? ORDER BY created_at");
 $stmt->execute([$list_id]);
 $cards = $stmt->fetchAll();
 
@@ -46,6 +46,7 @@ fputcsv($out, [
     $list['language_b'],
     'Beschreibung ' . $list['language_a'],
     'Beschreibung ' . $list['language_b'],
+    'Lautschrift',
 ], ';', '"', '\\');
 
 foreach ($cards as $card) {
@@ -54,6 +55,7 @@ foreach ($cards as $card) {
         html_entity_decode(strip_tags($card['word_b']), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
         html_entity_decode(strip_tags($card['desc_a'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
         html_entity_decode(strip_tags($card['desc_b'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+        html_entity_decode(strip_tags($card['phonetic_b'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
     ], ';', '"', '\\');
 }
 
