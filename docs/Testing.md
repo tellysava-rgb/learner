@@ -105,6 +105,8 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] MCP `update_card`: leerer `sprache_a_begriff`/`sprache_b_begriff` wird mit Fehlermeldung abgelehnt (verifiziert). _(v2.6.0)_
 [ ] MCP `update_card`: unbekannte `card_id` liefert Fehlermeldung, keine Änderung (verifiziert). _(v2.6.0)_
 [ ] MCP-Agent zeigt vor `update_card`-Aufrufen dem User pro Karte alt → neu und wartet auf Bestätigung, ändert nie ungefragt automatisch.
+[ ] Lautschrift bei `en-GB`/nicht-rhotischen Listen: "r" nach Vokal vor Konsonant/am Wortende fehlt (z.B. "THUN-duh" nicht "THUN-der"), "r" bleibt vor Vokal (z.B. "rayn"). _(v2.6.1)_
+[ ] Lautschrift bei `en-US`/rhotischen Listen: "r" wird normal geschrieben (unverändert). _(v2.6.1)_
 
 ### Direktlink pro Karte _(v2.5.0, überarbeitet v2.5.2, Icon v2.5.3)_
 

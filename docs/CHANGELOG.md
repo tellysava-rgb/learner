@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.6.1] - 2026-07-21
+
+### Behoben
+- Lautschrift-Konvention für nicht-rhotische Dialekte (`en-GB` u.ä.) präzisiert: "r" nach Vokal vor Konsonant/am Wortende wird nicht mehr mitgeschrieben (z.B. "thunder" → "THUN-duh" statt "THUN-der"), "r" bleibt nur vor einem folgenden Vokal (Silbenanfang oder verbindendes R). Betraf bisher generierte Lautschrift, die zu amerikanisch/rhotisch klang. Regel in den MCP-Agent-Anweisungen ergänzt, damit künftig generierte Lautschrift konsistent ist.
+
+---
+
 ## [2.6.0] - 2026-07-21
 
 ### Neu
