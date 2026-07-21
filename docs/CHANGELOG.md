@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.5.3] - 2026-07-21
+
+### Verbessert
+- Direktlink-Button in `edit.php`: Icon von Kette (🔗) auf Auge (👁) geändert, passend zur tatsächlichen Funktion (Karte ansehen statt Link kopieren/teilen).
+
+---
+
 ## [2.5.2] - 2026-07-21
 
 ### Behoben

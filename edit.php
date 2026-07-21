@@ -366,7 +366,7 @@ $filtered_cards = match($filter) {
                         <div class="d-flex justify-content-end gap-1">
                             <a href="edit.php?list_id=<?= $list_id ?>&highlight=<?= $card['id'] ?>&filter=<?= $filter ?>"
                                class="btn btn-sm btn-outline-secondary"
-                               data-bs-toggle="tooltip" title="Karte direkt aufrufen"><i class="bi bi-link-45deg"></i></a>
+                               data-bs-toggle="tooltip" title="Karte ansehen"><i class="bi bi-eye"></i></a>
 
                             <a href="edit.php?list_id=<?= $list_id ?>&edit=<?= $card['id'] ?>&filter=<?= $filter ?>"
                                class="btn btn-sm btn-outline-primary"

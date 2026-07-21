@@ -149,8 +149,8 @@
 ### Bearbeitung im Browser
 - Einzelne Einträge **hinzufügen**, **ändern**, **löschen**
 - Einträge direkt als **archiviert** markieren (erscheinen nicht mehr im Training)
-- Aktionsbuttons pro Karte als **Icon-only** (Bootstrap Icons) mit Tooltip: Direktlink (Kette), Bearbeiten (Stift), Archivieren (Archiv-Box), Reaktivieren (Pfeil zurück), Löschen (Mülleimer)
-- **Direktlink pro Karte** _(v2.5.0, überarbeitet v2.5.2)_: erster Button in der Aktionsleiste, ein normaler Link (`edit.php?list_id=X&highlight=cardID`) — öffnet die Karte **als Lernkarte** in einem Modal (gleiche Flip-Kartenoptik wie Leitner/Drill: Vorderseite Sprache A, Tippen deckt Sprache B inkl. Lautschrift und 🔊-Button auf), nicht nur eine markierte Position in der Tabelle. Funktioniert unabhängig vom aktuell gewählten Filter, da die Karte direkt aus den geladenen Kartendaten der Liste gesucht wird.
+- Aktionsbuttons pro Karte als **Icon-only** (Bootstrap Icons) mit Tooltip: Ansehen (Auge), Bearbeiten (Stift), Archivieren (Archiv-Box), Reaktivieren (Pfeil zurück), Löschen (Mülleimer)
+- **Direktlink pro Karte** _(v2.5.0, überarbeitet v2.5.2, Icon v2.5.3)_: erster Button in der Aktionsleiste (Augen-Symbol, Tooltip "Karte ansehen"), ein normaler Link (`edit.php?list_id=X&highlight=cardID`) — öffnet die Karte **als Lernkarte** in einem Modal (gleiche Flip-Kartenoptik wie Leitner/Drill: Vorderseite Sprache A, Tippen deckt Sprache B inkl. Lautschrift und 🔊-Button auf), nicht nur eine markierte Position in der Tabelle. Funktioniert unabhängig vom aktuell gewählten Filter, da die Karte direkt aus den geladenen Kartendaten der Liste gesucht wird.
 - CSV Import / Export im Header: Icon + Text
 - Container-Breite ohne eigenes `max-width` (analog `home.php`/`lists.php`) _(v2.3.0)_
 - Beschreibungsfelder (A/B) als mehrzeilige `<textarea>` statt einzeiliger Inputs — Beschreibungen können ausführlich sein _(v2.3.0)_
