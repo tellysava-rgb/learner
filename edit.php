@@ -159,8 +159,17 @@ $cards = $stmt->fetchAll();
 // Edit-Formular: welche Karte?
 $edit_card_id = intval($_GET['edit'] ?? 0);
 
-// Direktlink: welche Karte soll hervorgehoben/angesprungen werden?
-$highlight_id = intval($_GET['highlight'] ?? 0);
+// Direktlink: welche Karte soll als Lernkarte angezeigt werden?
+$highlight_id   = intval($_GET['highlight'] ?? 0);
+$highlight_card = null;
+if ($highlight_id) {
+    foreach ($cards as $c) {
+        if ($c['id'] === $highlight_id) {
+            $highlight_card = $c;
+            break;
+        }
+    }
+}
 
 $filtered_cards = match($filter) {
     'active'   => array_filter($cards, fn($c) => $c['status'] === 'active'),
@@ -325,7 +334,7 @@ $filtered_cards = match($filter) {
                     </td>
                 </tr>
                 <?php else: ?>
-                <tr id="card-row-<?= $card['id'] ?>" class="<?= $card['id'] === $highlight_id ? 'table-info' : '' ?>">
+                <tr>
                     <td>
                         <strong><?= htmlspecialchars($card['word_a']) ?></strong>
                         <?php if ($card['desc_a']): ?>
@@ -355,7 +364,7 @@ $filtered_cards = match($filter) {
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-1">
-                            <a href="edit.php?list_id=<?= $list_id ?>&filter=all&highlight=<?= $card['id'] ?>#card-row-<?= $card['id'] ?>"
+                            <a href="edit.php?list_id=<?= $list_id ?>&highlight=<?= $card['id'] ?>&filter=<?= $filter ?>"
                                class="btn btn-sm btn-outline-secondary"
                                data-bs-toggle="tooltip" title="Karte direkt aufrufen"><i class="bi bi-link-45deg"></i></a>
 
@@ -398,6 +407,52 @@ $filtered_cards = match($filter) {
 
 </div>
 
+<?php if ($highlight_card): ?>
+<!-- Direktlink: Karte als Lernkarte anzeigen -->
+<div class="modal fade" id="cardViewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title">Karte ansehen</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+      </div>
+      <div class="modal-body">
+        <div class="learn-card mx-auto" id="view-card" style="max-width:480px; cursor:pointer;" onclick="flipViewCard()">
+          <div class="text-center p-4" style="min-height:220px;">
+            <p class="text-muted small mb-2"><?= htmlspecialchars($list['language_a']) ?></p>
+            <div class="fw-bold fs-3 mb-1"><?= htmlspecialchars($highlight_card['word_a']) ?></div>
+            <?php if ($highlight_card['desc_a']): ?>
+            <p class="text-muted mb-0"><?= htmlspecialchars($highlight_card['desc_a']) ?></p>
+            <?php endif; ?>
+            <div id="view-card-back" style="display:none;">
+              <hr class="my-3">
+              <p class="text-muted small mb-1"><?= htmlspecialchars($list['language_b']) ?></p>
+              <div class="fw-bold fs-4 text-success mb-0">
+                <?= htmlspecialchars($highlight_card['word_b']) ?>
+                <?php if ($list['speech_lang_b']): ?>
+                <button type="button" class="btn btn-sm btn-outline-secondary align-middle ms-1"
+                        onclick="event.stopPropagation(); speakWord(this)"
+                        data-speak="<?= htmlspecialchars($highlight_card['word_b']) ?>" data-lang="<?= htmlspecialchars($list['speech_lang_b']) ?>">
+                    <i class="bi bi-volume-up-fill"></i>
+                </button>
+                <?php endif; ?>
+              </div>
+              <?php if ($highlight_card['phonetic_b']): ?>
+              <p class="text-muted small mb-1">[<?= htmlspecialchars($highlight_card['phonetic_b']) ?>]</p>
+              <?php endif; ?>
+              <?php if ($highlight_card['desc_b']): ?>
+              <p class="text-muted mt-1 mb-0"><?= htmlspecialchars($highlight_card['desc_b']) ?></p>
+              <?php endif; ?>
+            </div>
+            <p class="text-muted small mt-3 mb-0" id="view-tap-hint">Tippen zum Aufdecken</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
+
 <!-- Lösch-Bestätigungsformular -->
 <form method="post" id="delete-form" style="display:none;">
     <?= csrf_field() ?>
@@ -432,13 +487,36 @@ function confirmDelete(id) {
     }
 }
 
-<?php if ($highlight_id): ?>
-(function () {
-    var row = document.getElementById('card-row-<?= $highlight_id ?>');
-    if (!row) return;
-    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    setTimeout(function () { row.classList.remove('table-info'); }, 3000);
-})();
+<?php if ($highlight_card): ?>
+function flipViewCard() {
+    var card = document.getElementById('view-card');
+    card.style.transform = 'scaleX(0)';
+    setTimeout(function () {
+        document.getElementById('view-card-back').style.display = 'block';
+        document.getElementById('view-tap-hint').style.display = 'none';
+        card.style.transform = 'scaleX(1)';
+    }, 150);
+    setTimeout(function () {
+        card.style.cursor = 'default';
+        card.onclick = null;
+    }, 300);
+}
+
+function speakWord(btn) {
+    if (!('speechSynthesis' in window)) return;
+    var text = btn.dataset.speak;
+    var lang = btn.dataset.lang;
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    var voices = window.speechSynthesis.getVoices();
+    var match = voices.find(function (v) { return v.lang === lang; })
+             || voices.find(function (v) { return v.lang.split('-')[0] === lang.split('-')[0]; });
+    if (match) u.voice = match;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+}
+
+new bootstrap.Modal(document.getElementById('cardViewModal')).show();
 <?php endif; ?>
 </script>
 </body>

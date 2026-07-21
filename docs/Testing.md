@@ -98,12 +98,14 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] MCP `add_cards`: Feld länger als 200 Zeichen wird mit Fehlermeldung abgelehnt. _(v2.4.0)_
 [ ] MCP-Agent befüllt `phonetik_b` nur bei Listen mit `speech_lang_b`, lässt es bei Listen ohne Sprachcode leer. _(v2.4.0)_
 
-### Direktlink pro Karte _(v2.5.0, vereinfacht v2.5.1)_
+### Direktlink pro Karte _(v2.5.0, überarbeitet v2.5.2)_
 
 [ ] edit.php: Kettensymbol-Button steht als erstes in der Aktionsleiste, vor "Bearbeiten". _(v2.5.0)_
-[ ] Klick auf Kettensymbol öffnet direkt (kein Kopieren, kein Zwischenschritt) — auch bei aktivem Filter "Archiviert"/"Aktiv"/"Warteschlange" wechselt der Filter automatisch auf "Alle". _(v2.5.1)_
-[ ] Zielkarte wird beim Öffnen automatisch angesprungen und kurz farblich hervorgehoben. _(v2.5.0)_
-[ ] Hervorhebung verschwindet nach ein paar Sekunden von selbst. _(v2.5.0)_
+[ ] Klick auf Kettensymbol öffnet ein Modal mit der Karte als Lernkarte (wie Leitner/Drill), nicht nur eine markierte Tabellenzeile. _(v2.5.2)_
+[ ] Modal-Karte zeigt zuerst Sprache A, Tippen deckt Sprache B auf (Flip-Animation). _(v2.5.2)_
+[ ] Bei Liste mit Aussprache-Code: 🔊-Button und Lautschrift erscheinen auf der aufgedeckten Rückseite. _(v2.5.2)_
+[ ] Direktlink funktioniert unabhängig vom aktuell gewählten Filter (Alle/Aktiv/Warteschlange/Archiviert). _(v2.5.2)_
+[ ] Modal schliessen funktioniert über "X" und Klick ausserhalb. _(v2.5.2)_
 
 ### Karten bearbeiten _(v0.6.1)_
 

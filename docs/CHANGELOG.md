@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.5.2] - 2026-07-21
+
+### Behoben
+- Direktlink pro Karte zeigte nur eine markierte Position in der `edit.php`-Tabelle statt die Karte wie im Lernmodus. Jetzt öffnet der Link ein Modal mit der Karte im gleichen Flip-Kartenstil wie Leitner/Drill (inkl. Lautschrift und 🔊-Button auf der Rückseite).
+
+---
+
 ## [2.5.1] - 2026-07-21
 
 ### Verbessert
