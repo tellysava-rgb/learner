@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.5.1] - 2026-07-21
+
+### Verbessert
+- Direktlink pro Karte: statt Link in die Zwischenablage zu kopieren, ruft ein Klick die Karte jetzt direkt auf (einfacher `<a>`-Link statt Clipboard-API + JS).
+
+---
+
 ## [2.5.0] - 2026-07-21
 
 ### Neu

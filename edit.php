@@ -355,9 +355,9 @@ $filtered_cards = match($filter) {
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-1">
-                            <button type="button" class="btn btn-sm btn-outline-secondary"
-                                    data-bs-toggle="tooltip" title="Direktlink kopieren"
-                                    onclick="copyCardLink(<?= $card['id'] ?>, this)"><i class="bi bi-link-45deg"></i></button>
+                            <a href="edit.php?list_id=<?= $list_id ?>&filter=all&highlight=<?= $card['id'] ?>#card-row-<?= $card['id'] ?>"
+                               class="btn btn-sm btn-outline-secondary"
+                               data-bs-toggle="tooltip" title="Karte direkt aufrufen"><i class="bi bi-link-45deg"></i></a>
 
                             <a href="edit.php?list_id=<?= $list_id ?>&edit=<?= $card['id'] ?>&filter=<?= $filter ?>"
                                class="btn btn-sm btn-outline-primary"
@@ -430,16 +430,6 @@ function confirmDelete(id) {
         document.getElementById('delete-card-id').value = id;
         document.getElementById('delete-form').submit();
     }
-}
-
-function copyCardLink(id, btn) {
-    var url = window.location.origin + window.location.pathname
-        + '?list_id=<?= $list_id ?>&filter=all&highlight=' + id + '#card-row-' + id;
-    navigator.clipboard.writeText(url).then(function () {
-        var icon = btn.querySelector('i');
-        icon.className = 'bi bi-check-lg';
-        setTimeout(function () { icon.className = 'bi bi-link-45deg'; }, 1500);
-    });
 }
 
 <?php if ($highlight_id): ?>
