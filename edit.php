@@ -159,6 +159,9 @@ $cards = $stmt->fetchAll();
 // Edit-Formular: welche Karte?
 $edit_card_id = intval($_GET['edit'] ?? 0);
 
+// Direktlink: welche Karte soll hervorgehoben/angesprungen werden?
+$highlight_id = intval($_GET['highlight'] ?? 0);
+
 $filtered_cards = match($filter) {
     'active'   => array_filter($cards, fn($c) => $c['status'] === 'active'),
     'queued'   => array_filter($cards, fn($c) => $c['status'] === 'queued'),
@@ -322,7 +325,7 @@ $filtered_cards = match($filter) {
                     </td>
                 </tr>
                 <?php else: ?>
-                <tr>
+                <tr id="card-row-<?= $card['id'] ?>" class="<?= $card['id'] === $highlight_id ? 'table-info' : '' ?>">
                     <td>
                         <strong><?= htmlspecialchars($card['word_a']) ?></strong>
                         <?php if ($card['desc_a']): ?>
@@ -352,6 +355,10 @@ $filtered_cards = match($filter) {
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-1">
+                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                    data-bs-toggle="tooltip" title="Direktlink kopieren"
+                                    onclick="copyCardLink(<?= $card['id'] ?>, this)"><i class="bi bi-link-45deg"></i></button>
+
                             <a href="edit.php?list_id=<?= $list_id ?>&edit=<?= $card['id'] ?>&filter=<?= $filter ?>"
                                class="btn btn-sm btn-outline-primary"
                                data-bs-toggle="tooltip" title="Bearbeiten"><i class="bi bi-pencil"></i></a>
@@ -424,6 +431,25 @@ function confirmDelete(id) {
         document.getElementById('delete-form').submit();
     }
 }
+
+function copyCardLink(id, btn) {
+    var url = window.location.origin + window.location.pathname
+        + '?list_id=<?= $list_id ?>&filter=all&highlight=' + id + '#card-row-' + id;
+    navigator.clipboard.writeText(url).then(function () {
+        var icon = btn.querySelector('i');
+        icon.className = 'bi bi-check-lg';
+        setTimeout(function () { icon.className = 'bi bi-link-45deg'; }, 1500);
+    });
+}
+
+<?php if ($highlight_id): ?>
+(function () {
+    var row = document.getElementById('card-row-<?= $highlight_id ?>');
+    if (!row) return;
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(function () { row.classList.remove('table-info'); }, 3000);
+})();
+<?php endif; ?>
 </script>
 </body>
 </html>

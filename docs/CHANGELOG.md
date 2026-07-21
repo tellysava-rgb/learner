@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.5.0] - 2026-07-21
+
+### Neu
+- **Direktlink pro Karte:** Neuer Kettensymbol-Button ganz vorne in der Aktionsleiste jeder Karte (`edit.php`) kopiert eine URL in die Zwischenablage, die direkt zu dieser Karte springt — unabhängig vom aktuell gewählten Filter (wechselt automatisch auf "Alle"), die Zielkarte wird angesprungen und kurz hervorgehoben.
+
+---
+
 ## [2.4.0] - 2026-07-21
 
 ### Neu

@@ -149,7 +149,8 @@
 ### Bearbeitung im Browser
 - Einzelne Einträge **hinzufügen**, **ändern**, **löschen**
 - Einträge direkt als **archiviert** markieren (erscheinen nicht mehr im Training)
-- Aktionsbuttons pro Karte als **Icon-only** (Bootstrap Icons) mit Tooltip: Bearbeiten (Stift), Archivieren (Archiv-Box), Reaktivieren (Pfeil zurück), Löschen (Mülleimer)
+- Aktionsbuttons pro Karte als **Icon-only** (Bootstrap Icons) mit Tooltip: Direktlink (Kette), Bearbeiten (Stift), Archivieren (Archiv-Box), Reaktivieren (Pfeil zurück), Löschen (Mülleimer)
+- **Direktlink pro Karte** _(v2.5.0)_: erster Button in der Aktionsleiste, kopiert eine URL (`edit.php?list_id=X&filter=all&highlight=cardID#card-row-cardID`) in die Zwischenablage. Beim Öffnen dieser URL wird unabhängig vom zuletzt gewählten Filter automatisch auf "Alle" gewechselt, die Zielkarte angesprungen (`scrollIntoView`) und für 3 Sekunden farblich hervorgehoben.
 - CSV Import / Export im Header: Icon + Text
 - Container-Breite ohne eigenes `max-width` (analog `home.php`/`lists.php`) _(v2.3.0)_
 - Beschreibungsfelder (A/B) als mehrzeilige `<textarea>` statt einzeiliger Inputs — Beschreibungen können ausführlich sein _(v2.3.0)_

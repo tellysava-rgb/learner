@@ -98,6 +98,14 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] MCP `add_cards`: Feld länger als 200 Zeichen wird mit Fehlermeldung abgelehnt. _(v2.4.0)_
 [ ] MCP-Agent befüllt `phonetik_b` nur bei Listen mit `speech_lang_b`, lässt es bei Listen ohne Sprachcode leer. _(v2.4.0)_
 
+### Direktlink pro Karte _(v2.5.0)_
+
+[ ] edit.php: Kettensymbol-Button steht als erstes in der Aktionsleiste, vor "Bearbeiten". _(v2.5.0)_
+[ ] Klick auf Kettensymbol kopiert eine URL in die Zwischenablage (Icon wechselt kurz zu ✓). _(v2.5.0)_
+[ ] Kopierte URL geöffnet (auch bei aktivem Filter "Archiviert"/"Aktiv"/"Warteschlange") → Filter wechselt automatisch auf "Alle". _(v2.5.0)_
+[ ] Zielkarte wird beim Öffnen der URL automatisch angesprungen und kurz farblich hervorgehoben. _(v2.5.0)_
+[ ] Hervorhebung verschwindet nach ein paar Sekunden von selbst. _(v2.5.0)_
+
 ### Karten bearbeiten _(v0.6.1)_
 
 [ ] Aktionsbuttons zeigen nur Icons (kein Text). _(v0.6.1)_
