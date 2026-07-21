@@ -451,6 +451,9 @@ if (!$state && !$done_data) {
                 </button>
                 <?php endif; ?>
             </div>
+            <?php if ($card_data['phonetic_b']): ?>
+            <p class="text-muted small mb-1">[<?= htmlspecialchars($card_data['phonetic_b']) ?>]</p>
+            <?php endif; ?>
             <?php if ($card_data['desc_b']): ?>
             <p class="text-muted mt-1 mb-0"><?= htmlspecialchars($card_data['desc_b']) ?></p>
             <?php endif; ?>
@@ -508,8 +511,16 @@ window.addEventListener('pageshow', function (e) {
 
 function speakWord(btn) {
     if (!('speechSynthesis' in window)) return;
-    var u = new SpeechSynthesisUtterance(btn.dataset.speak);
-    u.lang = btn.dataset.lang;
+    var text = btn.dataset.speak;
+    var lang = btn.dataset.lang;
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    // utterance.lang allein wird von manchen Browsern/Geräten ignoriert und fällt auf die
+    // Standardstimme des Systems zurück — passende Stimme explizit suchen und setzen.
+    var voices = window.speechSynthesis.getVoices();
+    var match = voices.find(function (v) { return v.lang === lang; })
+             || voices.find(function (v) { return v.lang.split('-')[0] === lang.split('-')[0]; });
+    if (match) u.voice = match;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);
 }

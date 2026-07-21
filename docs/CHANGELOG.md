@@ -5,6 +5,21 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.3.0] - 2026-07-21
+
+### Neu
+- **Lautschrift pro Karte:** Zusätzlich zur Audio-Wiedergabe kann pro Karte manuell eine Lautschrift (`phonetic_b`) erfasst werden — Eingabefeld erscheint in `edit.php` nur, wenn die Liste einen Aussprache-Sprachcode hat. Anzeige unter dem Begriff in Sprache B, sowohl in der Kartenübersicht als auch auf Leitner- und Drill-Karten.
+
+### Verbessert
+- `lists.php`: Button "Umbenennen" heisst neu "Bearbeiten" (passt besser, da dort auch Sprachen und Aussprache-Code geändert werden).
+- `lists.php`: Eingabefeld für den Aussprache-Sprachcode auf realistische Breite verkleinert.
+- `edit.php`: Container-Breite an home.php/lists.php angeglichen (kein eigenes `max-width` mehr), Beschreibungsfelder A/B sind jetzt mehrzeilige Textareas statt einzeiliger Inputs.
+
+### Behoben
+- Audio-Wiedergabe (🔊-Button): `utterance.lang` allein wurde von manchen Browsern/Geräten ignoriert, wodurch trotz z.B. `en-GB` die Standardstimme des Systems (teils Deutsch) erklang. Passende Stimme wird jetzt explizit über `speechSynthesis.getVoices()` gesucht und gesetzt.
+
+---
+
 ## [2.2.0] - 2026-07-21
 
 ### Neu

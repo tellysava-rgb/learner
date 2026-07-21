@@ -397,6 +397,7 @@ function get_question_answer(array $card, string $direction): array {
             'q_desc' => $card['desc_b'], 'a_desc' => $card['desc_a'],
             'q_lang' => $card['language_b'], 'a_lang' => $card['language_a'],
             'q_audio' => $speech_lang_b ? $card['word_b'] : null, 'a_audio' => null,
+            'q_phonetic' => $card['phonetic_b'] ?? null, 'a_phonetic' => null,
         ];
     }
     return [
@@ -404,6 +405,7 @@ function get_question_answer(array $card, string $direction): array {
         'q_desc' => $card['desc_a'], 'a_desc' => $card['desc_b'],
         'q_lang' => $card['language_a'], 'a_lang' => $card['language_b'],
         'q_audio' => null, 'a_audio' => $speech_lang_b ? $card['word_b'] : null,
+        'q_phonetic' => null, 'a_phonetic' => $card['phonetic_b'] ?? null,
     ];
 }
 
@@ -552,6 +554,9 @@ $is_retry  = isset($state['answered'][$current['id']]);
             </button>
             <?php endif; ?>
         </div>
+        <?php if ($qa['q_phonetic']): ?>
+        <p class="text-muted small mb-1">[<?= htmlspecialchars($qa['q_phonetic']) ?>]</p>
+        <?php endif; ?>
         <?php if ($qa['q_desc']): ?>
         <p class="text-muted mb-0"><?= htmlspecialchars($qa['q_desc']) ?></p>
         <?php endif; ?>
@@ -568,6 +573,9 @@ $is_retry  = isset($state['answered'][$current['id']]);
                 </button>
                 <?php endif; ?>
             </div>
+            <?php if ($qa['a_phonetic']): ?>
+            <p class="text-muted small mb-1">[<?= htmlspecialchars($qa['a_phonetic']) ?>]</p>
+            <?php endif; ?>
             <?php if ($qa['a_desc']): ?>
             <p class="text-muted mt-1 mb-0"><?= htmlspecialchars($qa['a_desc']) ?></p>
             <?php endif; ?>
@@ -736,8 +744,16 @@ window.addEventListener('pageshow', function (e) {
 
 function speakWord(btn) {
     if (!('speechSynthesis' in window)) return;
-    var u = new SpeechSynthesisUtterance(btn.dataset.speak);
-    u.lang = btn.dataset.lang;
+    var text = btn.dataset.speak;
+    var lang = btn.dataset.lang;
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    // utterance.lang allein wird von manchen Browsern/Geräten ignoriert und fällt auf die
+    // Standardstimme des Systems zurück — passende Stimme explizit suchen und setzen.
+    var voices = window.speechSynthesis.getVoices();
+    var match = voices.find(function (v) { return v.lang === lang; })
+             || voices.find(function (v) { return v.lang.split('-')[0] === lang.split('-')[0]; });
+    if (match) u.voice = match;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);
 }

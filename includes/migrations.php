@@ -9,6 +9,7 @@ function run_pending_migrations(PDO $pdo): void {
     $migrations = [
         1 => "ALTER TABLE learning_sessions ADD COLUMN IF NOT EXISTS completed_at DATETIME NULL DEFAULT NULL",
         2 => "ALTER TABLE lists ADD COLUMN IF NOT EXISTS speech_lang_b VARCHAR(10) NULL DEFAULT NULL",
+        3 => "ALTER TABLE cards ADD COLUMN IF NOT EXISTS phonetic_b VARCHAR(200) NULL DEFAULT NULL",
     ];
 
     // db_version aus settings lesen — falls Tabelle noch nicht existiert (vor install.php): abbrechen

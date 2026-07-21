@@ -37,14 +37,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $word_b = trim($_POST['word_b'] ?? '');
         $desc_a = trim($_POST['desc_a'] ?? '');
         $desc_b = trim($_POST['desc_b'] ?? '');
+        $phonetic_b = $list['speech_lang_b'] ? trim($_POST['phonetic_b'] ?? '') : '';
 
         if ($word_a === '' || $word_b === '') {
             $error = 'Beide Sprachfelder sind Pflicht.';
         } else {
             $pdo->beginTransaction();
             try {
-                $stmt = $pdo->prepare("INSERT INTO cards (list_id, word_a, word_b, desc_a, desc_b) VALUES (?, ?, ?, ?, ?)");
-                $stmt->execute([$list_id, $word_a, $word_b, $desc_a ?: null, $desc_b ?: null]);
+                $stmt = $pdo->prepare("INSERT INTO cards (list_id, word_a, word_b, desc_a, desc_b, phonetic_b) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$list_id, $word_a, $word_b, $desc_a ?: null, $desc_b ?: null, $phonetic_b ?: null]);
                 $card_id = (int) $pdo->lastInsertId();
                 $stmt = $pdo->prepare("
                     INSERT INTO card_progress (person_id, card_id, status)
@@ -74,13 +75,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($word_a === '' || $word_b === '') {
             $error = 'Beide Sprachfelder sind Pflicht.';
         } else {
-            $stmt = $pdo->prepare("SELECT id FROM cards WHERE id=? AND list_id=?");
+            $stmt = $pdo->prepare("SELECT id, phonetic_b FROM cards WHERE id=? AND list_id=?");
             $stmt->execute([$card_id, $list_id]);
-            if (!$stmt->fetch()) {
+            $existing_card = $stmt->fetch();
+            if (!$existing_card) {
                 $error = 'Karte nicht gefunden.';
             } else {
-                $stmt = $pdo->prepare("UPDATE cards SET word_a=?, word_b=?, desc_a=?, desc_b=? WHERE id=? AND list_id=?");
-                $stmt->execute([$word_a, $word_b, $desc_a ?: null, $desc_b ?: null, $card_id, $list_id]);
+                // Lautschrift-Feld ist nur editierbar wenn die Liste einen Aussprache-Code hat —
+                // ansonsten bestehenden Wert unverändert lassen (nicht versehentlich löschen)
+                $phonetic_b = $list['speech_lang_b'] ? trim($_POST['phonetic_b'] ?? '') : ($existing_card['phonetic_b'] ?? '');
+
+                $stmt = $pdo->prepare("UPDATE cards SET word_a=?, word_b=?, desc_a=?, desc_b=?, phonetic_b=? WHERE id=? AND list_id=?");
+                $stmt->execute([$word_a, $word_b, $desc_a ?: null, $desc_b ?: null, $phonetic_b ?: null, $card_id, $list_id]);
                 $_SESSION['flash_success'] = 'Karte gespeichert.';
                 header("Location: edit.php?list_id={$list_id}&filter={$filter}");
                 exit;
@@ -139,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Karten laden mit Fortschritt dieser Person
 $stmt = $pdo->prepare("
-    SELECT c.id, c.word_a, c.word_b, c.desc_a, c.desc_b,
+    SELECT c.id, c.word_a, c.word_b, c.desc_a, c.desc_b, c.phonetic_b,
            COALESCE(cp.status, 'queued') AS status,
            cp.leitner_box, cp.drill_mastery
     FROM cards c
@@ -190,7 +196,7 @@ $filtered_cards = match($filter) {
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Meine Listen', 'lists.php'], [$list['name'], '']]) ?></div>
 
-<div class="container mt-2" style="max-width:960px;">
+<div class="container mt-2">
 
     <div class="d-flex align-items-center gap-3 mb-1">
         <h1 class="h4 mb-0"><?= htmlspecialchars($list['name']) ?></h1>
@@ -212,26 +218,32 @@ $filtered_cards = match($filter) {
     <div class="card mb-4">
         <div class="card-header">Neue Karte hinzufügen</div>
         <div class="card-body">
-            <form method="post" class="row g-2">
+            <form method="post" class="row g-2 align-items-start">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="add">
                 <input type="hidden" name="list_id" value="<?= $list_id ?>">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <input type="text" name="word_a" class="form-control form-control-sm"
                            placeholder="<?= htmlspecialchars($list['language_a']) ?> *" required maxlength="500">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <input type="text" name="word_b" class="form-control form-control-sm"
                            placeholder="<?= htmlspecialchars($list['language_b']) ?> *" required maxlength="500">
                 </div>
                 <div class="col-md-3">
-                    <input type="text" name="desc_a" class="form-control form-control-sm"
-                           placeholder="Beschreibung <?= htmlspecialchars($list['language_a']) ?>" maxlength="1000">
+                    <textarea name="desc_a" class="form-control form-control-sm" rows="2"
+                              placeholder="Beschreibung <?= htmlspecialchars($list['language_a']) ?>" maxlength="1000"></textarea>
                 </div>
-                <div class="col-md-2">
-                    <input type="text" name="desc_b" class="form-control form-control-sm"
-                           placeholder="Beschreibung <?= htmlspecialchars($list['language_b']) ?>" maxlength="1000">
+                <div class="col-md-3">
+                    <textarea name="desc_b" class="form-control form-control-sm" rows="2"
+                              placeholder="Beschreibung <?= htmlspecialchars($list['language_b']) ?>" maxlength="1000"></textarea>
                 </div>
+                <?php if ($list['speech_lang_b']): ?>
+                <div class="col-md-1">
+                    <input type="text" name="phonetic_b" class="form-control form-control-sm"
+                           placeholder="Lautschrift" maxlength="200">
+                </div>
+                <?php endif; ?>
                 <div class="col-md-1">
                     <button type="submit" class="btn btn-sm btn-primary w-100">+</button>
                 </div>
@@ -273,7 +285,7 @@ $filtered_cards = match($filter) {
                 <?php if ($edit_card_id === $card['id']): ?>
                 <tr class="table-warning">
                     <td colspan="4">
-                        <form method="post" class="row g-2 py-1 align-items-center">
+                        <form method="post" class="row g-2 py-1 align-items-start">
                             <?= csrf_field() ?>
                             <input type="hidden" name="action" value="update">
                             <input type="hidden" name="list_id" value="<?= $list_id ?>">
@@ -287,13 +299,19 @@ $filtered_cards = match($filter) {
                                        value="<?= htmlspecialchars($card['word_b']) ?>" required>
                             </div>
                             <div class="col">
-                                <input type="text" name="desc_a" class="form-control form-control-sm"
-                                       value="<?= htmlspecialchars($card['desc_a'] ?? '') ?>" placeholder="Beschreibung A">
+                                <textarea name="desc_a" class="form-control form-control-sm" rows="2"
+                                          placeholder="Beschreibung A"><?= htmlspecialchars($card['desc_a'] ?? '') ?></textarea>
                             </div>
                             <div class="col">
-                                <input type="text" name="desc_b" class="form-control form-control-sm"
-                                       value="<?= htmlspecialchars($card['desc_b'] ?? '') ?>" placeholder="Beschreibung B">
+                                <textarea name="desc_b" class="form-control form-control-sm" rows="2"
+                                          placeholder="Beschreibung B"><?= htmlspecialchars($card['desc_b'] ?? '') ?></textarea>
                             </div>
+                            <?php if ($list['speech_lang_b']): ?>
+                            <div class="col">
+                                <input type="text" name="phonetic_b" class="form-control form-control-sm"
+                                       value="<?= htmlspecialchars($card['phonetic_b'] ?? '') ?>" placeholder="Lautschrift">
+                            </div>
+                            <?php endif; ?>
                             <div class="col-auto d-flex gap-1">
                                 <button type="submit" class="btn btn-sm btn-success"
                                         data-bs-toggle="tooltip" title="Speichern"><i class="bi bi-check-lg"></i></button>
@@ -313,6 +331,9 @@ $filtered_cards = match($filter) {
                     </td>
                     <td>
                         <?= htmlspecialchars($card['word_b']) ?>
+                        <?php if ($card['phonetic_b']): ?>
+                        <span class="text-muted small">[<?= htmlspecialchars($card['phonetic_b']) ?>]</span>
+                        <?php endif; ?>
                         <?php if ($card['desc_b']): ?>
                         <br><span class="text-muted"><?= htmlspecialchars($card['desc_b']) ?></span>
                         <?php endif; ?>

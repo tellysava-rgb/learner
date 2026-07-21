@@ -215,10 +215,10 @@ if ($edit_id) {
                         <label class="form-check-label" for="create_public">Öffentlich</label>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-3">
                     <label class="form-label">Aussprache-Sprachcode (Sprache B)</label>
                     <input type="text" name="speech_lang_b" class="form-control" list="speech-lang-options" maxlength="10" placeholder="z.B. en-US">
-                    <div class="form-text">BCP-47-Format, z.B. <code>en-US</code>, <code>fr-FR</code>, <code>de-CH</code>. Optional — aktiviert den 🔊-Button beim Lernen.</div>
+                    <div class="form-text">BCP-47, z.B. <code>en-US</code>. Optional — aktiviert den 🔊-Button beim Lernen.</div>
                 </div>
                 <div class="col-12">
                     <button type="submit" class="btn btn-primary">Liste erstellen</button>
@@ -270,9 +270,9 @@ if ($edit_id) {
                         <label class="form-check-label small" for="pub_<?= $list['id'] ?>">Öffentlich</label>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-2">
                     <input type="text" name="speech_lang_b" class="form-control form-control-sm"
-                           list="speech-lang-options" maxlength="10" placeholder="Aussprache-Code, z.B. en-US"
+                           list="speech-lang-options" maxlength="10" placeholder="z.B. en-US"
                            value="<?= htmlspecialchars($list['speech_lang_b'] ?? '') ?>">
                 </div>
                 <div class="col-md-4 d-flex gap-2">
@@ -304,7 +304,7 @@ if ($edit_id) {
                     <a href="edit.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-primary">Karten</a>
                     <a href="import.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary">Import</a>
                     <a href="export.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary">Export</a>
-                    <a href="lists.php?edit=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary">Umbenennen</a>
+                    <a href="lists.php?edit=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary">Bearbeiten</a>
                     <?php if (count($lists) > 1): ?>
                     <button type="button" class="btn btn-sm btn-outline-secondary"
                             data-bs-toggle="modal" data-bs-target="#migrateModal<?= $list['id'] ?>">

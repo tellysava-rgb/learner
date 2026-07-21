@@ -73,7 +73,7 @@
 - **Privat-Flag** pro Liste — private Listen sind für andere Personen nicht sichtbar
 
 ### Liste migrieren _(v2.1.0)_
-- Auf **Meine Listen** steht pro Liste ein Button **"Migrieren"** zwischen "Umbenennen" und "Löschen" — ausgeblendet wenn keine weitere eigene Liste existiert
+- Auf **Meine Listen** steht pro Liste ein Button **"Migrieren"** zwischen "Bearbeiten" und "Löschen" — ausgeblendet wenn keine weitere eigene Liste existiert
 - Öffnet ein Auswahlfenster: Zielliste wählen (nur eigene Listen, die Quellliste selbst ist ausgeschlossen)
 - Alle Karten der Quellliste werden per `list_id`-Änderung in die Zielliste verschoben — der komplette Lernfortschritt pro Karte (`card_progress`: Leitner-Fach, `next_due_date`, Drill-Mastery, `drill_too_hard`) bleibt erhalten, da er an `card_id` hängt, nicht an `list_id`
 - **Sprachpaar-Mismatch:** Unterscheiden sich die Sprachpaare von Quelle und Ziel (z.B. Deutsch→Englisch vs. Deutsch→Französisch), erscheint eine Warnung die der User bestätigen muss, bevor migriert wird
@@ -95,14 +95,14 @@
 ### Aussprache (Audio) _(v2.2.0)_
 - Pro Liste kann ein **Sprachcode für die Aussprache** hinterlegt werden — ausschliesslich für **Sprache B** (die Fremdsprache), nicht für Sprache A
 - Format: **BCP-47** (Sprache-Region, z.B. `en-GB`, `de-CH`, `fr-FR`) — reine Sprachcodes ohne Region (z.B. `en`) sind nicht zulässig
-- Eingabe im "Liste erstellen"/"Umbenennen"-Formular: Textfeld mit Autovervollständigung (HTML `<datalist>`) — Vorschläge aus einer kuratierten Liste gängiger Codes **plus** allen bereits in anderen Listen verwendeten Codes; eigene Werte sind trotzdem frei eintippbar
+- Eingabe im "Liste erstellen"/"Bearbeiten"-Formular: Textfeld mit Autovervollständigung (HTML `<datalist>`) — Vorschläge aus einer kuratierten Liste gängiger Codes **plus** allen bereits in anderen Listen verwendeten Codes; eigene Werte sind trotzdem frei eintippbar
 - **Validierung beim Speichern:** Sprachteil gegen ISO-639-1, Regionsteil gegen ISO-3166-1 geprüft (z.B. `en-UK` wird abgelehnt, da "UK" kein gültiger ISO-3166-1-Code ist — korrekt ist `en-GB`). Gross-/Kleinschreibung wird automatisch normalisiert (z.B. `EN-gb` → `en-GB`)
 - Keine serverseitige Prüfung ob die Kombination Sprache+Region "sinnvoll" ist (z.B. `ja-DE` wäre technisch gültig, aber unüblich) — reine Formatprüfung
 - **Wiedergabe:** Auf Leitner- und Drill-Karten erscheint ein 🔊-Button überall dort, wo der Begriff in Sprache B angezeigt wird (Frage- oder Antwortseite, je nach Lernrichtung) — nutzt die browsereigene **Web Speech API** (`speechSynthesis`), liest den vorhandenen Kartentext (Sprache B) mit dem hinterlegten Code vor
 - Button erscheint **nur**, wenn die Liste einen Aussprache-Code hinterlegt hat — sonst kein Button
-- Kein separates Lautschrift-/Phonetik-Feld pro Karte — die Audio-Wiedergabe deckt diesen Bedarf ab
-- Bestehende Listen ohne Code: Button bleibt einfach aus, bis der Besitzer den Code einmalig über "Umbenennen" nachträgt
+- Bestehende Listen ohne Code: Button bleibt einfach aus, bis der Besitzer den Code einmalig über "Bearbeiten" nachträgt
 - Beim Kopieren einer öffentlichen Liste ("Entdecken") wird der Aussprache-Code der Quellliste automatisch mitkopiert
+- Zusätzlich zur Audio-Wiedergabe: manuell erfassbares **Lautschrift-Feld pro Karte** (`phonetic_b`) — siehe Abschnitt "Lautschrift pro Karte" weiter unten
 
 ### Öffentliche Listen entdecken
 - Startseite zeigt zwei Bereiche:
@@ -123,6 +123,14 @@
 | Sprache B | ✅ |
 | Beschreibung A | optional |
 | Beschreibung B | optional |
+| Lautschrift (Sprache B) | optional |
+
+### Lautschrift pro Karte _(v2.3.0)_
+- Zusätzliches Feld `phonetic_b` pro Karte — manuell erfasste Lautschrift für den Begriff in **Sprache B**
+- Eingabefeld erscheint beim Hinzufügen/Bearbeiten einer Karte (`edit.php`) **nur**, wenn die Liste einen Aussprache-Sprachcode (`speech_lang_b`) hinterlegt hat — bei Listen ohne Sprachzuordnung (z.B. Mathe-Listen) gibt es kein Lautschrift-Feld
+- Anzeige: in der Kartenübersicht (`edit.php`) unter dem Begriff in Sprache B, sowie auf Leitner- und Drill-Karten unter dem Begriff in Sprache B (zusammen mit dem 🔊-Button)
+- Ergänzt die Audio-Wiedergabe, ersetzt sie nicht — beide Mechanismen sind unabhängig nutzbar
+- Kein CSV-Import/-Export, keine MCP-Unterstützung in dieser Version — Erfassung ausschliesslich manuell im Browser
 
 ### Sprachen
 - Frei definierbar pro Liste (z.B. Deutsch/Englisch, Deutsch/Japanisch)
@@ -142,6 +150,8 @@
 - Einträge direkt als **archiviert** markieren (erscheinen nicht mehr im Training)
 - Aktionsbuttons pro Karte als **Icon-only** (Bootstrap Icons) mit Tooltip: Bearbeiten (Stift), Archivieren (Archiv-Box), Reaktivieren (Pfeil zurück), Löschen (Mülleimer)
 - CSV Import / Export im Header: Icon + Text
+- Container-Breite ohne eigenes `max-width` (analog `home.php`/`lists.php`) _(v2.3.0)_
+- Beschreibungsfelder (A/B) als mehrzeilige `<textarea>` statt einzeiliger Inputs — Beschreibungen können ausführlich sein _(v2.3.0)_
 
 ### Duplikat-Prüfung beim Import
 - Gilt **nur beim CSV-Import** — nicht beim Kopieren einer öffentlichen Liste

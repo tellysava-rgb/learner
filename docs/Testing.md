@@ -46,7 +46,7 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 
 [ ] lists.php: Container-Breite ist identisch mit home.php (kein schmalerer Inhalt mehr). _(v2.1.0)_
 [ ] lists.php: bei genau einer eigenen Liste ist kein "Migrieren"-Button sichtbar. _(v2.1.0)_
-[ ] Liste migrieren: Button "Migrieren" steht zwischen "Umbenennen" und "Löschen". _(v2.1.0)_
+[ ] Liste migrieren: Button "Migrieren" steht zwischen "Bearbeiten" und "Löschen". _(v2.3.0)_
 [ ] Liste migrieren: Auswahlfenster zeigt alle eigenen Listen ausser der Quellliste selbst als Ziel. _(v2.1.0)_
 [ ] Liste migrieren: nach Migration sind alle Karten in der Zielliste, Quellliste ist leer (0 Karten). _(v2.1.0)_
 [ ] Liste migrieren: Lernfortschritt (Leitner-Fach, next_due_date, Drill-Mastery) einer migrierten Karte bleibt exakt erhalten. _(v2.1.0)_
@@ -69,6 +69,23 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Klick auf 🔊-Button spielt den Begriff ab und löst NICHT das Umdrehen der Karte aus. _(v2.2.0)_
 [ ] "Entdecken" → Liste kopieren: Aussprache-Code der Originalliste wird in die Kopie übernommen. _(v2.2.0)_
 [ ] MCP `list_lists`: Antwort enthält `speech_lang_b` je Liste. _(v2.2.0)_
+
+### Listen verwalten — Feinschliff _(v2.3.0)_
+
+[ ] lists.php: Button heisst "Bearbeiten" statt "Umbenennen" (Formular/Verhalten unverändert). _(v2.3.0)_
+[ ] lists.php: Eingabefeld für Aussprache-Sprachcode ist deutlich schmaler als vorher (ca. halbe Breite). _(v2.3.0)_
+
+### Lautschrift pro Karte _(v2.3.0)_
+
+[ ] edit.php: Container-Breite identisch mit home.php/lists.php (kein schmalerer Inhalt mehr). _(v2.3.0)_
+[ ] edit.php: Beschreibung A/B sind mehrzeilige Textfelder (Textarea) statt einzeiliger Inputs, sowohl im "Neue Karte"-Formular als auch im Inline-Bearbeiten. _(v2.3.0)_
+[ ] edit.php: Bei einer Liste mit Aussprache-Code erscheint ein Eingabefeld "Lautschrift" (Neue Karte + Bearbeiten). _(v2.3.0)_
+[ ] edit.php: Bei einer Liste ohne Aussprache-Code (z.B. Mathe-Liste) erscheint kein Lautschrift-Feld. _(v2.3.0)_
+[ ] edit.php: Erfasste Lautschrift wird in der Kartenübersicht unter dem Begriff in Sprache B angezeigt (in eckigen Klammern). _(v2.3.0)_
+[ ] Wird der Aussprache-Code einer Liste nachträglich entfernt, bleibt eine zuvor erfasste Lautschrift beim Speichern einer Karte erhalten (wird nicht stillschweigend gelöscht). _(v2.3.0)_
+[ ] Leitner-Karte: Lautschrift erscheint unter dem Begriff in Sprache B, auf der jeweils richtigen Seite je nach Lernrichtung. _(v2.3.0)_
+[ ] Drill-Karte: Lautschrift erscheint unter dem Begriff in Sprache B auf der Kartenrückseite. _(v2.3.0)_
+[ ] Audio: Bei installierter passender Stimme (z.B. en-GB) auf dem Testgerät wird diese verwendet, nicht die Systemstandardstimme. _(v2.3.0)_
 
 ### Karten bearbeiten _(v0.6.1)_
 
