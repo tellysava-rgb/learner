@@ -348,9 +348,13 @@ if ($person_id) {
                         </p>
                         <?php if ($queued_counts[$list['id']] > 0): ?>
                         <p class="small text-info mb-1">⏳ <?= $queued_counts[$list['id']] ?> in Warteschlange</p>
+                        <?php else: ?>
+                        <p class="small text-muted mb-1">⏳ Keine in Warteschlange</p>
                         <?php endif; ?>
                         <?php if ($due_today_counts[$list['id']] > 0): ?>
                         <p class="small text-primary mb-2">📚 <?= $due_today_counts[$list['id']] ?> heute fällig</p>
+                        <?php else: ?>
+                        <p class="small text-success mb-2">✅ Keine heute fällig</p>
                         <?php endif; ?>
                     </div>
                     <div class="card-footer bg-transparent border-0 pb-3">

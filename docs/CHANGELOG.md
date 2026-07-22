@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.7.2] - 2026-07-22
+
+### Verbessert
+- Startseite: "⏳ in Warteschlange" und "📚 heute fällig" wurden bisher ganz ausgeblendet wenn 0 — jetzt immer sichtbar ("Keine in Warteschlange" / "Keine heute fällig"), mit ✅ statt 📚 als positive Rückmeldung sobald für eine Liste heute nichts mehr ansteht.
+
+---
+
 ## [2.7.1] - 2026-07-22
 
 ### Behoben

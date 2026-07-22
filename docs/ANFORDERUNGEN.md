@@ -58,7 +58,8 @@
   - **Drill:** startet sofort (keine Zwischenauswahl nötig — Liste bereits gewählt)
   - **Leitner:** kurze Konfigurationsseite (Richtung, Kartenanzahl) vor dem Start
 - Navigation zur Startseite jederzeit über die Breadcrumb-Navigation möglich
-- Pro Liste zusätzlich zur Warteschlangen-Anzahl (⏳) eine Anzeige **"📚 N heute fällig"** _(v2.7.0)_ — Anzahl aktiver Leitner-Karten mit `next_due_date <= heute`, nur sichtbar wenn > 0
+- Pro Liste zusätzlich zur Warteschlangen-Anzahl (⏳) eine Anzeige **"📚 N heute fällig"** _(v2.7.0)_ — Anzahl aktiver Leitner-Karten mit `next_due_date <= heute`
+- Beide Zeilen sind **immer sichtbar**, auch bei 0 _(v2.7.2)_: "⏳ Keine in Warteschlange" bzw. "✅ Keine heute fällig" (Häkchen-Icon statt 📚, sobald für heute nichts mehr ansteht — bewusste positive Rückmeldung statt einfach nichts anzuzeigen)
 - Pro Liste zwei Icon-Buttons oben rechts neben dem Namen _(v2.7.0)_: Bearbeiten (Stift, führt zu `edit.php`) und Statistik (Balkendiagramm, führt direkt zu `stats.php?list_id=X` — die exakte Statistik dieser Liste, nicht die allgemeine Übersicht). Leitner/Drill bleiben als grosse Buttons im Footer.
 
 ---

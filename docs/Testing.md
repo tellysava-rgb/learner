@@ -40,7 +40,8 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 ### Startseite: Fälligkeits-Info & Icon-Buttons _(v2.7.0)_
 
 [ ] Liste mit heute fälligen Leitner-Karten zeigt "📚 N heute fällig" unterhalb von "⏳ N in Warteschlange". _(v2.7.0)_
-[ ] Liste ohne heute fällige Karten zeigt diese Zeile nicht. _(v2.7.0)_
+[ ] Liste ohne Warteschlange zeigt "⏳ Keine in Warteschlange" (nicht ausgeblendet). _(v2.7.2)_
+[ ] Liste ohne heute fällige Karten zeigt "✅ Keine heute fällig" mit Häkchen-Icon statt 📚 (nicht ausgeblendet). _(v2.7.2)_
 [ ] Anzeige zählt nur aktive Karten mit `next_due_date` heute oder in der Vergangenheit, nicht die gesamte Kartenzahl. _(v2.7.0)_
 [ ] Icon-Buttons "Bearbeiten" (Stift) und "Statistik" (Balkendiagramm) erscheinen oben rechts neben dem Listennamen. _(v2.7.0)_
 [ ] Klick auf Statistik-Icon führt direkt zu `stats.php?list_id=X` mit dieser Liste vorausgewählt, nicht zur allgemeinen Übersicht. _(v2.7.0)_
