@@ -391,7 +391,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                             <div class="text-muted small mb-1">Installiert</div>
                             <span class="badge bg-secondary fs-6">v<?= htmlspecialchars(APP_VERSION) ?></span>
                         </div>
-                        <div class="text-muted fs-5">→</div>
+                        <div class="text-muted fs-5">←</div>
                         <div class="text-center">
                             <div class="text-muted small mb-1">GitHub (main)</div>
                             <?php if ($github_version !== null): ?>

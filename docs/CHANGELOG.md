@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.7.1] - 2026-07-22
+
+### Behoben
+- Einstellungen: Pfeil im Versions-Vergleich zeigte von "Installiert" zu "GitHub", obwohl die neuere Version ja von GitHub zur Installation fliesst — Richtung gedreht (← statt →).
+
+---
+
 ## [2.7.0] - 2026-07-22
 
 ### Neu
