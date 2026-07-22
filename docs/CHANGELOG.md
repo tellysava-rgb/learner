@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.7.0] - 2026-07-22
+
+### Neu
+- **Startseite:** Pro Liste wird zusätzlich zur Warteschlangen-Anzahl jetzt angezeigt, wie viele Leitner-Karten heute fällig sind ("📚 N heute fällig"). Ausserdem stehen oben rechts neben dem Listennamen zwei neue Icon-Buttons: "Bearbeiten" (Stift) und "Statistik" (führt direkt zur Statistik dieser einen Liste, nicht zur Übersicht). Der bisherige "Bearbeiten"-Textbutton im Footer entfällt dadurch.
+
+---
+
 ## [2.6.2] - 2026-07-22
 
 ### Behoben

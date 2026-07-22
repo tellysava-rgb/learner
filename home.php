@@ -83,8 +83,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $persons = $pdo->query("SELECT id, name FROM persons ORDER BY name")->fetchAll();
 
 // Wenn Person eingeloggt: eigene Listen laden
-$own_lists       = [];
-$queued_counts   = [];
+$own_lists        = [];
+$queued_counts    = [];
+$due_today_counts = [];
 
 if ($person_id) {
     $stmt = $pdo->prepare("
@@ -99,15 +100,20 @@ if ($person_id) {
     $stmt->execute([$person_id]);
     $own_lists = $stmt->fetchAll();
 
-    // Warteschlangen-Anzahl pro Liste
+    // Warteschlangen-Anzahl und heute fällige Karten (Leitner) pro Liste
     foreach ($own_lists as $list) {
         $stmt = $pdo->prepare("
-            SELECT COUNT(*) FROM card_progress cp
+            SELECT
+                SUM(CASE WHEN cp.status = 'queued' THEN 1 ELSE 0 END) AS queued,
+                SUM(CASE WHEN cp.status = 'active' AND cp.next_due_date <= ? THEN 1 ELSE 0 END) AS due_today
+            FROM card_progress cp
             JOIN cards c ON c.id = cp.card_id
-            WHERE cp.person_id = ? AND c.list_id = ? AND cp.status = 'queued'
+            WHERE cp.person_id = ? AND c.list_id = ?
         ");
-        $stmt->execute([$person_id, $list['id']]);
-        $queued_counts[$list['id']] = (int) $stmt->fetchColumn();
+        $stmt->execute([today(), $person_id, $list['id']]);
+        $row = $stmt->fetch();
+        $queued_counts[$list['id']]    = (int) ($row['queued'] ?? 0);
+        $due_today_counts[$list['id']] = (int) ($row['due_today'] ?? 0);
     }
 
 }
@@ -210,6 +216,7 @@ if ($person_id) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= APP_NAME ?> — Startseite</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -318,12 +325,20 @@ if ($person_id) {
             <div class="col">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
-                        <h5 class="card-title h6">
-                            <?= htmlspecialchars($list['name']) ?>
-                            <?php if (!$list['is_public']): ?>
-                            <span class="badge bg-secondary ms-1 small">privat</span>
-                            <?php endif; ?>
-                        </h5>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h5 class="card-title h6 mb-2">
+                                <?= htmlspecialchars($list['name']) ?>
+                                <?php if (!$list['is_public']): ?>
+                                <span class="badge bg-secondary ms-1 small">privat</span>
+                                <?php endif; ?>
+                            </h5>
+                            <div class="d-flex gap-1 flex-shrink-0 ms-2">
+                                <a href="edit.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary"
+                                   data-bs-toggle="tooltip" title="Bearbeiten"><i class="bi bi-pencil"></i></a>
+                                <a href="stats.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary"
+                                   data-bs-toggle="tooltip" title="Statistik"><i class="bi bi-bar-chart-line"></i></a>
+                            </div>
+                        </div>
                         <?php if ($list['description']): ?>
                         <p class="card-text text-muted small"><?= htmlspecialchars($list['description']) ?></p>
                         <?php endif; ?>
@@ -332,14 +347,16 @@ if ($person_id) {
                             &nbsp;·&nbsp; <?= $list['card_count'] ?> Karte<?= $list['card_count'] != 1 ? 'n' : '' ?>
                         </p>
                         <?php if ($queued_counts[$list['id']] > 0): ?>
-                        <p class="small text-info mb-2">⏳ <?= $queued_counts[$list['id']] ?> in Warteschlange</p>
+                        <p class="small text-info mb-1">⏳ <?= $queued_counts[$list['id']] ?> in Warteschlange</p>
+                        <?php endif; ?>
+                        <?php if ($due_today_counts[$list['id']] > 0): ?>
+                        <p class="small text-primary mb-2">📚 <?= $due_today_counts[$list['id']] ?> heute fällig</p>
                         <?php endif; ?>
                     </div>
                     <div class="card-footer bg-transparent border-0 pb-3">
                         <div class="d-flex flex-wrap gap-2">
                             <a href="learn.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-primary">Leitner</a>
                             <a href="drill.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-primary">Drill</a>
-                            <a href="edit.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary">Bearbeiten</a>
                         </div>
                     </div>
                 </div>
@@ -386,5 +403,10 @@ if ($person_id) {
 </div><!-- /container -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
+    new bootstrap.Tooltip(el, { trigger: 'hover' });
+});
+</script>
 </body>
 </html>
