@@ -5,6 +5,16 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.6.2] - 2026-07-22
+
+### Behoben
+- `edit.php`: Klick auf "Bearbeiten" oder "Abbrechen" bei einem Eintrag weiter unten in der Liste liess die Seite an den Anfang springen — Scroll-Position bleibt jetzt erhalten (nutzt denselben Mechanismus wie bereits bei Speichern/Löschen).
+
+### Verbessert
+- `drill.php`: Veraltete Prüfung auf ein altes `$_SESSION['drill']`-Format entfernt — nicht mehr relevant, da immer nur eine einzige aktuelle Version im Einsatz ist.
+
+---
+
 ## [2.6.1] - 2026-07-21
 
 ### Behoben

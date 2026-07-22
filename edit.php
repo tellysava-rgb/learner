@@ -328,6 +328,7 @@ $filtered_cards = match($filter) {
                                 <button type="submit" class="btn btn-sm btn-success"
                                         data-bs-toggle="tooltip" title="Speichern"><i class="bi bi-check-lg"></i></button>
                                 <a href="edit.php?list_id=<?= $list_id ?>&filter=<?= $filter ?>" class="btn btn-sm btn-outline-secondary"
+                                   onclick="sessionStorage.setItem('edit_scroll_<?= $list_id ?>', window.scrollY)"
                                    data-bs-toggle="tooltip" title="Abbrechen"><i class="bi bi-x-lg"></i></button>
                             </div>
                         </form>
@@ -370,6 +371,7 @@ $filtered_cards = match($filter) {
 
                             <a href="edit.php?list_id=<?= $list_id ?>&edit=<?= $card['id'] ?>&filter=<?= $filter ?>"
                                class="btn btn-sm btn-outline-primary"
+                               onclick="sessionStorage.setItem('edit_scroll_<?= $list_id ?>', window.scrollY)"
                                data-bs-toggle="tooltip" title="Bearbeiten"><i class="bi bi-pencil"></i></a>
 
                             <?php if ($card['status'] !== 'archived'): ?>

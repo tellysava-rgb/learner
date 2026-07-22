@@ -117,6 +117,11 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Direktlink funktioniert unabhängig vom aktuell gewählten Filter (Alle/Aktiv/Warteschlange/Archiviert). _(v2.5.2)_
 [ ] Modal schliessen funktioniert über "X" und Klick ausserhalb. _(v2.5.2)_
 
+### Scroll-Position beim Bearbeiten _(v2.6.2)_
+
+[ ] edit.php: Klick auf "Bearbeiten" bei einem Eintrag weiter unten in der Liste → Seite bleibt an dieser Position, kein Sprung nach oben. _(v2.6.2)_
+[ ] edit.php: Klick auf "Abbrechen" im Inline-Bearbeiten-Formular → Seite bleibt ebenfalls an der Position, kein Sprung nach oben. _(v2.6.2)_
+
 ### Karten bearbeiten _(v0.6.1)_
 
 [ ] Aktionsbuttons zeigen nur Icons (kein Text). _(v0.6.1)_

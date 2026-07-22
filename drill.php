@@ -298,11 +298,6 @@ function finish_drill_session(PDO $pdo, array &$state, int $person_id): void {
     unset($_SESSION['drill']);
 }
 
-// Veralteten Session-State (anderes Format) verwerfen
-if (isset($_SESSION['drill']) && !array_key_exists('current_card_id', $_SESSION['drill'])) {
-    unset($_SESSION['drill']);
-}
-
 // -------------------------------------------------------
 // Anzeige-State
 // -------------------------------------------------------
