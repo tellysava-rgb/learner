@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.7.3] - 2026-07-22
+
+### Behoben
+- `deploy.php`: derselbe falsch gerichtete Pfeil im Versions-Vergleich wie zuvor in den Einstellungen (v2.7.1) — ebenfalls auf ← gedreht.
+
+---
+
 ## [2.7.2] - 2026-07-22
 
 ### Verbessert
