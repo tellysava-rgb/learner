@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (($_POST['action'] ?? '') === 'save_settings') {
         $int_fields = [
-            'session_timeout_min'  => ['min' => 1,  'max' => 480, 'label' => 'Session-Timeout'],
+            'session_timeout_min'  => ['min' => 1,  'max' => 1440, 'label' => 'Session-Timeout'],
             'daily_card_limit'     => ['min' => 1,  'max' => 100, 'label' => 'Tägliches Karten-Limit'],
             'leitner_default_cards'=> ['min' => 1,  'max' => 200, 'label' => 'Default Kartenanzahl'],
             'drill_minutes'        => ['min' => 1,  'max' => 120, 'label' => 'Drill-Timer'],
@@ -198,7 +198,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                     <div class="d-flex align-items-center gap-1 flex-shrink-0">
                         <input type="number" class="form-control form-control-sm text-end"
                                name="session_timeout_min" value="<?= $cur_timeout_min ?>"
-                               min="1" max="480" style="width:68px;">
+                               min="1" max="1440" style="width:68px;">
                         <span class="text-muted small">Min.</span>
                     </div>
                 </div>

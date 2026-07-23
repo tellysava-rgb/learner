@@ -287,6 +287,7 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Drill startet mit neuem Timer-Wert (z.B. 2 Minuten → Timer läuft auf 2:00). _(v0.6.4)_
 [ ] Ungültiger Wert (ausserhalb Bereich) → Fehlermeldung(en), config.php unverändert. _(v0.6.4)_
 [ ] Session-Timeout: neuer Wert wirkt (z.B. 1 Min. → nach 1 Min. Inaktivität abgemeldet). _(v0.6.4)_
+[ ] Session-Timeout: Wert bis 1440 (24 Std.) wird akzeptiert, Wert darüber abgelehnt. _(v2.7.4)_
 
 ### Passwort ändern _(v0.8.0)_
 

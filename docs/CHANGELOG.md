@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.7.4] - 2026-07-23
+
+### Verbessert
+- Einstellungen: Session-Timeout erlaubt jetzt Werte bis 1440 Minuten (24 Std.) statt bisher maximal 480 Minuten (8 Std.).
+
+---
+
 ## [2.7.3] - 2026-07-22
 
 ### Behoben

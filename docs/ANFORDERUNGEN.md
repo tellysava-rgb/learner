@@ -373,7 +373,7 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 | Gruppe | Einstellung | Konstante | Beschreibung | Bereich |
 |---|---|---|---|---|
 | Allgemein | Seitentitel | `APP_NAME` | Anzeigename oben links in der Navbar | max. 50 Zeichen |
-| Allgemein | Session-Timeout | `SESSION_TIMEOUT` | Inaktivitäts-Timeout in Minuten | 1–480 |
+| Allgemein | Session-Timeout | `SESSION_TIMEOUT` | Inaktivitäts-Timeout in Minuten | 1–1440 _(bis 24 Std., v2.7.4)_ |
 | Leitner | Tägliches Karten-Limit | `DAILY_CARD_LIMIT` | Neue Karten pro Tag aus der Warteschlange | 1–100 |
 | Leitner | Default Kartenanzahl | `LEITNER_DEFAULT_CARDS` | Voreingestellte Anzahl Karten beim Session-Start | 1–200 |
 | Drill | Timer | `DRILL_SESSION_SECONDS` | Dauer einer Drill-Session in Minuten | 1–120 |
