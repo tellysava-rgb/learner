@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.7.5] - 2026-07-23
+
+### Verbessert
+- `SESSION_TIMEOUT` wird jetzt intern in **Minuten** gespeichert (vorher Sekunden) — entspricht damit direkt dem Wert, der in den Einstellungen eingegeben wird, keine verwirrende Umrechnung mehr beim Blick in `config-runtime.php`. Bestehende lokale Konfiguration entsprechend migriert.
+
+---
+
 ## [2.7.4] - 2026-07-23
 
 ### Verbessert

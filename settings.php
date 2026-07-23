@@ -71,12 +71,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (empty($errs)) {
-            $timeout_sec = $vals['session_timeout_min'] * 60;
             $drill_sec   = $vals['drill_minutes'] * 60;
 
             $runtime = [
                 'APP_NAME'               => $app_name,
-                'SESSION_TIMEOUT'        => $timeout_sec,
+                'SESSION_TIMEOUT'        => $vals['session_timeout_min'],
                 'DAILY_CARD_LIMIT'       => $vals['daily_card_limit'],
                 'LEITNER_DEFAULT_CARDS'  => $vals['leitner_default_cards'],
                 'DRILL_SESSION_SECONDS'  => $drill_sec,
@@ -108,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Aktuelle Werte (frisch aus config, nach PRG-Redirect)
 $cur_app_name    = APP_NAME;
-$cur_timeout_min = (int) round(SESSION_TIMEOUT / 60);
+$cur_timeout_min = (int) SESSION_TIMEOUT;
 $cur_daily       = DAILY_CARD_LIMIT;
 $cur_default_cards = LEITNER_DEFAULT_CARDS;
 $cur_drill_min   = (int) round(DRILL_SESSION_SECONDS / 60);

@@ -1,5 +1,5 @@
 <?php
-define('APP_VERSION', '2.7.4');
+define('APP_VERSION', '2.7.5');
 define('TIMEZONE', 'Europe/Zurich');
 define('LEITNER_INTERVALS', [1 => 1, 2 => 2, 3 => 7, 4 => 14, 5 => 30]);
 date_default_timezone_set(TIMEZONE);
@@ -8,7 +8,8 @@ date_default_timezone_set(TIMEZONE);
 // Sonst: Standardwerte
 $_rt = [
     'APP_NAME'               => 'Learners',
-    'SESSION_TIMEOUT'        => 3600,
+    'SESSION_TIMEOUT'        => 60, // in Minuten
+
     'DAILY_CARD_LIMIT'       => 10,
     'LEITNER_DEFAULT_CARDS'  => 20,
     'DRILL_SESSION_SECONDS'  => 600,

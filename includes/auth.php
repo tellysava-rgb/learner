@@ -5,8 +5,8 @@ require_once __DIR__ . '/config.php';
 
 session_start();
 
-// Session-Timeout prüfen
-if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > SESSION_TIMEOUT) {
+// Session-Timeout prüfen (SESSION_TIMEOUT ist in Minuten)
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > SESSION_TIMEOUT * 60) {
     session_unset();
     session_destroy();
     session_start();
