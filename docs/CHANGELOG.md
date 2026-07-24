@@ -5,6 +5,16 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.7.6] - 2026-07-24
+
+### Neu
+- Startseite: zusätzlicher Icon-Button **"Liste bearbeiten"** (Stift) pro Liste, führt zu `lists.php?edit=X` (Name/Sprachen/Einstellungen der Liste selbst).
+
+### Verbessert
+- Der bisherige "Bearbeiten"-Button (Karten dieser Liste) hat ein neues Icon (`bi-card-list` statt Stift), um ihn vom neuen "Liste bearbeiten"-Button optisch zu unterscheiden — zeigt jetzt erkennbar, dass mehrere Einträge bearbeitet werden, nicht die Liste selbst.
+
+---
+
 ## [2.7.5] - 2026-07-23
 
 ### Verbessert

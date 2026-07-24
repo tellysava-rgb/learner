@@ -333,8 +333,10 @@ if ($person_id) {
                                 <?php endif; ?>
                             </h5>
                             <div class="d-flex gap-1 flex-shrink-0 ms-2">
+                                <a href="lists.php?edit=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary"
+                                   data-bs-toggle="tooltip" title="Liste bearbeiten"><i class="bi bi-pencil"></i></a>
                                 <a href="edit.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary"
-                                   data-bs-toggle="tooltip" title="Bearbeiten"><i class="bi bi-pencil"></i></a>
+                                   data-bs-toggle="tooltip" title="Karten bearbeiten"><i class="bi bi-card-list"></i></a>
                                 <a href="stats.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary"
                                    data-bs-toggle="tooltip" title="Statistik"><i class="bi bi-bar-chart-line"></i></a>
                             </div>
