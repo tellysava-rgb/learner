@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.7.7] - 2026-07-24
+
+### Verbessert
+- Startseite: Icon für "Karten bearbeiten" von `bi-card-list` auf `bi-pencil-square` geändert — hebt sich klarer von "Liste bearbeiten" (`bi-pencil`) ab.
+
+---
+
 ## [2.7.6] - 2026-07-24
 
 ### Neu

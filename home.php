@@ -336,7 +336,7 @@ if ($person_id) {
                                 <a href="lists.php?edit=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary"
                                    data-bs-toggle="tooltip" title="Liste bearbeiten"><i class="bi bi-pencil"></i></a>
                                 <a href="edit.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary"
-                                   data-bs-toggle="tooltip" title="Karten bearbeiten"><i class="bi bi-card-list"></i></a>
+                                   data-bs-toggle="tooltip" title="Karten bearbeiten"><i class="bi bi-pencil-square"></i></a>
                                 <a href="stats.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary"
                                    data-bs-toggle="tooltip" title="Statistik"><i class="bi bi-bar-chart-line"></i></a>
                             </div>

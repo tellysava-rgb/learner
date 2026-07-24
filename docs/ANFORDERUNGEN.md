@@ -60,7 +60,7 @@
 - Navigation zur Startseite jederzeit über die Breadcrumb-Navigation möglich
 - Pro Liste zusätzlich zur Warteschlangen-Anzahl (⏳) eine Anzeige **"📚 N heute fällig"** _(v2.7.0)_ — Anzahl aktiver Leitner-Karten mit `next_due_date <= heute`
 - Beide Zeilen sind **immer sichtbar**, auch bei 0 _(v2.7.2)_: "⏳ Keine in Warteschlange" bzw. "✅ Keine heute fällig" (Häkchen-Icon statt 📚, sobald für heute nichts mehr ansteht — bewusste positive Rückmeldung statt einfach nichts anzuzeigen)
-- Pro Liste drei Icon-Buttons oben rechts neben dem Namen _(v2.7.0, ergänzt v2.7.6)_: **Liste bearbeiten** (Stift, führt zu `lists.php?edit=X` — Name/Sprachen/Einstellungen der Liste selbst), **Karten bearbeiten** (Karten-Symbol `bi-card-list`, führt zu `edit.php` — bewusst anderes Icon als "Liste bearbeiten", da mehrere Einträge statt einer einzelnen Eigenschaft bearbeitet werden) und **Statistik** (Balkendiagramm, führt direkt zu `stats.php?list_id=X` — die exakte Statistik dieser Liste, nicht die allgemeine Übersicht). Leitner/Drill bleiben als grosse Buttons im Footer.
+- Pro Liste drei Icon-Buttons oben rechts neben dem Namen _(v2.7.0, ergänzt v2.7.6)_: **Liste bearbeiten** (Stift, führt zu `lists.php?edit=X` — Name/Sprachen/Einstellungen der Liste selbst), **Karten bearbeiten** (Stift-im-Quadrat `bi-pencil-square`, führt zu `edit.php` — bewusst anderes Icon als "Liste bearbeiten" (`bi-pencil`), da mehrere Einträge statt einer einzelnen Eigenschaft bearbeitet werden) _(Icon final v2.7.7)_ und **Statistik** (Balkendiagramm, führt direkt zu `stats.php?list_id=X` — die exakte Statistik dieser Liste, nicht die allgemeine Übersicht). Leitner/Drill bleiben als grosse Buttons im Footer.
 
 ---
 

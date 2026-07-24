@@ -43,10 +43,10 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Liste ohne Warteschlange zeigt "⏳ Keine in Warteschlange" (nicht ausgeblendet). _(v2.7.2)_
 [ ] Liste ohne heute fällige Karten zeigt "✅ Keine heute fällig" mit Häkchen-Icon statt 📚 (nicht ausgeblendet). _(v2.7.2)_
 [ ] Anzeige zählt nur aktive Karten mit `next_due_date` heute oder in der Vergangenheit, nicht die gesamte Kartenzahl. _(v2.7.0)_
-[ ] Drei Icon-Buttons erscheinen oben rechts neben dem Listennamen: Liste bearbeiten (Stift), Karten bearbeiten (Karten-Symbol), Statistik (Balkendiagramm). _(v2.7.0, v2.7.6)_
+[ ] Drei Icon-Buttons erscheinen oben rechts neben dem Listennamen: Liste bearbeiten (Stift `bi-pencil`), Karten bearbeiten (Stift-im-Quadrat `bi-pencil-square`), Statistik (Balkendiagramm). _(v2.7.0, v2.7.6, v2.7.7)_
 [ ] Klick auf "Liste bearbeiten" führt zu `lists.php?edit=X` mit dieser Liste im Inline-Bearbeiten-Formular. _(v2.7.6)_
 [ ] Klick auf "Karten bearbeiten" führt zu `edit.php?list_id=X` (Kartenübersicht dieser Liste). _(v2.7.6)_
-[ ] "Liste bearbeiten" und "Karten bearbeiten" nutzen unterscheidbare Icons (nicht beide denselben Stift). _(v2.7.6)_
+[ ] "Liste bearbeiten" und "Karten bearbeiten" nutzen unterscheidbare Icons (nicht beide denselben Stift). _(v2.7.6, v2.7.7)_
 [ ] Klick auf Statistik-Icon führt direkt zu `stats.php?list_id=X` mit dieser Liste vorausgewählt, nicht zur allgemeinen Übersicht. _(v2.7.0)_
 [ ] "Bearbeiten"-Textbutton ist aus dem Footer verschwunden, Leitner/Drill bleiben dort als grosse Buttons. _(v2.7.0)_
 
