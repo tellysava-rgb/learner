@@ -134,6 +134,14 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] edit.php: Klick auf "Bearbeiten" bei einem Eintrag weiter unten in der Liste → Seite bleibt an dieser Position, kein Sprung nach oben. _(v2.6.2)_
 [ ] edit.php: Klick auf "Abbrechen" im Inline-Bearbeiten-Formular → Seite bleibt ebenfalls an der Position, kein Sprung nach oben. _(v2.6.2)_
 
+### Fach-Filter _(v2.7.8)_
+
+[ ] edit.php: neben den Status-Filtern (Alle/Aktiv/Warteschlange/Archiviert) erscheinen, optisch abgetrennt, fünf zusätzliche Filter-Buttons "Fach 1"–"Fach 5" mit Anzahl-Badge. _(v2.7.8)_
+[ ] Klick auf "Fach N" zeigt nur aktive Karten mit `leitner_box = N`. _(v2.7.8)_
+[ ] Karten in der Warteschlange oder archivierte Karten erscheinen in keinem Fach-Filter, auch wenn `leitner_box` einen alten Wert enthält. _(v2.7.8)_
+[ ] Anzahl-Badge pro Fach-Filter stimmt mit der tatsächlichen Kartenzahl in diesem Fach überein. _(v2.7.8)_
+[ ] Ungültiger `filter`-Parameter in der URL (z.B. manuell editiert) fällt auf "Alle" zurück statt Fehler oder leere Ansicht. _(v2.7.8)_
+
 ### Karten bearbeiten _(v0.6.1)_
 
 [ ] Aktionsbuttons zeigen nur Icons (kein Text). _(v0.6.1)_

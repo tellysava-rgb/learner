@@ -5,6 +5,16 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.7.8] - 2026-07-24
+
+### Neu
+- `edit.php`: zusätzliche Filter-Buttons "Fach 1"–"Fach 5" (analog zu den bestehenden Status-Filtern), zeigen nur aktive Karten der jeweiligen Leitner-Box mit Anzahl-Badge.
+
+### Behoben
+- Ungültige/manuell editierte `filter`-URL-Parameter werden jetzt auf einen Whitelist geprüft und fallen sicher auf "Alle" zurück (schliesst nebenbei eine ungeprüfte Reflektion des Parameters in Links).
+
+---
+
 ## [2.7.7] - 2026-07-24
 
 ### Verbessert

@@ -25,6 +25,8 @@ if (!$list) {
 }
 
 $filter = $_GET['filter'] ?? 'all';
+$valid_filters = ['all', 'active', 'queued', 'archived', 'box1', 'box2', 'box3', 'box4', 'box5'];
+if (!in_array($filter, $valid_filters, true)) $filter = 'all';
 
 // --- POST-Aktionen ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -171,12 +173,17 @@ if ($highlight_id) {
     }
 }
 
-$filtered_cards = match($filter) {
-    'active'   => array_filter($cards, fn($c) => $c['status'] === 'active'),
-    'queued'   => array_filter($cards, fn($c) => $c['status'] === 'queued'),
-    'archived' => array_filter($cards, fn($c) => $c['status'] === 'archived'),
-    default    => $cards,
-};
+if (str_starts_with($filter, 'box')) {
+    $box_num = intval(substr($filter, 3));
+    $filtered_cards = array_filter($cards, fn($c) => $c['status'] === 'active' && (int) $c['leitner_box'] === $box_num);
+} else {
+    $filtered_cards = match($filter) {
+        'active'   => array_filter($cards, fn($c) => $c['status'] === 'active'),
+        'queued'   => array_filter($cards, fn($c) => $c['status'] === 'queued'),
+        'archived' => array_filter($cards, fn($c) => $c['status'] === 'archived'),
+        default    => $cards,
+    };
+}
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -264,10 +271,14 @@ $filtered_cards = match($filter) {
     </div>
 
     <!-- Filter -->
-    <div class="d-flex gap-2 mb-3 flex-wrap">
+    <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
         <?php
-        $counts = ['all' => count($cards), 'active' => 0, 'queued' => 0, 'archived' => 0];
-        foreach ($cards as $c) $counts[$c['status']]++;
+        $counts = ['all' => count($cards), 'active' => 0, 'queued' => 0, 'archived' => 0,
+                   'box1' => 0, 'box2' => 0, 'box3' => 0, 'box4' => 0, 'box5' => 0];
+        foreach ($cards as $c) {
+            $counts[$c['status']]++;
+            if ($c['status'] === 'active' && $c['leitner_box']) $counts['box' . $c['leitner_box']]++;
+        }
         $filters = ['all' => 'Alle', 'active' => 'Aktiv', 'queued' => 'Warteschlange', 'archived' => 'Archiviert'];
         foreach ($filters as $key => $label):
         ?>
@@ -276,6 +287,13 @@ $filtered_cards = match($filter) {
             <?= $label ?> <span class="badge bg-light text-dark ms-1"><?= $counts[$key] ?></span>
         </a>
         <?php endforeach; ?>
+        <span class="vr d-none d-sm-inline"></span>
+        <?php for ($box = 1; $box <= 5; $box++): $key = 'box' . $box; ?>
+        <a href="edit.php?list_id=<?= $list_id ?>&filter=<?= $key ?>"
+           class="btn btn-sm <?= $filter === $key ? 'btn-primary' : 'btn-outline-secondary' ?>">
+            Fach <?= $box ?> <span class="badge bg-light text-dark ms-1"><?= $counts[$key] ?></span>
+        </a>
+        <?php endfor; ?>
     </div>
 
     <!-- Kartenliste -->

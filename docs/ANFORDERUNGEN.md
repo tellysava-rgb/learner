@@ -157,6 +157,7 @@
 - CSV Import / Export im Header: Icon + Text
 - Container-Breite ohne eigenes `max-width` (analog `home.php`/`lists.php`) _(v2.3.0)_
 - Beschreibungsfelder (A/B) als mehrzeilige `<textarea>` statt einzeiliger Inputs — Beschreibungen können ausführlich sein _(v2.3.0)_
+- **Filter** über der Kartenliste: Status-Filter (Alle / Aktiv / Warteschlange / Archiviert) sowie zusätzlich, optisch getrennt, **Fach-Filter** (Fach 1–5) _(v2.7.8)_ — zeigt nur aktive Karten der gewählten Leitner-Box, jeweils mit Anzahl-Badge wie bei den Status-Filtern
 
 ### Duplikat-Prüfung beim Import
 - Gilt **nur beim CSV-Import** — nicht beim Kopieren einer öffentlichen Liste
