@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.7.12] - 2026-07-24
+
+### Verbessert
+- KI-Prompt in `import.php`: hat die Liste keinen hinterlegten Aussprache-Dialekt (`speech_lang_b`), weist der Prompt die KI jetzt an, den User explizit danach zu fragen und die Lautschrift-Spalte anschliessend passend auszufüllen — statt sie wie bisher stillschweigend leer zu lassen. MCP-Server (`add_cards`/`update_card`) bleibt bewusst unverändert (dort weiterhin: nur ausfüllen wenn `speech_lang_b` gesetzt ist).
+
+---
+
 ## [2.7.11] - 2026-07-24
 
 ### Verbessert

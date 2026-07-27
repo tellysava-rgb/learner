@@ -164,7 +164,7 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Prompt enthält die korrekten Sprachnamen dieser Liste (`language_a`/`language_b`) in Kopfzeile und Regeltext. _(v2.7.9)_
 [ ] Liste mit `speech_lang_b = en-GB` (oder en-AU/en-NZ/en-ZA): Prompt enthält die nicht-rhotische Lautschrift-Regel (r nach Vokal weglassen). _(v2.7.9)_
 [ ] Liste mit `speech_lang_b = en-US` (oder anderer rhotischer Dialekt): Prompt enthält die rhotische Lautschrift-Regel (r normal aussprechen). _(v2.7.9)_
-[ ] Liste ohne `speech_lang_b`: Prompt weist an, die Lautschrift-Spalte leer zu lassen. _(v2.7.9)_
+[ ] Liste ohne `speech_lang_b`: Prompt weist die KI an, explizit nach dem gewünschten Aussprache-Dialekt zu fragen und die Lautschrift danach auszufüllen — nicht mehr leer zu lassen. _(v2.7.12, ersetzt v2.7.9)_
 [ ] Klick auf "Prompt kopieren" kopiert den vollständigen Text in die Zwischenablage, Bestätigung "Kopiert!" erscheint kurz. _(v2.7.9)_
 [ ] Eine mit diesem Prompt von einer KI erzeugte CSV-Ausgabe lässt sich ohne Anpassung über das Upload-Formular importieren. _(v2.7.9)_
 
@@ -175,6 +175,14 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Liste mit Sprache B = Englisch OHNE `speech_lang_b`: Prompt enthält die Anweisung, standardmässig britisches Englisch (en-GB) zu verwenden, ausser beim Thema wird ausdrücklich ein anderer Dialekt verlangt. _(v2.7.11)_
 [ ] Liste mit Sprache B = einer anderen Sprache als Englisch (z.B. Französisch): Prompt enthält KEINE GB/US-Dialekt-Regel. _(v2.7.11)_
 [ ] Test mit echter KI: Prompt ohne `speech_lang_b` an eine KI gegeben → generierte Begriffe/Beispielsätze verwenden britische statt amerikanische Schreibweise (z.B. "colour" statt "color"). _(v2.7.11)_
+
+### Lautschrift-Rückfrage ohne speech_lang_b _(v2.7.12)_
+
+[ ] Liste ohne `speech_lang_b`: Prompt weist die KI an, den User explizit nach dem gewünschten Aussprache-Dialekt zu fragen, bevor die Lautschrift-Spalte gefüllt wird. _(v2.7.12)_
+[ ] Ist der Dialekt bereits beim Thema-Platzhalter angegeben (z.B. "Reisen, amerikanisches Englisch"), entfällt laut Prompt die Rückfrage. _(v2.7.12)_
+[ ] Test mit echter KI: Prompt ohne `speech_lang_b`, ohne Dialekt-Angabe beim Thema → KI fragt im Chat nach dem gewünschten Dialekt, statt die Lautschrift-Spalte stillschweigend leer zu lassen oder zu raten. _(v2.7.12)_
+[ ] Nach Antwort des Users (z.B. "britisches Englisch") → generierte Lautschrift folgt der passenden Konvention (nicht-rhotisch bei britischem Englisch, rhotisch bei amerikanischem). _(v2.7.12)_
+[ ] MCP-Server (`add_cards`/`update_card`) bleibt unverändert: `phonetik_b` wird weiterhin nur befüllt wenn die Liste ein `speech_lang_b` hat, sonst leer gelassen — keine Rückfrage-Logik im MCP. _(v2.7.12)_
 
 ### Export 
 

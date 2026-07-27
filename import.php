@@ -289,7 +289,7 @@ $non_rhotic_dialects = ['en-GB', 'en-AU', 'en-NZ', 'en-ZA'];
 $is_english_b = (bool) preg_match('/englisch|english/i', trim($lang_b));
 
 if (!$speech_lang) {
-    $phonetic_instruction = 'Lasse die Spalte "Lautschrift" leer (diese Liste hat keinen hinterlegten Aussprache-Dialekt).';
+    $phonetic_instruction = "Diese Liste hat für {$lang_b} keinen Aussprache-Dialekt hinterlegt. Bevor du die Spalte \"Lautschrift\" ausfüllst: frage mich explizit, welchen Dialekt/welche Ausspracheform ich möchte (z.B. \"britisches\" oder \"amerikanisches Englisch\"), ausser das ist oben beim Thema bereits angegeben. Fülle die Lautschrift danach passend zu meiner Antwort aus (Silben mit Bindestrich, betonte Silbe GROSS, keine IPA-Zeichen; bei nicht-rhotischen Dialekten \"r\" nach Vokal vor Konsonant/am Wortende weglassen, bei rhotischen normal schreiben). Lass die Spalte nicht einfach leer.";
 } elseif (in_array($speech_lang, $non_rhotic_dialects, true)) {
     $phonetic_instruction = "Fülle die Spalte \"Lautschrift\" mit einer vereinfachten Aussprache-Hilfe für den Begriff in {$lang_b} (Dialekt {$speech_lang}): Silben mit Bindestrich trennen, betonte Silbe GROSS schreiben, keine IPA-Zeichen. {$speech_lang} ist ein nicht-rhotischer Dialekt: \"r\" nach einem Vokal vor einem Konsonanten oder am Wortende NICHT mitschreiben (\"-er\"/\"-or\" wird zu \"-uh\"/\"-aw\", z.B. \"thunder\" -> \"THUN-duh\", \"storm\" -> \"stawm\"); \"r\" nur schreiben, wenn direkt ein Vokal folgt (z.B. \"rain\" -> \"rayn\").";
 } else {
