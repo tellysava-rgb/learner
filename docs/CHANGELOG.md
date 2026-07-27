@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.7.9] - 2026-07-24
+
+### Neu
+- `import.php`: fertiger, kopierbarer Prompt für KI-generierte Wortlisten im CSV-Format-Bereich — passt sich automatisch an Sprachpaar und Aussprache-Dialekt (`speech_lang_b`) der jeweiligen Liste an, inkl. nicht-rhotischer bzw. rhotischer Lautschrift-Regel.
+
+---
+
 ## [2.7.8] - 2026-07-24
 
 ### Neu

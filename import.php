@@ -278,6 +278,39 @@ if ($import_stage === 'confirm' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logout') {
     logout();
 }
+
+// -------------------------------------------------------
+// Prompt für KI-generierte Wortlisten (passend zum CSV-Format dieser Liste)
+// -------------------------------------------------------
+$lang_a = $list['language_a'];
+$lang_b = $list['language_b'];
+$speech_lang = $list['speech_lang_b'] ?? '';
+$non_rhotic_dialects = ['en-GB', 'en-AU', 'en-NZ', 'en-ZA'];
+
+if (!$speech_lang) {
+    $phonetic_instruction = 'Lasse die Spalte "Lautschrift" leer (diese Liste hat keinen hinterlegten Aussprache-Dialekt).';
+} elseif (in_array($speech_lang, $non_rhotic_dialects, true)) {
+    $phonetic_instruction = "Fülle die Spalte \"Lautschrift\" mit einer vereinfachten Aussprache-Hilfe für den Begriff in {$lang_b} (Dialekt {$speech_lang}): Silben mit Bindestrich trennen, betonte Silbe GROSS schreiben, keine IPA-Zeichen. {$speech_lang} ist ein nicht-rhotischer Dialekt: \"r\" nach einem Vokal vor einem Konsonanten oder am Wortende NICHT mitschreiben (\"-er\"/\"-or\" wird zu \"-uh\"/\"-aw\", z.B. \"thunder\" -> \"THUN-duh\", \"storm\" -> \"stawm\"); \"r\" nur schreiben, wenn direkt ein Vokal folgt (z.B. \"rain\" -> \"rayn\").";
+} else {
+    $phonetic_instruction = "Fülle die Spalte \"Lautschrift\" mit einer vereinfachten Aussprache-Hilfe für den Begriff in {$lang_b} (Dialekt {$speech_lang}): Silben mit Bindestrich trennen, betonte Silbe GROSS schreiben, keine IPA-Zeichen, \"r\" normal aussprechen (rhotischer Dialekt).";
+}
+
+$ai_prompt = <<<PROMPT
+Erstelle eine Vokabelliste zum Thema "[Thema einfügen]" mit [Anzahl] Wörtern für die Sprachen {$lang_a} / {$lang_b}.
+
+Gib das Ergebnis AUSSCHLIESSLICH als CSV-Codeblock aus, exakt in diesem Format (Semikolon-getrennt, erste Zeile ist die Kopfzeile, kein zusätzlicher Text davor oder danach):
+
+{$lang_a};{$lang_b};Beschreibung {$lang_a};Beschreibung {$lang_b};Lautschrift
+
+Regeln:
+- Spalte 1 ({$lang_a}): exakter Begriff. Bei Verben die Grundform (Infinitiv); bei unregelmässigen Verben alle drei Formen (z.B. "gehen / ging / gegangen").
+- Spalte 2 ({$lang_b}): exakter Begriff, analog zu Spalte 1 (bei unregelmässigen Verben ebenfalls alle drei Formen).
+- Spalte 3 (Beschreibung {$lang_a}): Beispielsatz mit dem exakten Begriff aus Spalte 1.
+- Spalte 4 (Beschreibung {$lang_b}): beschreibt die Bedeutung genauer, OHNE den Begriff aus Spalte 2 zu wiederholen. Bei mehrdeutigen Begriffen den konkreten Verwendungskontext angeben.
+- {$phonetic_instruction}
+- Felder mit Komma oder Semikolon in doppelte Anführungszeichen setzen.
+- Keine Duplikate innerhalb der Liste.
+PROMPT;
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -476,6 +509,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
                     <pre class="bg-white border rounded p-2 small"><code>Deutsch;Englisch;Beschreibung Deutsch;Beschreibung Englisch;Lautschrift
 Diagnose;diagnosis;medizinisch;"A conclusion";dy-ug-NOH-sis
 Behandlung;treatment;;;</code></pre>
+
+                    <hr>
+                    <h6 class="mb-2">🤖 Prompt für KI-generierte Wortlisten</h6>
+                    <p class="text-muted small mb-2">Thema und Anzahl anpassen und einer KI (z.B. Claude, ChatGPT) geben — die Antwort kann als <code>.csv</code>-Datei gespeichert und oben hochgeladen werden.</p>
+                    <textarea id="aiPrompt" class="form-control form-control-sm font-monospace" rows="8" style="font-size:0.75rem;" readonly><?= htmlspecialchars($ai_prompt) ?></textarea>
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="copyAiPrompt()">📋 Prompt kopieren</button>
+                    <span id="aiPromptCopied" class="text-success small ms-2" style="display:none;">Kopiert!</span>
                 </div>
             </div>
         </div>
@@ -485,5 +525,15 @@ Behandlung;treatment;;;</code></pre>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function copyAiPrompt() {
+    const ta = document.getElementById('aiPrompt');
+    navigator.clipboard.writeText(ta.value).then(() => {
+        const msg = document.getElementById('aiPromptCopied');
+        msg.style.display = 'inline';
+        setTimeout(() => msg.style.display = 'none', 2000);
+    });
+}
+</script>
 </body>
 </html>

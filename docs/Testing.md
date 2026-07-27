@@ -158,6 +158,16 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Import: Duplikate trotzdem importieren → alle Karten werden importiert. _(v0.5.0)_
 [ ] Import: Export reimportieren (gleiche Liste) → alle Karten als Duplikate erkannt. _(v0.5.0)_
 
+### Prompt für KI-generierte Wortlisten _(v2.7.9)_
+
+[ ] import.php: im CSV-Format-Bereich erscheint unterhalb des Beispiels ein Textfeld mit einem fertigen Prompt sowie ein Button "Prompt kopieren". _(v2.7.9)_
+[ ] Prompt enthält die korrekten Sprachnamen dieser Liste (`language_a`/`language_b`) in Kopfzeile und Regeltext. _(v2.7.9)_
+[ ] Liste mit `speech_lang_b = en-GB` (oder en-AU/en-NZ/en-ZA): Prompt enthält die nicht-rhotische Lautschrift-Regel (r nach Vokal weglassen). _(v2.7.9)_
+[ ] Liste mit `speech_lang_b = en-US` (oder anderer rhotischer Dialekt): Prompt enthält die rhotische Lautschrift-Regel (r normal aussprechen). _(v2.7.9)_
+[ ] Liste ohne `speech_lang_b`: Prompt weist an, die Lautschrift-Spalte leer zu lassen. _(v2.7.9)_
+[ ] Klick auf "Prompt kopieren" kopiert den vollständigen Text in die Zwischenablage, Bestätigung "Kopiert!" erscheint kurz. _(v2.7.9)_
+[ ] Eine mit diesem Prompt von einer KI erzeugte CSV-Ausgabe lässt sich ohne Anpassung über das Upload-Formular importieren. _(v2.7.9)_
+
 ### Export 
 
 

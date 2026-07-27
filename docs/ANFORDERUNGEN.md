@@ -190,6 +190,7 @@ Behandlung,treatment,,,
 - Kommas/Semikolons innerhalb von Feldern sind nur erlaubt wenn das Feld korrekt gequotet ist
 - Kein Listenname und keine Sprachen in der CSV — die Liste wird vorher in der App erstellt
 - Import-Seite enthält ausführliche Erklärung und Beispiel
+- **Prompt für KI-generierte Wortlisten** _(v2.7.9)_: `import.php` zeigt im CSV-Format-Bereich einen fertigen, in ein Textfeld kopierbaren Prompt (Button "Prompt kopieren"), den man einer KI (Claude, ChatGPT etc.) geben kann, um eine passende CSV-Wortliste erzeugen zu lassen. Wird dynamisch pro Liste generiert: Sprachnamen (`language_a`/`language_b`) exakt wie in der CSV-Kopfzeile, sowie eine Lautschrift-Anweisung passend zum hinterlegten `speech_lang_b` der Liste — inkl. der nicht-rhotischen Aussprache-Konvention bei `en-GB`/`en-AU`/`en-NZ`/`en-ZA` (siehe MCP-Server-Instruktionen), rhotischer Hinweis bei anderen Dialekten, oder "Lautschrift leer lassen" ohne `speech_lang_b`. Platzhalter `[Thema einfügen]`/`[Anzahl]` müssen vor dem Absenden an die KI manuell ersetzt werden.
 
 ---
 
