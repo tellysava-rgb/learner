@@ -168,6 +168,14 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Klick auf "Prompt kopieren" kopiert den vollständigen Text in die Zwischenablage, Bestätigung "Kopiert!" erscheint kurz. _(v2.7.9)_
 [ ] Eine mit diesem Prompt von einer KI erzeugte CSV-Ausgabe lässt sich ohne Anpassung über das Upload-Formular importieren. _(v2.7.9)_
 
+### Dialekt-Standard Englisch im KI-Prompt _(v2.7.11)_
+
+[ ] Liste mit Sprache B = Englisch und `speech_lang_b = en-GB`: Prompt enthält die Anweisung, dass die Listen-Definition (en-GB) Vorrang hat. _(v2.7.11)_
+[ ] Liste mit Sprache B = Englisch und `speech_lang_b = en-US`: Prompt enthält die Anweisung, dass die Listen-Definition (en-US) Vorrang hat. _(v2.7.11)_
+[ ] Liste mit Sprache B = Englisch OHNE `speech_lang_b`: Prompt enthält die Anweisung, standardmässig britisches Englisch (en-GB) zu verwenden, ausser beim Thema wird ausdrücklich ein anderer Dialekt verlangt. _(v2.7.11)_
+[ ] Liste mit Sprache B = einer anderen Sprache als Englisch (z.B. Französisch): Prompt enthält KEINE GB/US-Dialekt-Regel. _(v2.7.11)_
+[ ] Test mit echter KI: Prompt ohne `speech_lang_b` an eine KI gegeben → generierte Begriffe/Beispielsätze verwenden britische statt amerikanische Schreibweise (z.B. "colour" statt "color"). _(v2.7.11)_
+
 ### Export 
 
 
@@ -369,6 +377,12 @@ Testtools: `curl` oder Claude Code mit `.mcp.json`.
 [ ] `beschreibung_a` leer → `desc_a` ist NULL in DB. _(v2.0.0)_
 [ ] Gemischtes Batch (1 ok, 1 Duplikat, 1 Fehler) → `summary` zeigt korrekte Zahlen. _(v2.0.0)_
 [ ] `tools/list` → `add_cards`-Beschreibung sowie `beschreibung_a`/`beschreibung_b`-Feldbeschreibungen erwähnen Grundform-Ergänzung bei Verben und Vermerk bei unregelmässigen Verben in der deutschen Beschreibung. _(v2.0.2)_
+
+### Dialekt-Standard Englisch (MCP) _(v2.7.11)_
+[ ] `initialize`-Instructions, `list_lists`- und `add_cards`-Beschreibung erwähnen: Liste mit `speech_lang_b` → dieser Dialekt hat Vorrang; Liste ohne `speech_lang_b` und Sprache B Englisch → Standard ist britisches Englisch (en-GB), nicht US-Englisch. _(v2.7.11)_
+[ ] Agent fügt Karten zu einer Englisch-Liste OHNE `speech_lang_b` hinzu, ohne dass der User einen Dialekt nennt → Begriff/Beispielsatz verwenden britische Schreibweise (z.B. "colour", "lorry", "flat"), nicht amerikanische. _(v2.7.11)_
+[ ] User verlangt im Gespräch ausdrücklich "amerikanisches Englisch" → Agent verwendet US-Schreibweise trotz fehlendem `speech_lang_b`. _(v2.7.11)_
+[ ] Liste mit `speech_lang_b = en-US` → Agent verwendet US-Schreibweise, auch ohne explizite Ansage des Users (Listen-Definition hat Vorrang). _(v2.7.11)_
 
 ### Gross-/Kleinschreibung deutscher Begriff _(v2.7.10)_
 [ ] `tools/list` → `initialize`-Instructions, `add_cards`-Beschreibung, `sprache_a_begriff`/`sprache_b_begriff`-Feldbeschreibungen sowie `update_card`-Feldbeschreibungen erwähnen die Regel: Nomen immer gross, andere Wortarten klein, ausser Satzanfang bei mehrteiligen Begriffen. _(v2.7.10)_

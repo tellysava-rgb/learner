@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.7.11] - 2026-07-24
+
+### Verbessert
+- KI-Prompt in `import.php` und MCP-Server-Instruktionen (`initialize`, `list_lists`, `add_cards`) enthalten jetzt einen Dialekt-Standard für Englisch: hat die Liste ein `speech_lang_b` gesetzt, hat diese Definition Vorrang; ohne `speech_lang_b` gilt standardmässig britisches Englisch (en-GB) statt US-Englisch, ausser ausdrücklich anders gewünscht. Behebt das wiederkehrende Problem, dass US-Begriffe statt der gewünschten britischen Begriffe generiert wurden.
+
+---
+
 ## [2.7.10] - 2026-07-24
 
 ### Verbessert

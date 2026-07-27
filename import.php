@@ -286,6 +286,7 @@ $lang_a = $list['language_a'];
 $lang_b = $list['language_b'];
 $speech_lang = $list['speech_lang_b'] ?? '';
 $non_rhotic_dialects = ['en-GB', 'en-AU', 'en-NZ', 'en-ZA'];
+$is_english_b = (bool) preg_match('/englisch|english/i', trim($lang_b));
 
 if (!$speech_lang) {
     $phonetic_instruction = 'Lasse die Spalte "Lautschrift" leer (diese Liste hat keinen hinterlegten Aussprache-Dialekt).';
@@ -295,6 +296,29 @@ if (!$speech_lang) {
     $phonetic_instruction = "Fülle die Spalte \"Lautschrift\" mit einer vereinfachten Aussprache-Hilfe für den Begriff in {$lang_b} (Dialekt {$speech_lang}): Silben mit Bindestrich trennen, betonte Silbe GROSS schreiben, keine IPA-Zeichen, \"r\" normal aussprechen (rhotischer Dialekt).";
 }
 
+// Dialekt-Vorgabe nur relevant wenn Sprache B Englisch ist — verhindert das wiederkehrende Problem,
+// dass US-Begriffe statt der gewünschten britischen Begriffe generiert werden.
+$dialect_instruction = null;
+if ($is_english_b) {
+    if ($speech_lang) {
+        $dialect_instruction = "Schreibweise UND Wortwahl von Begriff und Beispielsatz in {$lang_b} müssen zum hinterlegten Dialekt dieser Liste ({$speech_lang}) passen (z.B. en-GB: \"colour\", \"lorry\", \"flat\"; en-US: \"color\", \"truck\", \"apartment\") — diese Listen-Definition hat Vorrang vor allem anderen.";
+    } else {
+        $dialect_instruction = "Sofern beim Thema oben nicht ausdrücklich ein anderer Dialekt verlangt wird (z.B. \"amerikanisches Englisch\"), gilt als Standard BRITISCHES Englisch (en-GB) für Schreibweise UND Wortwahl von Begriff und Beispielsatz in {$lang_b} (z.B. \"colour\" statt \"color\", \"lorry\" statt \"truck\", \"flat\" statt \"apartment\") — diese Liste hat keinen Dialekt hinterlegt.";
+    }
+}
+
+$rules = [
+    "Spalte 1 ({$lang_a}): exakter Begriff. Bei Verben die Grundform (Infinitiv); bei unregelmässigen Verben alle drei Formen (z.B. \"gehen / ging / gegangen\").",
+    "Spalte 2 ({$lang_b}): exakter Begriff, analog zu Spalte 1 (bei unregelmässigen Verben ebenfalls alle drei Formen).",
+    "Spalte 3 (Beschreibung {$lang_a}): Beispielsatz mit dem exakten Begriff aus Spalte 1.",
+    "Spalte 4 (Beschreibung {$lang_b}): beschreibt die Bedeutung genauer, OHNE den Begriff aus Spalte 2 zu wiederholen. Bei mehrdeutigen Begriffen den konkreten Verwendungskontext angeben.",
+    $dialect_instruction,
+    $phonetic_instruction,
+    'Felder mit Komma oder Semikolon in doppelte Anführungszeichen setzen.',
+    'Keine Duplikate innerhalb der Liste.',
+];
+$rules_text = implode("\n", array_map(fn($r) => "- $r", array_filter($rules)));
+
 $ai_prompt = <<<PROMPT
 Erstelle eine Vokabelliste zum Thema "[Thema einfügen]" mit [Anzahl] Wörtern für die Sprachen {$lang_a} / {$lang_b}.
 
@@ -303,13 +327,7 @@ Gib das Ergebnis AUSSCHLIESSLICH als CSV-Codeblock aus, exakt in diesem Format (
 {$lang_a};{$lang_b};Beschreibung {$lang_a};Beschreibung {$lang_b};Lautschrift
 
 Regeln:
-- Spalte 1 ({$lang_a}): exakter Begriff. Bei Verben die Grundform (Infinitiv); bei unregelmässigen Verben alle drei Formen (z.B. "gehen / ging / gegangen").
-- Spalte 2 ({$lang_b}): exakter Begriff, analog zu Spalte 1 (bei unregelmässigen Verben ebenfalls alle drei Formen).
-- Spalte 3 (Beschreibung {$lang_a}): Beispielsatz mit dem exakten Begriff aus Spalte 1.
-- Spalte 4 (Beschreibung {$lang_b}): beschreibt die Bedeutung genauer, OHNE den Begriff aus Spalte 2 zu wiederholen. Bei mehrdeutigen Begriffen den konkreten Verwendungskontext angeben.
-- {$phonetic_instruction}
-- Felder mit Komma oder Semikolon in doppelte Anführungszeichen setzen.
-- Keine Duplikate innerhalb der Liste.
+{$rules_text}
 PROMPT;
 ?>
 <!DOCTYPE html>
