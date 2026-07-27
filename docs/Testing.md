@@ -370,6 +370,13 @@ Testtools: `curl` oder Claude Code mit `.mcp.json`.
 [ ] Gemischtes Batch (1 ok, 1 Duplikat, 1 Fehler) → `summary` zeigt korrekte Zahlen. _(v2.0.0)_
 [ ] `tools/list` → `add_cards`-Beschreibung sowie `beschreibung_a`/`beschreibung_b`-Feldbeschreibungen erwähnen Grundform-Ergänzung bei Verben und Vermerk bei unregelmässigen Verben in der deutschen Beschreibung. _(v2.0.2)_
 
+### Gross-/Kleinschreibung deutscher Begriff _(v2.7.10)_
+[ ] `tools/list` → `initialize`-Instructions, `add_cards`-Beschreibung, `sprache_a_begriff`/`sprache_b_begriff`-Feldbeschreibungen sowie `update_card`-Feldbeschreibungen erwähnen die Regel: Nomen immer gross, andere Wortarten klein, ausser Satzanfang bei mehrteiligen Begriffen. _(v2.7.10)_
+[ ] "Füge das Verb [X] hinzu" (Deutsch als Zielsprache B oder A) → deutscher Begriff wird kleingeschrieben vorgeschlagen (z.B. "laufen", nicht "Laufen"). _(v2.7.10)_
+[ ] "Füge das Nomen [X] hinzu" → deutscher Begriff wird grossgeschrieben vorgeschlagen (z.B. "Haus"). _(v2.7.10)_
+[ ] Mehrteiliger deutscher Begriff/Wendung (z.B. Redewendung) → nur das erste Wort ist gross, unabhängig von dessen Wortart. _(v2.7.10)_
+[ ] `list_cards`/`update_card`-Workflow: bei falscher Gross-/Kleinschreibung eines bestehenden Begriffs schlägt der Agent eine Korrektur vor (alt → neu) und wartet auf Bestätigung, bevor `update_card` aufgerufen wird. _(v2.7.10)_
+
 ### Logging _(v2.0.0)_
 [ ] Nach jedem Request: neuer Eintrag in `mcp.log` mit Zeitstempel, Umgebung, Methode, Tool-Name. _(v2.0.0)_
 

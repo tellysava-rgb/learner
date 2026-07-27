@@ -5,6 +5,14 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.7.10] - 2026-07-24
+
+### Verbessert
+- MCP-Server: Agent-Anweisungen für den deutschen Begriff um eine Gross-/Kleinschreibungs-Regel ergänzt (`initialize`-Instructions, `add_cards`-/`update_card`-Beschreibungen und Feldbeschreibungen) — Nomen werden immer gross geschrieben, alle anderen Wortarten (Verben in Grundform, Adjektive, Adverbien etc.) klein, ausser am Satzanfang bei mehrteiligen Begriffen.
+- CSV-Export (`export.php`) auf Lautschrift-Unterstützung geprüft: `phonetic_b` wird bereits seit v2.4.0 korrekt als 5. Spalte exportiert, keine Änderung nötig.
+
+---
+
 ## [2.7.9] - 2026-07-24
 
 ### Neu

@@ -585,7 +585,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 - `cards[]` = Array aus `{ sprache_a_begriff, sprache_b_begriff, beschreibung_a?, beschreibung_b?, phonetik_b? }` (`phonetik_b` seit v2.4.0, max. 200 Zeichen)
 - Feld-Regeln für den Agent (in Tool-Beschreibung, Feld-Beschreibungen und `initialize`-Instructions — keine serverseitige Validierung, reine Agent-Anweisung) _(v2.0.2, verschärft v2.0.4)_:
   - Begriff (Fremdsprache): exakt — bei Verben Grundform (Infinitiv), bei unregelmässigen Verben alle drei Formen (z.B. "go / went / gone")
-  - Begriff (Deutsch): exakt
+  - Begriff (Deutsch): exakt, Gross-/Kleinschreibung nach deutscher Rechtschreibung _(v2.7.10)_ — Nomen **immer** gross (z.B. "Haus", "Tisch"), alle anderen Wortarten (Verben in Grundform, Adjektive, Adverbien etc.) klein (z.B. "laufen", "schnell", "oft"), ausser am Satzanfang bei mehrteiligen Begriffen/Wendungen (nur das erste Wort gross, unabhängig von der Wortart)
   - Beschreibung (Fremdsprache): Beispielsatz mit dem exakten fremdsprachigen Begriff
   - Beschreibung (Deutsch): beschreibt die Bedeutung genauer, **ohne den fremdsprachigen Begriff zu nennen** — bei unregelmässigen Verben ggf. vermerken, bei Mehrdeutigkeit den Verwendungskontext klären
   - Bekannter Fehlerfall, der zur Verschärfung führte: Agent schrieb den fremdsprachigen Begriff versehentlich in die deutsche Beschreibung (z.B. `bounced` in der Beschreibung zu `unzustellbar`) — jetzt explizit verboten
