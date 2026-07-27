@@ -11,7 +11,8 @@
 ## Sicherheit
 
 - Globales Passwort wird als **Hash** gespeichert (kein Klartext in DB)
-- **Session-Timeout:** 30 Minuten Inaktivität → automatischer Logout
+- **Session-Timeout:** konfigurierbar 1–1440 Min. (Standard 30 Min.), siehe Einstellungsseite — Inaktivität führt zum automatischen Logout
+- **Session-Lebensdauer serverseitig durchgesetzt** _(v2.7.13)_: `SESSION_TIMEOUT` steuert zusätzlich zum eigenen Inaktivitäts-Check auch `session.gc_maxlifetime` (PHP-Garbage-Collection) sowie die Cookie-Lebensdauer (`session_set_cookie_params`) — verhindert, dass PHPs Standard-Wert (`gc_maxlifetime` = 1440 Sekunden = 24 Min.) die Session serverseitig löscht, lange bevor der konfigurierte (ggf. viel längere) Timeout erreicht ist. Cookie zusätzlich mit `HttpOnly` und `SameSite=Lax`, `Secure` automatisch bei HTTPS.
 - **Logout-Funktion** auf jeder Seite verfügbar
 - **CSRF-Schutz** für alle schreibenden Aktionen (Löschen, Import, Bearbeiten, Erstellen)
 - **SQL-Injection-Schutz** via Prepared Statements — konsequent überall

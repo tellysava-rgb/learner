@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.7.13] - 2026-07-24
+
+### Behoben
+- Session-Timeout wurde trotz hoher Konfiguration (z.B. 1440 Min.) auf Prod schon nach kurzer Inaktivität abgemeldet: PHPs Standard-`session.gc_maxlifetime` (1440 **Sekunden** = 24 Min.) hat die Session serverseitig gelöscht, bevor der eigene, viel grosszügigere Inaktivitäts-Check greifen konnte. `SESSION_TIMEOUT` steuert jetzt zusätzlich `session.gc_maxlifetime` sowie die Cookie-Lebensdauer (`session_set_cookie_params`), inkl. `HttpOnly`, `SameSite=Lax` und automatisch `Secure` bei HTTPS.
+
+---
+
 ## [2.7.12] - 2026-07-24
 
 ### Verbessert

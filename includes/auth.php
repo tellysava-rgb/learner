@@ -3,6 +3,19 @@
 
 require_once __DIR__ . '/config.php';
 
+// PHPs eigene Session-Garbage-Collection (Standard: gc_maxlifetime=1440 Sekunden = 24 Min.)
+// UND die Cookie-Lebensdauer an SESSION_TIMEOUT koppeln — sonst löscht PHP die Session serverseitig
+// bzw. der Browser das Cookie schon lange vor dem eigenen Inaktivitäts-Check unten.
+$_session_timeout_seconds = SESSION_TIMEOUT * 60;
+ini_set('session.gc_maxlifetime', (string) $_session_timeout_seconds);
+session_set_cookie_params([
+    'lifetime' => $_session_timeout_seconds,
+    'path'     => '/',
+    'secure'   => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
+
 session_start();
 
 // Session-Timeout prüfen (SESSION_TIMEOUT ist in Minuten)

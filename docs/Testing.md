@@ -327,6 +327,9 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Session-Timeout: Wert bis 1440 (24 Std.) wird akzeptiert, Wert darüber abgelehnt. _(v2.7.4)_
 [ ] Session-Timeout: in `config-runtime.php` steht nach dem Speichern die eingegebene Minutenzahl direkt (nicht ×60 in Sekunden). _(v2.7.5)_
 [ ] Session-Timeout: Abmeldung nach Inaktivität erfolgt weiterhin nach der korrekten Anzahl Minuten (z.B. 1 Min. testen). _(v2.7.5)_
+[ ] Session-Timeout auf hohen Wert (z.B. 1440 Min.) gestellt: Cookie-Header (`Set-Cookie`) zeigt `Max-Age`/`expires` passend zu diesem Wert (nicht mehr Session-Cookie ohne Ablaufzeit). _(v2.7.13)_
+[ ] Bei hohem Session-Timeout: User bleibt über mehrere Stunden Inaktivität (deutlich über 24 Min.) eingeloggt, statt vorzeitig durch PHPs Standard-`gc_maxlifetime` (24 Min.) abgemeldet zu werden. _(v2.7.13)_
+[ ] Auf Prod (HTTPS): Cookie hat zusätzlich das `Secure`-Flag; auf Localhost (HTTP) fehlt es. _(v2.7.13)_
 
 ### Passwort ändern _(v0.8.0)_
 
