@@ -330,6 +330,11 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Session-Timeout auf hohen Wert (z.B. 1440 Min.) gestellt: Cookie-Header (`Set-Cookie`) zeigt `Max-Age`/`expires` passend zu diesem Wert (nicht mehr Session-Cookie ohne Ablaufzeit). _(v2.7.13)_
 [ ] Bei hohem Session-Timeout: User bleibt über mehrere Stunden Inaktivität (deutlich über 24 Min.) eingeloggt, statt vorzeitig durch PHPs Standard-`gc_maxlifetime` (24 Min.) abgemeldet zu werden. _(v2.7.13)_
 [ ] Auf Prod (HTTPS): Cookie hat zusätzlich das `Secure`-Flag; auf Localhost (HTTP) fehlt es. _(v2.7.13)_
+[ ] Nach Login: neue Datei `sess_<id>` erscheint in `includes/sessions/`, nicht im System-Standardpfad (z.B. `/tmp` oder `/var/lib/php/sessions`). _(v2.7.14)_
+[ ] Direktzugriff per Browser/curl auf eine Datei unter `includes/sessions/` → HTTP 403 (durch `.htaccess` blockiert). _(v2.7.14)_
+[ ] Direktzugriff auf `includes/sessions/.htaccess` selbst → ebenfalls HTTP 403. _(v2.7.14)_
+[ ] Auf Prod: User bleibt auch nach mehreren Stunden Inaktivität (deutlich über 24 Min.) eingeloggt, KEIN vorzeitiger Logout mehr trotz Hoster-Cron. _(v2.7.14, behebt Wiederauftreten von v2.7.13)_
+[ ] Nach längerer Nutzung: alte Session-Dateien in `includes/sessions/` werden mit der Zeit bereinigt, sammeln sich nicht unbegrenzt an (PHPs eigene GC läuft für das eigene Verzeichnis). _(v2.7.14)_
 
 ### Passwort ändern _(v0.8.0)_
 

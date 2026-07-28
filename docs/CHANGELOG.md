@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.7.14] - 2026-07-28
+
+### Behoben
+- Trotz v2.7.13 weiterhin vorzeitige Logouts auf Prod: Ursache war ein hoster-seitiger Cron-Job (typisch bei Debian/Ubuntu-Servern), der Sessions im System-Standardpfad unabhängig von jedem `ini_set()` der App aufräumt, basierend auf dem globalen `php.ini`-Wert. Sessions werden jetzt in einem eigenen Verzeichnis (`includes/sessions/`, per `.htaccess` vor Direktzugriff geschützt) gespeichert, das dieser Cron nicht anfasst. Da Debian/Ubuntu aus demselben Grund meist PHPs eigene Garbage-Collection global deaktivieren, wird sie für dieses Verzeichnis explizit wieder aktiviert, damit alte Sessions dennoch bereinigt werden.
+
+---
+
 ## [2.7.13] - 2026-07-24
 
 ### Behoben

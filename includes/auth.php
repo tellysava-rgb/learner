@@ -3,11 +3,25 @@
 
 require_once __DIR__ . '/config.php';
 
-// PHPs eigene Session-Garbage-Collection (Standard: gc_maxlifetime=1440 Sekunden = 24 Min.)
-// UND die Cookie-Lebensdauer an SESSION_TIMEOUT koppeln — sonst löscht PHP die Session serverseitig
-// bzw. der Browser das Cookie schon lange vor dem eigenen Inaktivitäts-Check unten.
+// Eigenes Session-Verzeichnis statt System-Standardpfad: viele Hoster (v.a. Debian/Ubuntu) räumen
+// den Standardpfad per eigenem Cron-Job auf, basierend auf dem GLOBALEN php.ini-Wert — das läuft
+// unabhängig von jedem ini_set() aus der App und löscht Sessions oft schon nach ~24 Min., egal was
+// SESSION_TIMEOUT sagt. Ausserhalb dieses Pfads greift der Cron nicht mehr.
+$_session_dir = __DIR__ . '/sessions';
+if (!is_dir($_session_dir)) {
+    mkdir($_session_dir, 0700, true);
+}
+session_save_path($_session_dir);
+
+// Debian/Ubuntu deaktivieren PHPs eigene Garbage-Collection meist global (gc_probability=0), weil
+// sonst der System-Cron zuständig ist — für unser eigenes Verzeichnis müssen wir sie deshalb explizit
+// wieder aktivieren, sonst würden alte Sessions hier nie mehr gelöscht.
+// Zusätzlich: gc_maxlifetime UND Cookie-Lebensdauer an SESSION_TIMEOUT koppeln — sonst löscht PHP die
+// Session serverseitig bzw. der Browser das Cookie schon lange vor dem eigenen Inaktivitäts-Check unten.
 $_session_timeout_seconds = SESSION_TIMEOUT * 60;
 ini_set('session.gc_maxlifetime', (string) $_session_timeout_seconds);
+ini_set('session.gc_probability', '1');
+ini_set('session.gc_divisor', '100');
 session_set_cookie_params([
     'lifetime' => $_session_timeout_seconds,
     'path'     => '/',
