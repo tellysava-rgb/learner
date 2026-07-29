@@ -13,15 +13,13 @@ function table_exists(PDO $pdo, string $table): bool {
     return (bool) $stmt->fetch();
 }
 
-function password_is_set(PDO $pdo): bool {
-    if (!table_exists($pdo, 'settings')) return false;
-    $stmt = $pdo->prepare("SELECT value FROM settings WHERE `key` = 'password_hash'");
-    $stmt->execute();
-    return (bool) $stmt->fetchColumn();
+function has_person(PDO $pdo): bool {
+    if (!table_exists($pdo, 'persons')) return false;
+    return (bool) $pdo->query("SELECT COUNT(*) FROM persons")->fetchColumn();
 }
 
-$tables_exist   = table_exists($pdo, 'persons');
-$password_isset = password_is_set($pdo);
+$tables_exist = table_exists($pdo, 'persons');
+$person_exists = has_person($pdo);
 
 // -------------------------------------------------------
 // POST: Tabellen erstellen + Passwort setzen
@@ -125,20 +123,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    if ($action === 'set_password') {
-        $pw  = $_POST['password']  ?? '';
-        $pw2 = $_POST['password2'] ?? '';
-        if (mb_strlen($pw) < 8) {
+    if ($action === 'create_admin') {
+        $name = trim($_POST['name'] ?? '');
+        $pw   = $_POST['password']  ?? '';
+        $pw2  = $_POST['password2'] ?? '';
+
+        if ($person_exists) {
+            $error = 'Es existiert bereits mindestens eine Person — weitere Personen über die Benutzerverwaltung (users.php) anlegen.';
+        } elseif ($name === '') {
+            $error = 'Name darf nicht leer sein.';
+        } elseif (mb_strlen($pw) < 8) {
             $error = 'Passwort muss mindestens 8 Zeichen haben.';
         } elseif ($pw !== $pw2) {
             $error = 'Passwörter stimmen nicht überein.';
         } else {
             $hash = password_hash($pw, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO settings (`key`, `value`) VALUES ('password_hash', ?)
-                                   ON DUPLICATE KEY UPDATE `value` = ?");
-            $stmt->execute([$hash, $hash]);
-            $password_isset = true;
-            $message = 'Passwort erfolgreich gesetzt. Du kannst dich jetzt einloggen.';
+            $stmt = $pdo->prepare("INSERT INTO persons (name, password_hash, is_admin) VALUES (?, ?, 1)");
+            $stmt->execute([$name, $hash]);
+            $person_exists = true;
+            $message = 'Admin-Konto „' . $name . '" wurde angelegt. Du kannst dich jetzt einloggen.';
         }
     }
 }
@@ -189,40 +192,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
-    <!-- Schritt 2: Passwort -->
+    <!-- Schritt 2: Ersten Admin anlegen -->
     <div class="card mb-4">
         <div class="card-header d-flex align-items-center gap-2">
-            <span class="fw-semibold">Schritt 2 — Passwort setzen</span>
-            <?php if ($password_isset): ?>
-            <span class="badge bg-success ms-auto">Gesetzt</span>
+            <span class="fw-semibold">Schritt 2 — Ersten Admin anlegen</span>
+            <?php if ($person_exists): ?>
+            <span class="badge bg-success ms-auto">Erstellt</span>
             <?php else: ?>
             <span class="badge bg-warning text-dark ms-auto">Ausstehend</span>
             <?php endif; ?>
         </div>
         <div class="card-body">
             <?php if (!$tables_exist): ?>
-            <p class="text-muted small">Zuerst Schritt 1 ausführen.</p>
+            <p class="text-muted small mb-0">Zuerst Schritt 1 ausführen.</p>
+            <?php elseif ($person_exists): ?>
+            <p class="text-muted small mb-0">Es existiert bereits mindestens eine Person. Weitere Personen, Passwort-Resets und Admin-Rechte werden über die Benutzerverwaltung (<code>users.php</code>, nach dem Login) verwaltet.</p>
             <?php else: ?>
-            <?php if ($password_isset): ?>
-            <p class="text-muted small mb-3">Passwort bereits gesetzt. Du kannst es hier zurücksetzen.</p>
-            <?php endif; ?>
+            <p class="text-muted small mb-3">Legt die erste Person an — automatisch als Admin, damit du dich sofort einloggen und weitere Personen über <code>users.php</code> anlegen kannst.</p>
             <form method="post">
-                <input type="hidden" name="action" value="set_password">
+                <input type="hidden" name="action" value="create_admin">
+                <div class="mb-2">
+                    <input type="text" name="name" class="form-control form-control-sm"
+                           placeholder="Name" required maxlength="100">
+                </div>
                 <div class="mb-2">
                     <input type="password" name="password" class="form-control form-control-sm"
-                           placeholder="Neues Passwort (min. 8 Zeichen)" required minlength="8">
+                           placeholder="Passwort (min. 8 Zeichen)" required minlength="8">
                 </div>
                 <div class="mb-3">
                     <input type="password" name="password2" class="form-control form-control-sm"
                            placeholder="Passwort wiederholen" required>
                 </div>
-                <button class="btn btn-primary btn-sm">Passwort setzen</button>
+                <button class="btn btn-primary btn-sm">Admin anlegen</button>
             </form>
             <?php endif; ?>
         </div>
     </div>
 
-    <?php if ($tables_exist && $password_isset): ?>
+    <?php if ($tables_exist && $person_exists): ?>
     <div class="alert alert-success">
         Installation abgeschlossen. <a href="index.php">Zur App →</a>
     </div>

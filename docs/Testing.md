@@ -17,6 +17,14 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Migration (einmalig nach Update): jede bestehende Person kann sich mit ihrem bisherigen Namen und dem Passwort `123456` einloggen. _(v3.0.0)_
 [ ] Migration: Person "Beat" hat nach der Migration Admin-Status (sichtbar z.B. an "Einstellungen"-Link und "Person wechseln" in der Navbar). _(v3.0.0)_
 
+### Neuinstallation ohne Migrationspfad (`install.php`) _(v3.2.1)_
+[ ] Frische, leere Datenbank: Schritt 1 ("Tabellen erstellen") legt alle Tabellen inkl. `password_hash`/`is_admin`/`email`/Reset-Token-Spalten in `persons` an, ohne dass danach noch Migrationen nötig sind. _(v3.2.1)_
+[ ] Schritt 2 zeigt ein Formular "Ersten Admin anlegen" (Name + Passwort + Wiederholung), solange noch keine Person existiert. _(v3.2.1)_
+[ ] Schritt 2 mit gültigen Werten → Person wird in `persons` angelegt mit `is_admin = 1`, Erfolgsmeldung, Login mit diesem Namen/Passwort funktioniert sofort auf `index.php`. _(v3.2.1)_
+[ ] Schritt 2 mit Passwort unter 8 Zeichen oder abweichender Wiederholung → Fehlermeldung, keine Person angelegt. _(v3.2.1)_
+[ ] Nachdem eine Person existiert: Schritt 2 zeigt "Erstellt" und einen Hinweis auf `users.php` statt eines erneuten Anlage-Formulars — kein zweiter Admin über `install.php` anlegbar. _(v3.2.1)_
+[ ] Nach Schritt 1 + 2 auf einer frischen Installation: `run_pending_migrations()` (nächster Seitenaufruf) läuft fehlerfrei durch und verändert nichts an der bereits angelegten Person (Migration 6 ist No-Op, da `password_hash` schon gesetzt ist und "Beat" ggf. gar nicht existiert). _(v3.2.1)_
+
 ---
 
 ## 2. Navigation _(v0.5.0)_

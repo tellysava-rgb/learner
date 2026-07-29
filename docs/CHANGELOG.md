@@ -5,6 +5,14 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.1] - 2026-07-29
+
+### Behoben
+- `install.php`: Schritt 2 war seit dem Login-Modell-Umbau (v3.0.0) veraltet und schrieb ein globales Passwort in die `settings`-Tabelle, das von `index.php` gar nicht mehr gelesen wird — eine komplette Neuinstallation legte dadurch nie eine Person an und niemand konnte sich einloggen. Schritt 2 legt jetzt die erste Person direkt in `persons` an (automatisch als Admin), solange noch keine Person existiert; danach verweist die Seite auf die Benutzerverwaltung (`users.php`).
+- `CLAUDE.md`: neue Regel im Dokumentations-Abschnitt — Änderungen am DB-Schema oder Login-/Auth-Ablauf müssen künftig immer gegen `install.php` geprüft werden, damit eine Neuinstallation ohne Migrationspfad nicht erneut kaputtgeht.
+
+---
+
 ## [3.2.0] - 2026-07-29
 
 ### Neu

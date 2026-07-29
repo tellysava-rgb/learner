@@ -10,7 +10,7 @@
 
 ## Sicherheit
 
-- Globales Passwort wird als **Hash** gespeichert (kein Klartext in DB)
+- Passwort jeder Person wird als **Hash** gespeichert (kein Klartext in DB) — siehe Abschnitt "Zugang / Benutzerverwaltung" für das Login-Modell ab v3.0.0
 - **Session-Timeout:** konfigurierbar 1–1440 Min. (Standard 30 Min.), siehe Einstellungsseite — Inaktivität führt zum automatischen Logout
 - **Session-Lebensdauer serverseitig durchgesetzt** _(v2.7.13)_: `SESSION_TIMEOUT` steuert zusätzlich zum eigenen Inaktivitäts-Check auch `session.gc_maxlifetime` (PHP-Garbage-Collection) sowie die Cookie-Lebensdauer (`session_set_cookie_params`) — verhindert, dass PHPs Standard-Wert (`gc_maxlifetime` = 1440 Sekunden = 24 Min.) die Session serverseitig löscht, lange bevor der konfigurierte (ggf. viel längere) Timeout erreicht ist. Cookie zusätzlich mit `HttpOnly` und `SameSite=Lax`, `Secure` automatisch bei HTTPS.
 - **Eigenes Session-Verzeichnis** _(v2.7.14)_: Sessions werden in `includes/sessions/` gespeichert statt im System-Standardpfad, geschützt durch eigene `.htaccess` (`Require all denied`, kein Direktzugriff via URL). Grund: viele Hoster (v.a. Debian/Ubuntu) räumen den System-Standardpfad per eigenem Cron-Job auf — basierend auf dem globalen `php.ini`-Wert, unabhängig von jedem `ini_set()` der App — und löschen Sessions dadurch oft schon nach ~24 Min., egal was `SESSION_TIMEOUT` sagt. Ausserhalb des System-Pfads greift dieser Cron nicht mehr. Da Debian/Ubuntu aus demselben Grund meist PHPs eigene Garbage-Collection global deaktivieren (`gc_probability=0`), wird sie für das eigene Verzeichnis explizit wieder aktiviert (`gc_probability=1`, `gc_divisor=100`), sonst würden alte Sessions dort nie gelöscht.
@@ -505,12 +505,13 @@ Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler 
 
 - Einmaliges `install.php` Script das:
   1. Datenbankverbindung prüft
-  2. Alle Tabellen automatisch erstellt (idempotent — `IF NOT EXISTS`)
-  3. Globales Passwort setzen lässt
+  2. Alle Tabellen automatisch erstellt (idempotent — `IF NOT EXISTS`), inkl. aller Spalten aus dem Login-Modell ab v3.0.0 (`password_hash`, `is_admin`, `email`, Reset-Token-Felder) — eine komplette Neuinstallation braucht daher KEINE Migrationen, das Schema ist von Anfang an vollständig
+  3. Die erste Person direkt in `persons` anlegt (Name + Passwort), automatisch als Admin — nur möglich solange noch keine Person existiert; sobald eine Person existiert, verweist Schritt 2 stattdessen auf die Benutzerverwaltung (`users.php`) _(v3.2.1, ersetzt das frühere globale Passwort in der `settings`-Tabelle, das seit dem Login-Modell v3.0.0 nicht mehr existierte)_
 - Nach der Ersteinrichtung muss `install.php` **manuell vom Produktiv-Server gelöscht** werden
 - `index.php` erkennt ob `install.php` noch existiert und sperrt die App auf Produktion bis sie gelöscht ist — auf Localhost kein Block
 - `install.php` ist im Git-Repo (nicht gitignored) — beim Deploy wird sie automatisch übersprungen (in `deploy.php` Skip-Liste)
-- **DB-Migrationen:** `migrations.php` wird bei jedem Request automatisch aufgerufen — fehlende Spalten/Tabellen werden ergänzt ohne manuellen SQL-Eingriff
+- **DB-Migrationen:** `migrations.php` wird bei jedem Request automatisch aufgerufen — fehlende Spalten/Tabellen werden ergänzt ohne manuellen SQL-Eingriff. Migration 6 (Bootstrap-Passwort `123456` + Admin-Zuweisung an "Beat") ist nur für ein bestehendes, migriertes System relevant und bei einer Neuinstallation ein No-Op, da dort direkt über `install.php` ein Admin mit selbst gewähltem Passwort angelegt wird
+- **Wichtig für zukünftige Änderungen:** Ändert sich das DB-Schema oder der Login-/Auth-Ablauf, muss `install.php` (Tabellen-Definition UND Ersteinrichtungs-Flow) im selben Zug geprüft/angepasst werden — sonst bricht eine komplette Neuinstallation, obwohl migrierte Bestandssysteme unauffällig weiterlaufen (siehe `CLAUDE.md`, Abschnitt Release-Prozess)
 
 ---
 
@@ -612,7 +613,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
   users.php                ← Benutzerverwaltung: Personen anlegen, Passwort zurücksetzen, Admin-Flag (nur Admin)
   forgot-password.php      ← Passwort-Reset anfordern (E-Mail eingeben, Link erhalten)
   reset-password.php       ← Neues Passwort setzen (via Link aus forgot-password.php)
-  install.php               ← Erstinstallation: Tabellen erstellen, Passwort setzen (manuell löschen nach Setup)
+  install.php               ← Erstinstallation: Tabellen erstellen, ersten Admin anlegen (manuell löschen nach Setup)
   mcp-server.php            ← MCP-Endpoint für Agenten (JSON-RPC über HTTP)
   deploy.php                ← ZIP-Deploy via Browser (im Repo versioniert, schützt sich selbst vor Überschreiben)
   /assets/                  ← CSS, JS
