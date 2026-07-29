@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.1.0] - 2026-07-29
+
+### Neu
+- Statistik-Seite: neue Karte "Lernaktivität" (oberhalb des Listen-Filters, listenübergreifend) mit drei Kennzahlen (🔥 Aktueller Streak, Lerntage gesamt, Beste Woche) und einer Jahres-Heatmap der letzten 52 Kalenderwochen im GitHub-Contribution-Graph-Stil (5-stufige Grünskala je nach Lernintensität pro Tag, Monats- und Wochentag-Beschriftung, Hover-Tooltip mit Datum/Kartenanzahl). Reine CSS-Grid-Lösung ohne externe Library, horizontal scrollbar auf Mobile, hell/dunkel-kompatibel.
+
+---
+
 ## [3.0.2] - 2026-07-29
 
 ### Verbessert

@@ -461,13 +461,17 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 
 Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler "Alle Listen"-Modus. Auswahl per Button oben.
 
-**Leitner-Übersicht:**
-- Anzahl Karten pro Fach (Fach 1–5 + archiviert)
-- Lernstreak (wie viele Tage in Folge gelernt) — Definition:
+**Lernaktivität** _(v3.0.3)_ — eigene Karte oben, unabhängig vom Listen-Filter (zählt über alle Listen der Person):
+- Drei Kennzahlen nebeneinander: 🔥 Aktueller Streak, Lerntage gesamt (Anzahl distinkter Tage mit mindestens einer beantworteten Karte, je über alle Zeit), Beste Woche (maximale Anzahl Lerntage in einer einzelnen Kalenderwoche, Mo–So, über alle Zeit)
+- Lerntag-Definition (gilt für Streak, Gesamt und Heatmap):
   - Leitner und Drill zählen beide
   - Mindestens eine Karte beantwortet (gewusst oder nicht gewusst) = Lerntag
   - Überspringen allein zählt nicht
   - Abgebrochene Session zählt wenn mindestens eine Karte beantwortet wurde
+- Heatmap der letzten 52 Kalenderwochen bis heute (GitHub-Contribution-Graph-Stil): Spalten = Kalenderwochen (links = älteste), Zeilen = Mo–So, 5-stufige Grün-Skala nach Anzahl beantworteter Karten am jeweiligen Tag relativ zum eigenen Maximum im sichtbaren Zeitraum (kein Tag = leer/grau), Monatsbeschriftung über den Spalten, Wochentag-Labels links (nur Mo/Mi/Fr), Tooltip beim Hover zeigt Datum + Anzahl gelernter Karten bzw. "nicht gelernt". Zukünftige Tage der laufenden Woche bleiben leer. Reine CSS-Grid/HTML-Lösung ohne externe Charting-Library, horizontal scrollbar auf kleinen Screens, hell/dunkel-kompatibel per `prefers-color-scheme`.
+
+**Leitner-Übersicht:**
+- Anzahl Karten pro Fach (Fach 1–5 + archiviert)
 - Richtig/Falsch-Statistik
 - Anzahl Karten in Warteschlange
 

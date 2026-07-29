@@ -377,6 +377,20 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 
 ## 9. Statistik 
 
+### Lernaktivität (Kennzahlen + Heatmap) _(v3.0.3)_
+[ ] Karte "Lernaktivität" erscheint oben auf `stats.php`, oberhalb des Listen-Filters, und bleibt beim Wechsel des Listen-Filters unverändert (zählt über alle Listen). _(v3.0.3)_
+[ ] Kennzahl "Aktueller Streak" stimmt mit dem bisherigen Streak-Badge in der Navbar überein. _(v3.0.3)_
+[ ] Kennzahl "Lerntage gesamt" entspricht der Anzahl distinkter Tage mit mindestens einer beantworteten Karte (gewusst/nicht gewusst oder richtig/falsch), über alle Zeit. _(v3.0.3)_
+[ ] Kennzahl "Beste Woche" entspricht der höchsten Anzahl Lerntage innerhalb einer einzelnen Kalenderwoche (Mo–So), über alle Zeit. _(v3.0.3)_
+[ ] Heatmap zeigt 52 Wochenspalten (älteste links, aktuelle Woche rechts), 7 Zeilen (Mo–So). _(v3.0.3)_
+[ ] Tage ohne Lernaktivität sind leer/grau, Tage mit Aktivität in 4 abgestuften Grüntönen je nach Anzahl beantworteter Karten relativ zum Maximum im sichtbaren Zeitraum. _(v3.0.3)_
+[ ] Monatsbeschriftungen erscheinen über der jeweils ersten Wochenspalte eines neuen Monats. _(v3.0.3)_
+[ ] Wochentag-Labels links zeigen nur "Mo", "Mi", "Fr". _(v3.0.3)_
+[ ] Hover über eine Tages-Zelle zeigt Tooltip mit Datum und Anzahl gelernter Karten bzw. "nicht gelernt". _(v3.0.3)_
+[ ] Tage nach heute (Rest der laufenden Kalenderwoche) werden leer dargestellt, ohne Tooltip. _(v3.0.3)_
+[ ] Heatmap ist auf schmalen Bildschirmen (Mobile) horizontal scrollbar, restliche Seite scrollt nicht mit. _(v3.0.3)_
+[ ] Bei aktiviertem dunklen Farbschema (Browser/OS) sind Heatmap-Farben und Beschriftungen weiterhin gut lesbar. _(v3.0.3)_
+[ ] Person ohne jegliche Lernaktivität: Kennzahlen zeigen 0, Heatmap komplett leer/grau, keine Fehler. _(v3.0.3)_
 
 ---
 

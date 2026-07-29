@@ -104,12 +104,13 @@ $stmt = $pdo->prepare("
 $stmt->execute([$person_id]);
 $dates = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
+$tz        = new DateTimeZone(TIMEZONE);
+$today     = new DateTimeImmutable('now', $tz);
+$today_str = $today->format('Y-m-d');
+$yesterday = $today->modify('-1 day')->format('Y-m-d');
+
 $streak = 0;
 if ($dates) {
-    $tz        = new DateTimeZone(TIMEZONE);
-    $today_str = (new DateTimeImmutable('now', $tz))->format('Y-m-d');
-    $yesterday = (new DateTimeImmutable('now', $tz))->modify('-1 day')->format('Y-m-d');
-
     if ($dates[0] === $today_str || $dates[0] === $yesterday) {
         $streak   = 1;
         $expected = (new DateTimeImmutable($dates[0], $tz))->modify('-1 day')->format('Y-m-d');
@@ -121,6 +122,65 @@ if ($dates) {
                 break;
             }
         }
+    }
+}
+
+// -------------------------------------------------------
+// Lernaktivität (Kennzahlen + Heatmap) — global, unabhängig vom Listen-Filter
+// -------------------------------------------------------
+$total_learn_days = count($dates);
+
+$best_week = 0;
+if ($dates) {
+    $week_counts = [];
+    foreach ($dates as $d) {
+        $key = (new DateTimeImmutable($d, $tz))->format('o-W');
+        $week_counts[$key] = ($week_counts[$key] ?? 0) + 1;
+    }
+    $best_week = max($week_counts);
+}
+
+// Heatmap: letzte 52 Wochen (Mo-So) bis heute
+$heatmap_weeks = 52;
+$this_monday   = $today->modify('monday this week');
+$heatmap_start = $this_monday->modify('-' . ($heatmap_weeks - 1) . ' weeks');
+
+$stmt = $pdo->prepare("
+    SELECT learn_date, COUNT(*) AS cnt
+    FROM learning_events
+    WHERE person_id = ? AND result != 'skipped' AND learn_date >= ?
+    GROUP BY learn_date
+");
+$stmt->execute([$person_id, $heatmap_start->format('Y-m-d')]);
+$day_counts = [];
+foreach ($stmt->fetchAll() as $row) {
+    $day_counts[$row['learn_date']] = (int) $row['cnt'];
+}
+$max_day_count = $day_counts ? max($day_counts) : 0;
+
+$heatmap_cells = [];
+$month_labels  = [];
+$last_month    = null;
+for ($w = 0; $w < $heatmap_weeks; $w++) {
+    $week_start = $heatmap_start->modify("+{$w} weeks");
+    $month_num  = (int) $week_start->format('n');
+    if ($month_num !== $last_month) {
+        $month_labels[$w] = $week_start->format('M');
+        $last_month = $month_num;
+    }
+    for ($d = 0; $d < 7; $d++) {
+        $date     = $week_start->modify("+{$d} days");
+        $date_str = $date->format('Y-m-d');
+        if ($date > $today) {
+            $heatmap_cells[] = null;
+            continue;
+        }
+        $cnt   = $day_counts[$date_str] ?? 0;
+        $level = 0;
+        if ($cnt > 0) {
+            $level = $max_day_count > 0 ? (int) min(4, max(1, ceil($cnt / $max_day_count * 4))) : 1;
+        }
+        $heatmap_cells[] = ['date' => $date_str, 'cnt' => $cnt, 'level' => $level];
     }
 }
 
@@ -200,11 +260,52 @@ $drill_pct   = $drill_total > 0 ? round($drill_stats['known'] / $drill_total * 1
 
 <div class="container mt-2" style="max-width:960px;">
 
-    <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
-        <h1 class="h4 mb-0">Statistik</h1>
-        <?php if ($streak > 0): ?>
-        <span class="badge bg-warning text-dark fs-6">🔥 <?= $streak ?> Tag<?= $streak > 1 ? 'e' : '' ?> Streak</span>
-        <?php endif; ?>
+    <h1 class="h4 mb-4">Statistik</h1>
+
+    <!-- Lernaktivität -->
+    <div class="card mb-4">
+        <div class="card-header fw-semibold">Lernaktivität</div>
+        <div class="card-body">
+            <div class="row g-3 mb-4 text-center">
+                <div class="col-4">
+                    <div class="fs-3">🔥 <?= $streak ?></div>
+                    <div class="small text-muted">Aktueller Streak</div>
+                </div>
+                <div class="col-4">
+                    <div class="fs-3"><?= $total_learn_days ?></div>
+                    <div class="small text-muted">Lerntage gesamt</div>
+                </div>
+                <div class="col-4">
+                    <div class="fs-3"><?= $best_week ?></div>
+                    <div class="small text-muted">Beste Woche</div>
+                </div>
+            </div>
+
+            <div class="heatmap-wrap">
+                <div class="heatmap-inner">
+                    <div class="heatmap-months">
+                        <?php foreach ($month_labels as $w => $label): ?>
+                        <span style="left:<?= $w * 14 ?>px;"><?= htmlspecialchars($label) ?></span>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="heatmap-body">
+                        <div class="heatmap-weekday-labels">
+                            <span>Mo</span><span></span><span>Mi</span><span></span><span>Fr</span><span></span><span></span>
+                        </div>
+                        <div class="heatmap-grid">
+                            <?php foreach ($heatmap_cells as $cell): ?>
+                                <?php if ($cell === null): ?>
+                                <div class="heatmap-cell heatmap-cell-empty"></div>
+                                <?php else: ?>
+                                <div class="heatmap-cell lvl-<?= $cell['level'] ?>"
+                                     title="<?= htmlspecialchars($cell['date']) ?><?= $cell['cnt'] > 0 ? ' — ' . $cell['cnt'] . ' Karte' . ($cell['cnt'] == 1 ? '' : 'n') . ' gelernt' : ' — nicht gelernt' ?>"></div>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Listen-Filter -->
