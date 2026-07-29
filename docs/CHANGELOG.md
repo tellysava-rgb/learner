@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.6] - 2026-07-29
+
+### Verbessert
+- `users.php`: "Admin entfernen"-Button ist jetzt unsichtbar (reserviert aber weiterhin den Platz für bündige Ausrichtung), wenn die Person der letzte verbleibende Admin ist — statt den Klick zuzulassen und erst danach per Fehlermeldung abzuweisen. Serverseitige Prüfung bleibt zusätzlich als Absicherung bestehen.
+
+---
+
 ## [3.2.5] - 2026-07-29
 
 ### Behoben

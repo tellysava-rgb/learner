@@ -151,7 +151,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Alle Personen laden
-$persons = $pdo->query("SELECT id, name, email, is_admin FROM persons ORDER BY name")->fetchAll();
+$persons     = $pdo->query("SELECT id, name, email, is_admin FROM persons ORDER BY name")->fetchAll();
+$admin_count = (int) $pdo->query("SELECT COUNT(*) FROM persons WHERE is_admin = 1")->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -217,6 +218,9 @@ $persons = $pdo->query("SELECT id, name, email, is_admin FROM persons ORDER BY n
                                 <button type="button" class="btn btn-sm btn-outline-secondary"
                                         data-bs-toggle="modal" data-bs-target="#resetModal<?= $p['id'] ?>"
                                         title="Passwort zurücksetzen" aria-label="Passwort zurücksetzen"><i class="bi bi-key"></i></button>
+                                <?php if ($p['is_admin'] && $admin_count <= 1): ?>
+                                <button type="button" class="btn btn-sm invisible" tabindex="-1" aria-hidden="true"><i class="bi bi-person-dash"></i></button>
+                                <?php else: ?>
                                 <form method="post" class="d-inline">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="action" value="toggle_admin">
@@ -229,6 +233,7 @@ $persons = $pdo->query("SELECT id, name, email, is_admin FROM persons ORDER BY n
                                             title="Zu Admin machen" aria-label="Zu Admin machen"><i class="bi bi-person-lock"></i></button>
                                     <?php endif; ?>
                                 </form>
+                                <?php endif; ?>
                                 <?php if ($p['id'] != $person_id): ?>
                                 <button type="button" class="btn btn-sm btn-outline-danger"
                                         data-bs-toggle="modal" data-bs-target="#deleteModal<?= $p['id'] ?>"

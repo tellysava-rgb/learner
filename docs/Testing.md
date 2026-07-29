@@ -537,7 +537,9 @@ Testtools: `curl` oder Claude Code mit `.mcp.json`.
 [ ] "Passwort zurücksetzen" mit unterschiedlichen Werten in Passwort/Wiederholung → Fehlermeldung, Passwort bleibt unverändert. _(v3.0.0)_
 [ ] "Zu Admin machen"-Icon (`bi-person-lock`) bei einer Nicht-Admin-Person → Status wechselt zu Admin-Badge, Icon wechselt zu `bi-person-dash`/"Admin entfernen". _(v3.0.0, Icon v3.0.1)_
 [ ] "Admin entfernen"-Icon (`bi-person-dash`) bei einer Admin-Person, sofern mind. ein weiterer Admin existiert → Status wechselt zu Person-Badge, Icon wechselt zu `bi-person-lock`/"Zu Admin machen". _(v3.0.0, Icon v3.0.1)_
-[ ] "Admin entfernen" beim LETZTEN verbleibenden Admin → Fehlermeldung "Der letzte verbleibende Admin kann nicht entfernt werden.", Status bleibt Admin. _(v3.0.0)_
+[ ] Gibt es nur einen einzigen Admin: "Admin entfernen"-Button ist bei dieser Person unsichtbar/nicht klickbar (reserviert aber denselben Platz wie bei anderen Zeilen), statt einen Klick zuzulassen und erst danach abzulehnen. _(v3.2.6)_
+[ ] Sobald ein zweiter Admin existiert: "Admin entfernen" wird bei beiden wieder normal angezeigt und funktioniert. _(v3.2.6)_
+[ ] Direkter POST mit `action=toggle_admin` auf den letzten verbleibenden Admin (Button ist ja ausgeblendet, Server-Check bleibt als Absicherung bestehen) → Fehlermeldung "Der letzte verbleibende Admin kann nicht entfernt werden.", Status bleibt Admin. _(v3.0.0, Button-Ausblendung v3.2.6)_
 [ ] Admin-Status-Änderung wirkt erst beim nächsten Login der betroffenen Person (nicht rückwirkend auf eine bereits laufende Session). _(v3.0.0)_
 [ ] Bei der eigenen Zeile (du) ist das "Person löschen"-Icon unsichtbar/nicht klickbar, reserviert aber denselben Platz — Aktions-Icons aller Zeilen bleiben untereinander bündig ausgerichtet. _(v3.2.0)_
 [ ] Bei jeder anderen Person erscheint das "Person löschen"-Icon (`bi-trash`) → öffnet Bestätigungs-Modal mit Warntext und Namenseingabe-Feld. _(v3.2.0)_
