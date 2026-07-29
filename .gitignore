@@ -14,3 +14,6 @@ Testing.md
 # Eigenes Session-Verzeichnis: nur die .htaccess-Schutzdatei wird versioniert, keine Session-Daten
 includes/sessions/*
 !includes/sessions/.htaccess
+
+# Claude-Code-Tooling (lokale Session-/Berechtigungskonfiguration, kein Projektcode)
+.claude/
