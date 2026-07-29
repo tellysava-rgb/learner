@@ -122,6 +122,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Einstellungen — <?= APP_NAME ?></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -139,6 +140,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                 <input type="hidden" name="action" value="logout">
                 <button class="btn btn-sm btn-outline-light">Logout</button>
             </form>
+            <a href="help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
         </div>
     </div>
 </nav>

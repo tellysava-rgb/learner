@@ -240,13 +240,17 @@ if ($person_id) {
                 <input type="hidden" name="action" value="logout">
                 <button type="submit" class="btn btn-sm btn-outline-light">Logout</button>
             </form>
+            <a href="help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
         </div>
         <?php else: ?>
-        <form method="post" class="ms-auto">
-            <?= csrf_field() ?>
-            <input type="hidden" name="action" value="logout">
-            <button type="submit" class="btn btn-sm btn-outline-light">Logout</button>
-        </form>
+        <div class="d-flex align-items-center gap-3 ms-auto">
+            <form method="post" class="d-inline">
+                <?= csrf_field() ?>
+                <input type="hidden" name="action" value="logout">
+                <button type="submit" class="btn btn-sm btn-outline-light">Logout</button>
+            </form>
+            <a href="help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
+        </div>
         <?php endif; ?>
     </div>
 </nav>

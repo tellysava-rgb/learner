@@ -209,6 +209,7 @@ if (str_starts_with($filter, 'box')) {
                 <input type="hidden" name="list_id" value="<?= $list_id ?>">
                 <button class="btn btn-sm btn-outline-light">Logout</button>
             </form>
+            <a href="help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
         </div>
     </div>
 </nav>

@@ -33,6 +33,17 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Startseite: kein "Mathe-Generator"-Button sichtbar. _(v0.5.0)_
 [ ] lists.php: "Mathe-Generator"-Button rechts oben sichtbar, führt zu math.php. _(v0.5.0)_
 
+### Hilfe-Icon in Navbar _(v2.8.0)_
+
+[ ] Auf jeder Seite mit Navbar erscheint ganz rechts, nach dem Logout-Button, ein Icon-Button (`bi-info-lg`, Tooltip "Hilfe"). _(v2.8.0)_
+[ ] Klick auf das Icon führt zu `help.php`. _(v2.8.0)_
+[ ] `help.php` ist bereits erreichbar direkt nach dem Login, bevor eine Person gewählt wurde (Navbar zeigt nur Logout + Hilfe-Icon, kein Personenname). _(v2.8.0)_
+[ ] `help.php` ohne Login → Redirect zu `index.php`. _(v2.8.0)_
+[ ] Auf `learn.php`/`drill.php`: Hilfe-Icon erscheint auch während einer aktiven Session (wenn statt Logout "Session abbrechen" angezeigt wird). _(v2.8.0)_
+[ ] `help.php`: Breadcrumb zeigt "Startseite > Hilfe". _(v2.8.0)_
+[ ] `help.php`: Accordion mit 8 Abschnitten, erster Abschnitt initial aufgeklappt, restliche eingeklappt; Klick klappt jeweils auf/zu. _(v2.8.0)_
+[ ] `help.php`: Logout-Button auf der Hilfeseite funktioniert wie auf jeder anderen Seite. _(v2.8.0)_
+
 ---
 
 ## 4. Übersicht 

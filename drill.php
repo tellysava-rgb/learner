@@ -356,6 +356,7 @@ if (!$state && !$done_data) {
                 <button class="btn btn-sm btn-outline-light">Logout</button>
             </form>
             <?php endif; ?>
+            <a href="help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
         </div>
     </div>
 </nav>

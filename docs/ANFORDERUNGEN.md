@@ -48,6 +48,7 @@
 - **Session-Abbruch:** Bei Bestätigung wird die Session server-seitig beendet (`$_SESSION['drill']` bzw. `$_SESSION['learn']` wird gelöscht) bevor zur Zielseite navigiert wird — verhindert Geisterzustände im Hintergrund
 - **Streak-Badge in Navbar:** Das 🔥-Badge mit Streak-Anzahl wird auf allen Seiten angezeigt (via Session-Cache, einmal täglich berechnet auf home.php). Verschwindet wenn heute und gestern kein Lerntag war.
 - **Container-Breite:** `lists.php` nutzt dieselbe (Bootstrap-Standard-)Container-Breite wie die Startseite `home.php` — kein eigenes `max-width` mehr _(v2.1.0)_
+- **Hilfe-Icon in Navbar** _(v2.8.0)_: Auf jeder Seite mit Navbar (alle ausser Login) erscheint ganz rechts, nach dem Logout-Button, ein Icon-Button (`bi-info-lg`, Tooltip "Hilfe") zu `help.php` — unabhängig davon, ob bereits eine Person gewählt ist.
 
 ---
 
@@ -435,6 +436,16 @@ Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler 
 
 ---
 
+## Hilfeseite _(v2.8.0)_
+
+- `help.php` — Handbuch/Hilfeseite, erreichbar über das Info-Icon (`bi-info-lg`) ganz rechts in der Navbar auf jeder Seite (siehe Abschnitt "Navigation")
+- Erfordert nur Login (`require_login()`), keine gewählte Person — dadurch auch direkt nach dem Login erreichbar, bevor eine Person gewählt wurde
+- Inhalt als Bootstrap-Accordion (8 Abschnitte, erster Abschnitt initial aufgeklappt): Einstieg/Login, Wortlisten verwalten, Wörter hinzufügen, Leitner-Modus, Drill-Modus, Aussprache (Audio & Lautschrift), Statistik & Streak, MCP-Server (kurz, für technisch interessierte Nutzer — inkl. Hinweis, dass der MCP-Server separat eingerichtet/konfiguriert werden muss, damit die Funktion nutzbar ist)
+- Nutzerorientiert mit Kernmechanik (z.B. 5 Leitner-Fächer, Warteschlangen-Prinzip, Drill-Übergang ins Leitner-System), aber ohne Datenbank-/Code-Details
+- Kein eigener Datenbankzugriff — rein statischer Erklärungstext, keine Formulare ausser Logout
+
+---
+
 ## Installation
 
 - Einmaliges `install.php` Script das:
@@ -538,6 +549,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
   export.php               ← CSV Export
   stats.php                ← Statistik-Dashboard
   math.php                 ← Mathe-Generator (Multiplikation + Division)
+  help.php                 ← Hilfe/Handbuch, erreichbar über Info-Icon in der Navbar
   settings.php             ← Einstellungsseite (alle Umgebungen, schreibt in config-runtime.php)
   install.php               ← Erstinstallation: Tabellen erstellen, Passwort setzen (manuell löschen nach Setup)
   mcp-server.php            ← MCP-Endpoint für Agenten (JSON-RPC über HTTP)

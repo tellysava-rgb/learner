@@ -5,6 +5,14 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [2.8.0] - 2026-07-29
+
+### Neu
+- Neue Hilfeseite `help.php`: kompaktes Handbuch als Bootstrap-Accordion (Einstieg/Login, Wortlisten, Wörter hinzufügen, Leitner, Drill, Aussprache, Statistik/Streak, MCP-Server kurz erwähnt inkl. Hinweis auf nötige Konfiguration).
+- Neuer Icon-Button (`bi-info-lg`, Tooltip "Hilfe") ganz rechts in der Navbar auf jeder Seite, nach dem Logout-Button — führt zu `help.php`.
+
+---
+
 ## [2.7.14] - 2026-07-28
 
 ### Behoben
