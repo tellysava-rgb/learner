@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.0] - 2026-07-29
+
+### Neu
+- `users.php`: Personen können jetzt vollständig gelöscht werden (Icon `bi-trash`, nicht bei der eigenen Zeile). Löscht unwiderruflich Listen, Karten, Lernfortschritt, Sessions und Events der Person über die bestehenden DB-Kaskaden, ausgeführt innerhalb einer expliziten Transaktion. Bestätigung per Modal mit Namenseingabe (Button erst aktiv, wenn der Name exakt eingetippt wurde). Selbstlöschen und Löschen des letzten verbleibenden Admins sind blockiert.
+
+---
+
 ## [3.1.1] - 2026-07-29
 
 ### Behoben

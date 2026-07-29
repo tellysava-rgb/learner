@@ -423,7 +423,7 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 - **Passwort zurücksetzen**: Admin setzt direkt ein neues Passwort für eine Person, ohne deren altes Passwort zu kennen (Modal, min. 8 Zeichen)
 - **Admin-Status umschalten**: Button pro Person — der letzte verbleibende Admin kann nicht entfernt werden
 - **Neue Person anlegen**: Name (eindeutig) + initiales Passwort (min. 8 Zeichen) + optionale E-Mail-Adresse (ebenfalls formatvalidiert) _(v3.0.0, Validierung v3.1.1)_ + optionales Admin-Flag
-- Kein Löschen von Personen (nicht vorgesehen, analog zum Rest der App)
+- **Person löschen** _(v3.2.0)_: Icon-Button (`bi-trash`) pro Person; bei der eigenen Zeile unsichtbar/nicht interagierbar (kein Selbstlöschen möglich, weder Button noch serverseitig), reserviert aber denselben Platz, damit die Aktions-Icons aller Zeilen bündig bleiben. Löscht die Person **unwiderruflich und vollständig** — eigene Listen, Karten (via Listen-Kaskade), gesamter Lernfortschritt (`card_progress`), Lernsessions und -events, alles über die bestehenden DB-Fremdschlüssel-Kaskaden (`ON DELETE CASCADE`), ausgeführt innerhalb einer expliziten Transaktion (Rollback bei Fehler). Bestätigung per Modal: der exakte Name der Person muss eingetippt werden (Button bleibt deaktiviert bis der Name exakt übereinstimmt), analog zu GitHub-Repo-Löschung. Der letzte verbleibende Admin kann nicht gelöscht werden (gleicher Schutz wie beim Entfernen des Admin-Status)
 - CSRF-geschützt, PRG-Muster wie überall sonst
 
 ---

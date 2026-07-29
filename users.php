@@ -90,6 +90,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // Person vollständig löschen (Listen, Karten, Fortschritt, Statistikdaten — per DB-Kaskade)
+    if ($action === 'delete_person') {
+        $target_id    = intval($_POST['person_id'] ?? 0);
+        $confirm_name = trim($_POST['confirm_name'] ?? '');
+
+        $stmt = $pdo->prepare("SELECT name, is_admin FROM persons WHERE id = ?");
+        $stmt->execute([$target_id]);
+        $target = $stmt->fetch();
+
+        if (!$target) {
+            $_SESSION['flash_error'] = 'Person nicht gefunden.';
+        } elseif ($target_id == $person_id) {
+            $_SESSION['flash_error'] = 'Du kannst dich nicht selbst löschen.';
+        } elseif ($confirm_name !== $target['name']) {
+            $_SESSION['flash_error'] = 'Name stimmt nicht überein, Person wurde nicht gelöscht.';
+        } elseif ((int) $target['is_admin'] === 1
+            && (int) $pdo->query("SELECT COUNT(*) FROM persons WHERE is_admin = 1")->fetchColumn() <= 1) {
+            $_SESSION['flash_error'] = 'Der letzte verbleibende Admin kann nicht gelöscht werden.';
+        } else {
+            try {
+                $pdo->beginTransaction();
+                $pdo->prepare("DELETE FROM persons WHERE id = ?")->execute([$target_id]);
+                $pdo->commit();
+                $_SESSION['flash_success'] = 'Person „' . $target['name'] . '" wurde vollständig gelöscht.';
+            } catch (PDOException $e) {
+                $pdo->rollBack();
+                $_SESSION['flash_error'] = 'Fehler beim Löschen der Person.';
+            }
+        }
+        header('Location: users.php');
+        exit;
+    }
+
     // Admin-Status umschalten
     if ($action === 'toggle_admin') {
         $target_id = intval($_POST['person_id'] ?? 0);
@@ -196,6 +229,13 @@ $persons = $pdo->query("SELECT id, name, email, is_admin FROM persons ORDER BY n
                                             title="Zu Admin machen" aria-label="Zu Admin machen"><i class="bi bi-person-lock"></i></button>
                                     <?php endif; ?>
                                 </form>
+                                <?php if ($p['id'] != $person_id): ?>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal<?= $p['id'] ?>"
+                                        title="Person löschen" aria-label="Person löschen"><i class="bi bi-trash"></i></button>
+                                <?php else: ?>
+                                <button type="button" class="btn btn-sm invisible" tabindex="-1" aria-hidden="true"><i class="bi bi-trash"></i></button>
+                                <?php endif; ?>
                             </div>
                         </td>
                     </tr>
@@ -253,6 +293,35 @@ $persons = $pdo->query("SELECT id, name, email, is_admin FROM persons ORDER BY n
                         </div>
                       </div>
                     </div>
+
+                    <?php if ($p['id'] != $person_id): ?>
+                    <!-- Modal: Person löschen -->
+                    <div class="modal fade" id="deleteModal<?= $p['id'] ?>" tabindex="-1" aria-hidden="true">
+                      <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                          <form method="post">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="action" value="delete_person">
+                            <input type="hidden" name="person_id" value="<?= $p['id'] ?>">
+                            <div class="modal-header">
+                              <h5 class="modal-title text-danger">Person löschen — <?= htmlspecialchars($p['name']) ?></h5>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+                            </div>
+                            <div class="modal-body">
+                              <p>Dies löscht <strong><?= htmlspecialchars($p['name']) ?></strong> unwiderruflich — inklusive aller eigenen Listen, Karten, Lernfortschritt und Statistikdaten. Diese Aktion kann nicht rückgängig gemacht werden.</p>
+                              <label class="form-label fw-medium">Gib zur Bestätigung den Namen <strong><?= htmlspecialchars($p['name']) ?></strong> ein</label>
+                              <input type="text" name="confirm_name" class="form-control confirm-delete-input"
+                                     data-expected="<?= htmlspecialchars($p['name']) ?>" autocomplete="off" required>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                              <button type="submit" class="btn btn-danger confirm-delete-submit" disabled>Endgültig löschen</button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                    <?php endif; ?>
                 <?php endforeach; ?>
                 </tbody>
             </table>
@@ -291,5 +360,13 @@ $persons = $pdo->query("SELECT id, name, email, is_admin FROM persons ORDER BY n
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.querySelectorAll('.confirm-delete-input').forEach(function (input) {
+    var submitBtn = input.closest('form').querySelector('.confirm-delete-submit');
+    input.addEventListener('input', function () {
+        submitBtn.disabled = input.value !== input.dataset.expected;
+    });
+});
+</script>
 </body>
 </html>

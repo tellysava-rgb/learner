@@ -508,6 +508,15 @@ Testtools: `curl` oder Claude Code mit `.mcp.json`.
 [ ] "Admin entfernen"-Icon (`bi-person-dash`) bei einer Admin-Person, sofern mind. ein weiterer Admin existiert → Status wechselt zu Person-Badge, Icon wechselt zu `bi-person-lock`/"Zu Admin machen". _(v3.0.0, Icon v3.0.1)_
 [ ] "Admin entfernen" beim LETZTEN verbleibenden Admin → Fehlermeldung "Der letzte verbleibende Admin kann nicht entfernt werden.", Status bleibt Admin. _(v3.0.0)_
 [ ] Admin-Status-Änderung wirkt erst beim nächsten Login der betroffenen Person (nicht rückwirkend auf eine bereits laufende Session). _(v3.0.0)_
+[ ] Bei der eigenen Zeile (du) ist das "Person löschen"-Icon unsichtbar/nicht klickbar, reserviert aber denselben Platz — Aktions-Icons aller Zeilen bleiben untereinander bündig ausgerichtet. _(v3.2.0)_
+[ ] Bei jeder anderen Person erscheint das "Person löschen"-Icon (`bi-trash`) → öffnet Bestätigungs-Modal mit Warntext und Namenseingabe-Feld. _(v3.2.0)_
+[ ] Im Lösch-Modal: "Endgültig löschen"-Button ist deaktiviert, solange das eingetippte Feld nicht exakt dem Namen der Person entspricht (Gross-/Kleinschreibung exakt). _(v3.2.0)_
+[ ] Falscher Name serverseitig eingereicht (z.B. per manipuliertem Request trotz deaktiviertem Button) → Fehlermeldung "Name stimmt nicht überein, Person wurde nicht gelöscht.", Person bleibt bestehen. _(v3.2.0)_
+[ ] Löschen einer Person mit korrektem Namen → Person UND alle ihre Listen, Karten (via Listen), Lernfortschritt, Lernsessions/-events sind vollständig aus der DB entfernt (keine Restdaten). _(v3.2.0)_
+[ ] Löschen einer Person, die öffentliche Listen besitzt, die von ANDEREN Personen gelernt werden → auch die eigenen `card_progress`-Einträge dieser anderen Personen zu den gelöschten Listen/Karten werden mitgelöscht (bestehende Kaskade). _(v3.2.0)_
+[ ] Versuch, sich selbst zu löschen (direkter POST-Request mit eigener `person_id`, z.B. Button ist ja ausgeblendet) → Fehlermeldung "Du kannst dich nicht selbst löschen.", keine Löschung. _(v3.2.0)_
+[ ] Löschen des LETZTEN verbleibenden Admins → Fehlermeldung "Der letzte verbleibende Admin kann nicht gelöscht werden.", Person bleibt bestehen. _(v3.2.0)_
+[ ] Löschvorgang läuft in einer Transaktion — bei einem simulierten Fehler bleiben alle Daten der Person unverändert erhalten (kein Teil-Löschen). _(v3.2.0)_
 
 ---
 
