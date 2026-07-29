@@ -370,6 +370,8 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Als Nicht-Admin eingeloggt: kein "Einstellungen"-Link in der Navbar sichtbar. _(v3.0.0)_
 [ ] Als Nicht-Admin `settings.php` direkt per URL aufgerufen → Redirect zu `home.php` mit Fehlermeldung "Nur für Admins zugänglich.", keine Einstellungen sichtbar. _(v3.0.0)_
 [ ] Einstellungen in 3 Gruppen: Allgemein, Leitner, Drill-Modus. _(v0.7.0)_
+[ ] Seite nutzt die breite Container-Variante (kein sichtbares `max-width`-Limit wie zuvor), zweispaltiges Layout ab Tablet-Breite (`md`) aufwärts: links Allgemein/Leitner/Drill, rechts E-Mail-Test + Deployment, beide Spalten gleich breit. _(v3.2.14)_
+[ ] Auf schmalen Bildschirmen (unter `md`): Spalten stapeln sich untereinander (erst Einstellungen, dann E-Mail-Test, dann Deployment), keine abgeschnittenen Inhalte. _(v3.2.14)_
 [ ] Alle 9 Einstellungen sichtbar, aktuelle Werte aus config.php korrekt angezeigt. _(v0.7.0)_
 [ ] Seitentitel ändern → Navbar zeigt neuen Titel nach Speichern. _(v0.7.0)_
 [ ] Default Kartenanzahl ändern → Leitner-Setup zeigt neuen Defaultwert. _(v0.7.0)_

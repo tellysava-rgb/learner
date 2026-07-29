@@ -396,6 +396,7 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 - Einstellungen werden **dauerhaft in `config-runtime.php`** geschrieben (gitignored, wird nie per Deploy überschrieben)
 - Auf Localhost: zusätzlicher "Localhost"-Badge sichtbar
 - PRG-Muster: nach Speichern Redirect auf GET, Flash-Meldung via Session
+- **Zweispaltiges Layout** _(v3.2.14)_: Seite nutzt die breite Container-Variante (wie `home.php`/`lists.php`, kein `max-width`-Limit mehr). Links (halbe Breite): Allgemein/Leitner/Drill-Einstellungen. Rechts (halbe Breite): E-Mail-Test und Deployment
 
 ### Konfigurierbare Werte (Gruppen: Allgemein / Leitner / Drill)
 | Gruppe | Einstellung | Konstante | Beschreibung | Bereich |

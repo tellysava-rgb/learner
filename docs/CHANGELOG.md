@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.14] - 2026-07-29
+
+### Verbessert
+- `settings.php`: zweispaltiges Layout — links Allgemein/Leitner/Drill-Einstellungen, rechts E-Mail-Test und Deployment, beide Spalten gleich breit. Seite nutzt dafür die breite Container-Variante wie `home.php`/`lists.php` (kein `max-width`-Limit mehr).
+
+---
+
 ## [3.2.13] - 2026-07-29
 
 ### Neu

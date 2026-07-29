@@ -127,7 +127,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Einstellungen', '']]) ?></div>
 
-<div class="container mt-2" style="max-width:960px;">
+<div class="container mt-2">
 
     <div class="d-flex align-items-center gap-2 mb-4">
         <h1 class="h4 mb-0">Einstellungen</h1>
@@ -148,7 +148,10 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
     </div>
     <?php endif; ?>
 
-    <form method="post" style="max-width:640px;">
+    <div class="row g-4">
+    <div class="col-md-6">
+
+    <form method="post">
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="save_settings">
 
@@ -280,8 +283,10 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
 
     </form>
 
-    <div class="mt-4" style="max-width:640px;">
-        <div class="card">
+    </div>
+    <div class="col-md-6">
+
+    <div class="card">
             <div class="list-group list-group-flush">
                 <div class="list-group-item bg-light py-2">
                     <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing:.05em;">E-Mail-Test</span>
@@ -296,7 +301,6 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                     </form>
                 </div>
             </div>
-        </div>
     </div>
 
     <?php
@@ -325,7 +329,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
     }
     ?>
     <?php if ($deploy_exists && $deploy_token !== ''): ?>
-    <div class="mt-4" style="max-width:640px;">
+    <div class="mt-4">
         <div class="card">
             <div class="list-group list-group-flush">
                 <div class="list-group-item bg-light py-2">
@@ -361,6 +365,9 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
         </div>
     </div>
     <?php endif; ?>
+
+    </div>
+    </div>
 
 </div>
 
