@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.8] - 2026-07-29
+
+### Behoben
+- `users.php`: "Endgültig löschen"-Button beim Personen-Löschen liess sich bei einem Nutzer trotz korrekt eingetipptem Namen nicht aktivieren (JS-Fehler `Cannot read properties of null`, reproduzierbar in Safari und Vivaldi). Statt die Ursache am bestehenden Mechanismus zu reparieren, wurde die Namenseingabe komplett durch eine Pflicht-Checkbox ersetzt ("Ich bin mir sicher...") — native HTML5-Validierung, kein Custom-JS mehr nötig, serverseitig zusätzlich über `confirm=1` abgesichert.
+
+---
+
 ## [3.2.7] - 2026-07-29
 
 ### Verbessert

@@ -92,8 +92,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Person vollständig löschen (Listen, Karten, Fortschritt, Statistikdaten — per DB-Kaskade)
     if ($action === 'delete_person') {
-        $target_id    = intval($_POST['person_id'] ?? 0);
-        $confirm_name = trim($_POST['confirm_name'] ?? '');
+        $target_id = intval($_POST['person_id'] ?? 0);
+        $confirmed = ($_POST['confirm'] ?? '') === '1';
 
         $stmt = $pdo->prepare("SELECT name, is_admin FROM persons WHERE id = ?");
         $stmt->execute([$target_id]);
@@ -103,8 +103,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['flash_error'] = 'Person nicht gefunden.';
         } elseif ($target_id == $person_id) {
             $_SESSION['flash_error'] = 'Du kannst dich nicht selbst löschen.';
-        } elseif ($confirm_name !== $target['name']) {
-            $_SESSION['flash_error'] = 'Name stimmt nicht überein, Person wurde nicht gelöscht.';
+        } elseif (!$confirmed) {
+            $_SESSION['flash_error'] = 'Löschung nicht bestätigt, Person wurde nicht gelöscht.';
         } elseif ((int) $target['is_admin'] === 1
             && (int) $pdo->query("SELECT COUNT(*) FROM persons WHERE is_admin = 1")->fetchColumn() <= 1) {
             $_SESSION['flash_error'] = 'Der letzte verbleibende Admin kann nicht gelöscht werden.';
@@ -314,13 +314,16 @@ $admin_count = (int) $pdo->query("SELECT COUNT(*) FROM persons WHERE is_admin = 
                             </div>
                             <div class="modal-body">
                               <p>Dies löscht <strong><?= htmlspecialchars($p['name']) ?></strong> unwiderruflich — inklusive aller eigenen Listen, Karten, Lernfortschritt und Statistikdaten. Diese Aktion kann nicht rückgängig gemacht werden.</p>
-                              <label class="form-label fw-medium">Gib zur Bestätigung den Namen <strong><?= htmlspecialchars($p['name']) ?></strong> ein</label>
-                              <input type="text" name="confirm_name" class="form-control confirm-delete-input"
-                                     data-expected="<?= htmlspecialchars($p['name']) ?>" autocomplete="off" required>
+                              <div class="form-check">
+                                <input type="checkbox" name="confirm" value="1" class="form-check-input" id="confirmDelete<?= $p['id'] ?>" required>
+                                <label class="form-check-label" for="confirmDelete<?= $p['id'] ?>">
+                                    Ich bin mir sicher, dass <strong><?= htmlspecialchars($p['name']) ?></strong> unwiderruflich gelöscht werden soll.
+                                </label>
+                              </div>
                             </div>
                             <div class="modal-footer">
                               <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                              <button type="submit" class="btn btn-danger confirm-delete-submit" disabled>Endgültig löschen</button>
+                              <button type="submit" class="btn btn-danger">Endgültig löschen</button>
                             </div>
                           </form>
                         </div>
@@ -365,13 +368,5 @@ $admin_count = (int) $pdo->query("SELECT COUNT(*) FROM persons WHERE is_admin = 
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-document.querySelectorAll('.confirm-delete-input').forEach(function (input) {
-    var submitBtn = input.closest('form').querySelector('.confirm-delete-submit');
-    input.addEventListener('input', function () {
-        submitBtn.disabled = input.value !== input.dataset.expected;
-    });
-});
-</script>
 </body>
 </html>

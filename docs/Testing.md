@@ -551,9 +551,9 @@ Testtools: `curl` oder Claude Code mit `.mcp.json`.
 [ ] Direkter POST mit `action=toggle_admin` auf den letzten verbleibenden Admin (Button ist ja ausgeblendet, Server-Check bleibt als Absicherung bestehen) → Fehlermeldung "Der letzte verbleibende Admin kann nicht entfernt werden.", Status bleibt Admin. _(v3.0.0, Button-Ausblendung v3.2.6)_
 [ ] Admin-Status-Änderung wirkt erst beim nächsten Login der betroffenen Person (nicht rückwirkend auf eine bereits laufende Session). _(v3.0.0)_
 [ ] Bei der eigenen Zeile (du) ist das "Person löschen"-Icon unsichtbar/nicht klickbar, reserviert aber denselben Platz — Aktions-Icons aller Zeilen bleiben untereinander bündig ausgerichtet. _(v3.2.0)_
-[ ] Bei jeder anderen Person erscheint das "Person löschen"-Icon (`bi-trash`) → öffnet Bestätigungs-Modal mit Warntext und Namenseingabe-Feld. _(v3.2.0)_
-[ ] Im Lösch-Modal: "Endgültig löschen"-Button ist deaktiviert, solange das eingetippte Feld nicht exakt dem Namen der Person entspricht (Gross-/Kleinschreibung exakt). _(v3.2.0)_
-[ ] Falscher Name serverseitig eingereicht (z.B. per manipuliertem Request trotz deaktiviertem Button) → Fehlermeldung "Name stimmt nicht überein, Person wurde nicht gelöscht.", Person bleibt bestehen. _(v3.2.0)_
+[ ] Bei jeder anderen Person erscheint das "Person löschen"-Icon (`bi-trash`) → öffnet Bestätigungs-Modal mit Warntext und Checkbox "Ich bin mir sicher...". _(v3.2.0, Checkbox statt Namenseingabe v3.2.8)_
+[ ] Im Lösch-Modal: "Endgültig löschen"-Button lässt sich erst absenden, wenn die Checkbox angehakt ist (native Browser-Validierung, kein Klick möglich solange leer). _(v3.2.8)_
+[ ] POST ohne `confirm=1` (z.B. per manipuliertem Request trotz Checkbox-Pflichtfeld) → Fehlermeldung "Löschung nicht bestätigt, Person wurde nicht gelöscht.", Person bleibt bestehen. _(v3.2.8)_
 [ ] Löschen einer Person mit korrektem Namen → Person UND alle ihre Listen, Karten (via Listen), Lernfortschritt, Lernsessions/-events sind vollständig aus der DB entfernt (keine Restdaten). _(v3.2.0)_
 [ ] Löschen einer Person, die öffentliche Listen besitzt, die von ANDEREN Personen gelernt werden → auch die eigenen `card_progress`-Einträge dieser anderen Personen zu den gelöschten Listen/Karten werden mitgelöscht (bestehende Kaskade). _(v3.2.0)_
 [ ] Versuch, sich selbst zu löschen (direkter POST-Request mit eigener `person_id`, z.B. Button ist ja ausgeblendet) → Fehlermeldung "Du kannst dich nicht selbst löschen.", keine Löschung. _(v3.2.0)_
