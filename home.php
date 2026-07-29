@@ -1,73 +1,19 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
-require_login();
+require_person();
 
-$person_id   = $_SESSION['person_id']   ?? null;
-$person_name = $_SESSION['person_name'] ?? null;
-$error       = $_SESSION['flash_error'] ?? '';
-$success     = '';
-unset($_SESSION['flash_error']);
+$person_id   = $_SESSION['person_id'];
+$error       = $_SESSION['flash_error']   ?? '';
+$success     = $_SESSION['flash_success'] ?? '';
+unset($_SESSION['flash_error'], $_SESSION['flash_success']);
 
 // --- POST-Aktionen ---
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_validate();
+    handle_navbar_actions($pdo);
     $action = $_POST['action'] ?? '';
-
-    // Person neu erstellen
-    if ($action === 'create_person') {
-        $name = trim($_POST['name'] ?? '');
-        if ($name === '') {
-            $error = 'Name darf nicht leer sein.';
-        } else {
-            try {
-                $stmt = $pdo->prepare("INSERT INTO persons (name) VALUES (?)");
-                $stmt->execute([$name]);
-                $new_id = (int) $pdo->lastInsertId();
-                session_regenerate_id(true);
-                $_SESSION['person_id']   = $new_id;
-                $_SESSION['person_name'] = $name;
-                header('Location: home.php');
-                exit;
-            } catch (PDOException $e) {
-                if ($e->getCode() === '23000') {
-                    $error = 'Dieser Name ist bereits vergeben. Bitte wähle einen anderen.';
-                } else {
-                    $error = 'Fehler beim Erstellen der Person.';
-                }
-            }
-        }
-    }
-
-    // Person auswählen
-    if ($action === 'select_person') {
-        $id = intval($_POST['person_id'] ?? 0);
-        $stmt = $pdo->prepare("SELECT id, name FROM persons WHERE id = ?");
-        $stmt->execute([$id]);
-        $p = $stmt->fetch();
-        if ($p) {
-            session_regenerate_id(true);
-            $_SESSION['person_id']   = $p['id'];
-            $_SESSION['person_name'] = $p['name'];
-            header('Location: home.php');
-            exit;
-        }
-        $error = 'Person nicht gefunden.';
-    }
-
-    // Person wechseln (abmelden als Person)
-    if ($action === 'switch_person') {
-        unset($_SESSION['person_id'], $_SESSION['person_name'], $_SESSION['streak'], $_SESSION['streak_date']);
-        session_regenerate_id(true);
-        header('Location: home.php');
-        exit;
-    }
-
-    // App-Logout
-    if ($action === 'logout') {
-        logout();
-    }
 
     // Täglich 10 Karten aktivieren (Button)
     if ($action === 'activate_cards' && $person_id) {
@@ -79,62 +25,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Personenliste laden (immer, für Auswahlmaske)
-$persons = $pdo->query("SELECT id, name FROM persons ORDER BY name")->fetchAll();
+// Eigene Listen laden
+$stmt = $pdo->prepare("
+    SELECT l.id, l.name, l.description, l.language_a, l.language_b, l.is_public, l.last_used_at,
+           COUNT(c.id) AS card_count
+    FROM lists l
+    LEFT JOIN cards c ON c.list_id = l.id
+    WHERE l.person_id = ?
+    GROUP BY l.id
+    ORDER BY l.last_used_at DESC, l.name
+");
+$stmt->execute([$person_id]);
+$own_lists = $stmt->fetchAll();
 
-// Wenn Person eingeloggt: eigene Listen laden
-$own_lists        = [];
+// Warteschlangen-Anzahl und heute fällige Karten (Leitner) pro Liste
 $queued_counts    = [];
 $due_today_counts = [];
-
-if ($person_id) {
+foreach ($own_lists as $list) {
     $stmt = $pdo->prepare("
-        SELECT l.id, l.name, l.description, l.language_a, l.language_b, l.is_public, l.last_used_at,
-               COUNT(c.id) AS card_count
-        FROM lists l
-        LEFT JOIN cards c ON c.list_id = l.id
-        WHERE l.person_id = ?
-        GROUP BY l.id
-        ORDER BY l.last_used_at DESC, l.name
+        SELECT
+            SUM(CASE WHEN cp.status = 'queued' THEN 1 ELSE 0 END) AS queued,
+            SUM(CASE WHEN cp.status = 'active' AND cp.next_due_date <= ? THEN 1 ELSE 0 END) AS due_today
+        FROM card_progress cp
+        JOIN cards c ON c.id = cp.card_id
+        WHERE cp.person_id = ? AND c.list_id = ?
     ");
-    $stmt->execute([$person_id]);
-    $own_lists = $stmt->fetchAll();
-
-    // Warteschlangen-Anzahl und heute fällige Karten (Leitner) pro Liste
-    foreach ($own_lists as $list) {
-        $stmt = $pdo->prepare("
-            SELECT
-                SUM(CASE WHEN cp.status = 'queued' THEN 1 ELSE 0 END) AS queued,
-                SUM(CASE WHEN cp.status = 'active' AND cp.next_due_date <= ? THEN 1 ELSE 0 END) AS due_today
-            FROM card_progress cp
-            JOIN cards c ON c.id = cp.card_id
-            WHERE cp.person_id = ? AND c.list_id = ?
-        ");
-        $stmt->execute([today(), $person_id, $list['id']]);
-        $row = $stmt->fetch();
-        $queued_counts[$list['id']]    = (int) ($row['queued'] ?? 0);
-        $due_today_counts[$list['id']] = (int) ($row['due_today'] ?? 0);
-    }
-
+    $stmt->execute([today(), $person_id, $list['id']]);
+    $row = $stmt->fetch();
+    $queued_counts[$list['id']]    = (int) ($row['queued'] ?? 0);
+    $due_today_counts[$list['id']] = (int) ($row['due_today'] ?? 0);
 }
 
 // Öffentliche Listen anderer Personen (Discover-Vorschau auf Startseite)
-$public_lists = [];
-if ($person_id) {
-    $stmt = $pdo->prepare("
-        SELECT l.id, l.name, l.description, l.language_a, l.language_b,
-               p.name AS owner_name, COUNT(c.id) AS card_count
-        FROM lists l
-        JOIN persons p ON p.id = l.person_id
-        LEFT JOIN cards c ON c.list_id = l.id
-        WHERE l.is_public = 1 AND l.person_id != ?
-        GROUP BY l.id
-        ORDER BY l.name
-        LIMIT 6
-    ");
-    $stmt->execute([$person_id]);
-    $public_lists = $stmt->fetchAll();
-}
+$stmt = $pdo->prepare("
+    SELECT l.id, l.name, l.description, l.language_a, l.language_b,
+           p.name AS owner_name, COUNT(c.id) AS card_count
+    FROM lists l
+    JOIN persons p ON p.id = l.person_id
+    LEFT JOIN cards c ON c.list_id = l.id
+    WHERE l.is_public = 1 AND l.person_id != ?
+    GROUP BY l.id
+    ORDER BY l.name
+    LIMIT 6
+");
+$stmt->execute([$person_id]);
+$public_lists = $stmt->fetchAll();
 
 function activate_queued_cards(PDO $pdo, int $person_id, array $list_ids, int $limit): void {
     $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
@@ -203,11 +138,9 @@ function get_streak(PDO $pdo, int $person_id): int {
     return $streak;
 }
 
-$streak = ($person_id) ? get_streak($pdo, $person_id) : 0;
-if ($person_id) {
-    $_SESSION['streak']      = $streak;
-    $_SESSION['streak_date'] = today();
-}
+$streak = get_streak($pdo, $person_id);
+$_SESSION['streak']      = $streak;
+$_SESSION['streak_date'] = today();
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -221,39 +154,7 @@ if ($person_id) {
 </head>
 <body>
 
-<!-- Navbar -->
-<nav class="navbar navbar-expand-sm navbar-dark bg-primary">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="home.php"><?= APP_NAME ?></a>
-        <?php if ($person_id): ?>
-        <div class="d-flex align-items-center gap-3 ms-auto">
-            <a href="settings.php" class="text-white-50 small text-decoration-none">Einstellungen</a>
-            <?= streak_badge() ?>
-            <span class="text-white small"><?= htmlspecialchars($person_name) ?></span>
-            <form method="post" class="d-inline">
-                <?= csrf_field() ?>
-                <input type="hidden" name="action" value="switch_person">
-                <button type="submit" class="btn btn-sm btn-outline-light">Person wechseln</button>
-            </form>
-            <form method="post" class="d-inline">
-                <?= csrf_field() ?>
-                <input type="hidden" name="action" value="logout">
-                <button type="submit" class="btn btn-sm btn-outline-light">Logout</button>
-            </form>
-            <a href="help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
-        </div>
-        <?php else: ?>
-        <div class="d-flex align-items-center gap-3 ms-auto">
-            <form method="post" class="d-inline">
-                <?= csrf_field() ?>
-                <input type="hidden" name="action" value="logout">
-                <button type="submit" class="btn btn-sm btn-outline-light">Logout</button>
-            </form>
-            <a href="help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
-        </div>
-        <?php endif; ?>
-    </div>
-</nav>
+<?php render_navbar($pdo); ?>
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', '']]) ?></div>
 
@@ -265,50 +166,6 @@ if ($person_id) {
 <?php if ($success): ?>
     <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
 <?php endif; ?>
-
-<?php if (!$person_id): ?>
-<!-- ==================== PERSONENWAHL ==================== -->
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <h2 class="h4 mb-4">Wer bist du?</h2>
-
-        <?php if ($persons): ?>
-        <div class="list-group mb-4">
-            <?php foreach ($persons as $p): ?>
-            <form method="post" class="d-block">
-                <?= csrf_field() ?>
-                <input type="hidden" name="action" value="select_person">
-                <input type="hidden" name="person_id" value="<?= $p['id'] ?>">
-                <button type="submit" class="list-group-item list-group-item-action">
-                    <?= htmlspecialchars($p['name']) ?>
-                </button>
-            </form>
-            <?php endforeach; ?>
-        </div>
-        <?php endif; ?>
-
-        <button class="btn btn-outline-secondary btn-sm" type="button"
-                data-bs-toggle="collapse" data-bs-target="#new-person-form"
-                aria-expanded="false" aria-controls="new-person-form">
-            + Neuen Benutzer hinzufügen
-        </button>
-        <div class="collapse<?= ($error && ($_POST['action'] ?? '') === 'create_person') ? ' show' : '' ?> mt-3" id="new-person-form">
-            <div class="card">
-                <div class="card-body">
-                    <form method="post" class="d-flex gap-2">
-                        <?= csrf_field() ?>
-                        <input type="hidden" name="action" value="create_person">
-                        <input type="text" name="name" class="form-control" placeholder="Name" required maxlength="100">
-                        <button type="submit" class="btn btn-primary">Erstellen</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<?php else: ?>
-<!-- ==================== STARTSEITE ==================== -->
 
 <div class="row g-4">
     <!-- Eigene Listen -->
@@ -409,7 +266,6 @@ if ($person_id) {
     <?php endif; ?>
 </div>
 
-<?php endif; ?>
 </div><!-- /container -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

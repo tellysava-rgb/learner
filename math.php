@@ -4,7 +4,6 @@ require_once __DIR__ . '/includes/db.php';
 require_person();
 
 $person_id   = $_SESSION['person_id'];
-$person_name = $_SESSION['person_name'];
 $error       = '';
 $success     = '';
 $warning     = '';
@@ -15,9 +14,9 @@ $from      = 1;
 $to        = 10;
 $list_name = '';
 
-if (($_POST['action'] ?? '') === 'logout') {
+if (in_array($_POST['action'] ?? '', ['logout', 'switch_to_person', 'change_own_password', 'change_own_email'], true)) {
     csrf_validate();
-    logout();
+    handle_navbar_actions($pdo);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'generate') {
@@ -109,21 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'gener
 </head>
 <body>
 
-<nav class="navbar navbar-expand-sm navbar-dark bg-primary">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="home.php"><?= APP_NAME ?></a>
-        <div class="ms-auto d-flex align-items-center gap-3">
-            <?= streak_badge() ?>
-            <span class="text-white small"><?= htmlspecialchars($person_name) ?></span>
-            <form method="post" class="d-inline">
-                <?= csrf_field() ?>
-                <input type="hidden" name="action" value="logout">
-                <button class="btn btn-sm btn-outline-light">Logout</button>
-            </form>
-            <a href="help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
-        </div>
-    </div>
-</nav>
+<?php render_navbar($pdo); ?>
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Meine Listen', 'lists.php'], ['Mathe-Generator', '']]) ?></div>
 

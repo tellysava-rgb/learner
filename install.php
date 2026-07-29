@@ -39,9 +39,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
                 CREATE TABLE IF NOT EXISTS persons (
-                    id         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                    name       VARCHAR(100) NOT NULL,
-                    created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    id                   INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    name                 VARCHAR(100) NOT NULL,
+                    password_hash        VARCHAR(255) NULL DEFAULT NULL,
+                    is_admin             TINYINT(1)   NOT NULL DEFAULT 0,
+                    email                VARCHAR(255) NULL DEFAULT NULL,
+                    reset_token_hash     VARCHAR(64)  NULL DEFAULT NULL,
+                    reset_token_expires  DATETIME     NULL DEFAULT NULL,
+                    created_at           TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE KEY unique_person_email (email)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
                 CREATE TABLE IF NOT EXISTS lists (

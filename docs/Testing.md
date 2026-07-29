@@ -5,8 +5,17 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 
 ---
 
-## 1. Login / DB 
+## 1. Login / DB
 
+### Login mit Name + eigenem Passwort _(v3.0.0)_
+
+[ ] Login-Formular zeigt Feld "Name" und Feld "Passwort" (kein reines Passwort-Formular mehr). _(v3.0.0)_
+[ ] Korrekter Name + korrektes Passwort → Login gelingt, landet direkt auf der eigenen Startseite (kein "Wer bist du?"-Zwischenschritt mehr). _(v3.0.0)_
+[ ] Falscher Name (existiert nicht) → generische Fehlermeldung "Name oder Passwort falsch.", kein Hinweis dass der Name unbekannt ist. _(v3.0.0)_
+[ ] Korrekter Name, falsches Passwort → dieselbe generische Fehlermeldung. _(v3.0.0)_
+[ ] Bereits eingeloggt und `index.php` erneut aufgerufen → Redirect zu `home.php`. _(v3.0.0)_
+[ ] Migration (einmalig nach Update): jede bestehende Person kann sich mit ihrem bisherigen Namen und dem Passwort `123456` einloggen. _(v3.0.0)_
+[ ] Migration: Person "Beat" hat nach der Migration Admin-Status (sichtbar z.B. an "Einstellungen"-Link und "Person wechseln" in der Navbar). _(v3.0.0)_
 
 ---
 
@@ -41,7 +50,8 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] `help.php` ohne Login → Redirect zu `index.php`. _(v2.8.0)_
 [ ] Auf `learn.php`/`drill.php`: Hilfe-Icon erscheint auch während einer aktiven Session (wenn statt Logout "Session abbrechen" angezeigt wird). _(v2.8.0)_
 [ ] `help.php`: Breadcrumb zeigt "Startseite > Hilfe". _(v2.8.0)_
-[ ] `help.php`: Accordion mit 8 Abschnitten, erster Abschnitt initial aufgeklappt, restliche eingeklappt; Klick klappt jeweils auf/zu. _(v2.8.0)_
+[ ] `help.php`: Accordion mit 9 Abschnitten, erster Abschnitt initial aufgeklappt, restliche eingeklappt; Klick klappt jeweils auf/zu. _(v2.8.0, 9. Abschnitt "Für Admins" ergänzt v3.0.0)_
+[ ] `help.php`: Abschnitt "Für Admins: Einstellungen & Benutzerverwaltung" beschreibt Einstellungen, Benutzerverwaltung und "Person wechseln" korrekt als admin-only. _(v3.0.0)_
 [ ] `help.php`: Logout-Button auf der Hilfeseite funktioniert wie auf jeder anderen Seite. _(v2.8.0)_
 
 ---
@@ -322,10 +332,11 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 
 ---
 
-## 8. Einstellungen (Localhost) _(v0.6.3)_
+## 8. Einstellungen (nur Admin) _(v0.6.3, admin-only seit v3.0.0)_
 
-[ ] Auf localhost: "Einstellungen"-Link in Navbar der Startseite sichtbar. _(v0.6.3)_
-[ ] Auf Prod-URL: kein Einstellungen-Link, settings.php gibt HTTP 403. _(v0.6.3)_
+[ ] Als Admin eingeloggt: "Einstellungen"-Link in Navbar der Startseite sichtbar. _(v3.0.0)_
+[ ] Als Nicht-Admin eingeloggt: kein "Einstellungen"-Link in der Navbar sichtbar. _(v3.0.0)_
+[ ] Als Nicht-Admin `settings.php` direkt per URL aufgerufen → Redirect zu `home.php` mit Fehlermeldung "Nur für Admins zugänglich.", keine Einstellungen sichtbar. _(v3.0.0)_
 [ ] Einstellungen in 3 Gruppen: Allgemein, Leitner, Drill-Modus. _(v0.7.0)_
 [ ] Alle 9 Einstellungen sichtbar, aktuelle Werte aus config.php korrekt angezeigt. _(v0.7.0)_
 [ ] Seitentitel ändern → Navbar zeigt neuen Titel nach Speichern. _(v0.7.0)_
@@ -347,12 +358,12 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Auf Prod: User bleibt auch nach mehreren Stunden Inaktivität (deutlich über 24 Min.) eingeloggt, KEIN vorzeitiger Logout mehr trotz Hoster-Cron. _(v2.7.14, behebt Wiederauftreten von v2.7.13)_
 [ ] Nach längerer Nutzung: alte Session-Dateien in `includes/sessions/` werden mit der Zeit bereinigt, sammeln sich nicht unbegrenzt an (PHPs eigene GC läuft für das eigene Verzeichnis). _(v2.7.14)_
 
-### Passwort ändern _(v0.8.0)_
+### Deploy nur mit Admin-Session _(v3.0.0)_
 
-[ ] Falsches aktuelles Passwort → Fehlermeldung, Passwort unverändert. _(v0.8.0)_
-[ ] Neues Passwort unter 8 Zeichen → Fehlermeldung. _(v0.8.0)_
-[ ] Neues Passwort und Wiederholung stimmen nicht überein → Fehlermeldung. _(v0.8.0)_
-[ ] Korrektes aktuelles Passwort + gültiges neues Passwort → Flash "Passwort erfolgreich geändert.", Login mit neuem Passwort möglich. _(v0.8.0)_
+[ ] `deploy.php` direkt per URL mit gültigem Token, aber OHNE eingeloggte Admin-Session (z.B. neuer Browser/Incognito) → HTTP 403 "Admin-Login erforderlich...". _(v3.0.0)_
+[ ] `deploy.php` mit gültigem Token UND aktiver Admin-Session → funktioniert wie bisher (Version wird aktualisiert). _(v3.0.0)_
+[ ] "Deploy starten"-Button in `settings.php` funktioniert weiterhin unverändert (Browser-Session wird automatisch mitgeschickt). _(v3.0.0)_
+[ ] Eingeloggt als Nicht-Admin: `deploy.php` mit gültigem Token → ebenfalls HTTP 403. _(v3.0.0)_
 
 ---
 
@@ -433,4 +444,90 @@ Testtools: `curl` oder Claude Code mit `.mcp.json`.
 [ ] ChatGPT: Karte über den Connector hinzufügen → Karte erscheint korrekt in der DB. _(v2.0.1)_
 [ ] Claude Desktop via `mcp-remote` mit Authorization-Header eingerichtet → Server erreichbar. _(v2.0.1)_
 [ ] claude.ai Browser-Konnektor (ohne OAuth) → schlägt wie erwartet fehl (bekannte Einschränkung, kein Bug). _(v2.0.1)_
+
+---
+
+## 11. Eigenes Konto (Passwort + E-Mail, alle Personen) _(v3.0.0)_
+
+[ ] Auf jeder Seite: Schlüssel-Icon (`bi-key`, Tooltip "Passwort ändern") neben dem Personennamen öffnet ein Modal "Konto". _(v3.0.0)_
+[ ] Falsches aktuelles Passwort → Fehlermeldung, Passwort unverändert. _(v3.0.0)_
+[ ] Neues Passwort unter 8 Zeichen → Fehlermeldung. _(v3.0.0)_
+[ ] Neues Passwort und Wiederholung stimmen nicht überein → Fehlermeldung. _(v3.0.0)_
+[ ] Korrektes aktuelles Passwort + gültiges neues Passwort → Flash "Passwort erfolgreich geändert.", Login mit neuem Passwort möglich, altes Passwort funktioniert nicht mehr. _(v3.0.0)_
+[ ] Diese Funktion steht JEDER Person zur Verfügung, nicht nur Admins. _(v3.0.0)_
+[ ] Im selben Modal: eigene E-Mail-Adresse setzen/ändern, unabhängig vom Passwort-Formular. _(v3.0.0)_
+[ ] E-Mail-Feld leer speichern → E-Mail-Adresse wird entfernt (Flash "E-Mail-Adresse entfernt."). _(v3.0.0)_
+[ ] E-Mail-Adresse setzen, die bereits einer anderen Person gehört → Fehlermeldung, keine Änderung. _(v3.0.0)_
+[ ] Nach dem Setzen: Feld zeigt beim erneuten Öffnen des Modals die gespeicherte E-Mail-Adresse vorausgefüllt. _(v3.0.0)_
+
+---
+
+## 12. Benutzerverwaltung (`users.php`, nur Admin) _(v3.0.0)_
+
+[ ] Als Admin: Icon-Button (`bi-person-gear`, Tooltip "Benutzerverwaltung") in der zentralen Navbar auf JEDER Seite sichtbar, neben "Einstellungen", führt zu `users.php`. _(v3.0.0)_
+[ ] Als Nicht-Admin: kein "Benutzerverwaltung"-Icon in der Navbar sichtbar. _(v3.0.0)_
+[ ] Als Nicht-Admin `users.php` direkt per URL aufgerufen → Redirect zu `home.php` mit Fehlermeldung, kein Zugriff. _(v3.0.0)_
+[ ] `users.php`: Breadcrumb zeigt "Startseite > Benutzerverwaltung" — NICHT unter "Einstellungen" verschachtelt. _(v3.0.0)_
+[ ] `settings.php`: keine "Benutzerverwaltung"-Karte/Link mehr auf der Seite selbst (nur noch über das Navbar-Icon erreichbar). _(v3.0.0)_
+[ ] Als Admin: Tabelle zeigt alle Personen mit Name, E-Mail (oder "–" wenn keine hinterlegt), Status-Badge (Admin/Person), eigene Zeile mit "(du)"-Hinweis. _(v3.0.0)_
+[ ] "Neue Person anlegen": Name + Passwort + Passwort-Wiederholung (beide min. 8 Zeichen, müssen identisch sein) + optionale E-Mail + optionales Admin-Häkchen → Person wird angelegt, kann sich sofort einloggen. _(v3.0.0)_
+[ ] Neue Person anlegen mit unterschiedlichen Passwort/Wiederholung-Werten → Fehlermeldung "Die Passwörter stimmen nicht überein.", Person wird nicht angelegt. _(v3.0.0)_
+[ ] Neue Person mit bereits vergebenem Namen anlegen → Fehlermeldung. _(v3.0.0)_
+[ ] Neue Person mit bereits vergebener E-Mail-Adresse anlegen → Fehlermeldung, Person wird nicht angelegt. _(v3.0.0)_
+[ ] "E-Mail"-Button bei einer Person → Modal, E-Mail setzen/ändern/entfernen (leeres Feld speichern = entfernen). _(v3.0.0)_
+[ ] E-Mail-Adresse setzen, die bereits einer anderen Person gehört → Fehlermeldung, keine Änderung. _(v3.0.0)_
+[ ] "Passwort zurücksetzen" bei einer Person → Modal mit neuem Passwort + Wiederholung (min. 8 Zeichen, müssen identisch sein, kein altes Passwort nötig) → Person kann sich mit neuem Passwort einloggen. _(v3.0.0)_
+[ ] "Passwort zurücksetzen" mit unterschiedlichen Werten in Passwort/Wiederholung → Fehlermeldung, Passwort bleibt unverändert. _(v3.0.0)_
+[ ] "Zu Admin machen" bei einer Nicht-Admin-Person → Status wechselt zu Admin-Badge. _(v3.0.0)_
+[ ] "Admin entfernen" bei einer Admin-Person, sofern mind. ein weiterer Admin existiert → Status wechselt zu Person-Badge. _(v3.0.0)_
+[ ] "Admin entfernen" beim LETZTEN verbleibenden Admin → Fehlermeldung "Der letzte verbleibende Admin kann nicht entfernt werden.", Status bleibt Admin. _(v3.0.0)_
+[ ] Admin-Status-Änderung wirkt erst beim nächsten Login der betroffenen Person (nicht rückwirkend auf eine bereits laufende Session). _(v3.0.0)_
+
+---
+
+## 13. "Person wechseln" (nur Admin) _(v3.0.0)_
+
+[ ] Als Admin: Dropdown-Icon "Person wechseln" (`bi-person-lines-fill`) in der zentralen Navbar auf JEDER Seite sichtbar (nur wenn mehr als eine Person existiert). _(v3.0.0)_
+[ ] Als Nicht-Admin: kein "Person wechseln"-Element sichtbar. _(v3.0.0)_
+[ ] Admin wählt eine andere (Nicht-Admin-)Person aus dem Dropdown → agiert danach als diese Person (eigene Listen/Fortschritt dieser Person sichtbar). _(v3.0.0)_
+[ ] Nach dem Wechsel zu einer Nicht-Admin-Person: "Benutzerverwaltung"- und "Einstellungen"-Icons verschwinden aus der Navbar (genau wie bei der echten Person). _(v3.0.0)_
+[ ] Nach dem Wechsel zu einer Nicht-Admin-Person: `settings.php`/`deploy.php`/`users.php` direkt per URL aufgerufen → blockiert, genau wie für die echte Person. _(v3.0.0)_
+[ ] Nach dem Wechsel zu einer Nicht-Admin-Person: "Person wechseln"-Icon bleibt trotzdem sichtbar und funktioniert weiterhin (Ausnahme von der Berechtigungs-Übernahme). _(v3.0.0)_
+[ ] Admin kann über dasselbe Dropdown zurück zu seiner eigenen Person wechseln → alle Admin-Icons und -Zugriffe sind wieder vorhanden. _(v3.0.0)_
+[ ] Aktuell aktive Person ist im Dropdown optisch hervorgehoben (z.B. "active"-Zustand). _(v3.0.0)_
+[ ] Person wechseln funktioniert von JEDER Seite aus (nicht nur von der Startseite) und landet nach dem Wechsel wieder auf derselben Seite. _(v3.0.0)_
+
+---
+
+## 14. Passwort vergessen (E-Mail-Reset) _(v3.0.0)_
+
+[ ] Login-Seite (`index.php`) zeigt Link "Passwort vergessen?" unterhalb des Login-Formulars. _(v3.0.0)_
+[ ] `forgot-password.php`: E-Mail eingeben, die KEINER Person zugeordnet ist → generische Erfolgsmeldung ("Falls diese E-Mail-Adresse..."), keine Mail wird verschickt. _(v3.0.0)_
+[ ] `forgot-password.php`: E-Mail eingeben, die einer Person mit hinterlegter E-Mail zugeordnet ist → dieselbe generische Erfolgsmeldung, UND eine E-Mail mit Reset-Link wird verschickt. _(v3.0.0)_
+[ ] Beide Fälle (bekannte/unbekannte E-Mail) sind an der Antwort nicht unterscheidbar (keine Rückschlüsse möglich, welche E-Mails registriert sind). _(v3.0.0)_
+[ ] E-Mail enthält einen Link auf `reset-password.php?token=...` mit korrekter Domain/Pfad (funktioniert sowohl auf Dev als auch auf Prod). _(v3.0.0)_
+[ ] `reset-password.php` mit gültigem, noch nicht abgelaufenem Token → Formular für neues Passwort erscheint. _(v3.0.0)_
+[ ] `reset-password.php` mit ungültigem/erfundenem Token → Fehlermeldung "ungültig oder abgelaufen", Link zurück zu `forgot-password.php`. _(v3.0.0)_
+[ ] `reset-password.php` mit einem Token, das älter als 60 Minuten ist → dieselbe "ungültig oder abgelaufen"-Fehlermeldung. _(v3.0.0)_
+[ ] Neues Passwort unter 8 Zeichen → Fehlermeldung, Token bleibt gültig (nochmaliger Versuch möglich). _(v3.0.0)_
+[ ] Neues Passwort und Wiederholung stimmen nicht überein → Fehlermeldung. _(v3.0.0)_
+[ ] Gültiges neues Passwort gesetzt → Erfolgsmeldung, Login mit neuem Passwort funktioniert. _(v3.0.0)_
+[ ] Nach erfolgreichem Reset: derselbe Link (Token) erneut aufgerufen → "ungültig oder abgelaufen" (Token ist nach Gebrauch entwertet, nicht wiederverwendbar). _(v3.0.0)_
+[ ] Person ohne hinterlegte E-Mail-Adresse: `forgot-password.php` mit einer beliebigen E-Mail führt nie zu einem Reset dieser Person (da keine Zuordnung existiert). _(v3.0.0)_
+[ ] Bereits eingeloggt und `forgot-password.php`/`reset-password.php` aufgerufen → Redirect zu `home.php`. _(v3.0.0)_
+
+---
+
+## 15. Zentrale Navbar (alle Seiten) _(v3.0.0)_
+
+[ ] Reihenfolge der Navbar-Elemente (rechtsbündig) ist auf JEDER Seite identisch: Streak-Badge, Personenname, Passwort ändern (`bi-key`), Person wechseln (`bi-person-lines-fill`, nur Admin), Benutzerverwaltung (`bi-person-gear`, nur Admin), Einstellungen (`bi-gear`, nur Admin), Logout (`bi-box-arrow-right`), Hilfe (`bi-info-lg`). _(v3.0.0)_
+[ ] Stichprobe auf mind. 3 verschiedenen Seiten (z.B. `lists.php`, `edit.php`, `stats.php`) zeigt exakt dieselbe Navbar mit denselben Icons in derselben Reihenfolge wie auf `home.php`. _(v3.0.0)_
+[ ] Logout-Button zeigt nur noch das Icon `bi-box-arrow-right`, keinen Text "Logout" mehr. _(v3.0.0)_
+[ ] Einstellungen-Element zeigt nur noch das Icon `bi-gear`, keinen Text "Einstellungen" mehr. _(v3.0.0)_
+[ ] "Person wechseln"-Dropdown zeigt nur noch das Icon `bi-person-lines-fill`, keinen Text "Person wechseln" mehr — Dropdown-Pfeil und Personenauswahl funktionieren weiterhin wie zuvor. _(v3.0.0)_
+[ ] Logout funktioniert von jeder Seite aus identisch (führt zu `index.php`). _(v3.0.0)_
+[ ] `learn.php`/`drill.php` OHNE aktive Session zeigen dieselbe zentrale Navbar wie alle anderen Seiten. _(v3.0.0)_
+[ ] `learn.php` MIT aktiver Session: weiterhin "Session abbrechen" statt der Standard-Navbar-Elemente (Sonderfall bleibt bestehen, unverändert). _(v3.0.0)_
+[ ] `drill.php` MIT aktiver Session: weiterhin Timer + "gemeistert"-Zähler + "Session abbrechen" statt der Standard-Navbar-Elemente (Sonderfall bleibt bestehen, unverändert). _(v3.0.0)_
+[ ] Konto-Modal (Passwort/E-Mail ändern) funktioniert von JEDER Seite aus (nicht nur `home.php`) und landet nach dem Speichern wieder auf derselben Seite. _(v3.0.0)_
 

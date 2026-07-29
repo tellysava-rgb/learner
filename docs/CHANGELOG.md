@@ -5,6 +5,34 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.0.0] - 2026-07-29
+
+### Breaking
+- **Globales Passwort entfernt.** Jede Person hat jetzt ein eigenes Login (bestehendes eindeutiges Namensfeld + eigenes Passwort) — der bisherige "Wer bist du?"-Auswahlschritt nach dem Login entfällt, Login führt direkt auf die eigene Startseite.
+- **Admin-Rolle eingeführt** (`persons.is_admin`): nur Admins dürfen `settings.php`, `deploy.php` und die neue Benutzerverwaltung (`users.php`) öffnen, sowie als andere Person agieren ("Person wechseln", jetzt auf Admins beschränkt).
+- **Migration**: bestehende Personen bekommen einmalig automatisch das Passwort `123456` gesetzt (per DB-Migration, läuft beim ersten Request nach dem Update auf beiden Umgebungen) — jede Person sollte es danach selbst ändern. Die Person "Beat" wird automatisch Admin.
+- `deploy.php` verlangt jetzt zusätzlich zum Token eine aktive Admin-Session — ein reiner Token-Aufruf per Lesezeichen ohne Login funktioniert nicht mehr.
+
+### Neu
+- Neue Seite `users.php` (nur Admin): Personen anlegen, Passwort zurücksetzen, Admin-Status umschalten (mit Schutz gegen Entfernen des letzten Admins) — direkt über ein Icon (`bi-person-gear`) in der Navbar erreichbar, neben "Einstellungen".
+- Jede Person kann ihr eigenes Passwort selbst ändern (Modal "Konto").
+- Optionale **E-Mail-Adresse pro Person** — jede Person kann sie selbst im "Konto"-Modal setzen/ändern/entfernen, Admins zusätzlich für jede Person über `users.php`.
+- **Passwort vergessen** (`forgot-password.php`, `reset-password.php`): Link auf der Login-Seite, E-Mail eingeben → falls einer Person zugeordnet, wird ein 60 Minuten gültiger Einmal-Link per E-Mail verschickt (PHPs `mail()`, kein SMTP). Token wird nur gehasht gespeichert, ist nach Gebrauch entwertet. Antwort ist immer identisch, unabhängig davon ob die E-Mail existiert (verhindert Enumeration). Ohne hinterlegte E-Mail bleibt der Reset weiterhin nur über den Admin (`users.php`) möglich.
+- `help.php`: neuer Abschnitt "Für Admins: Einstellungen & Benutzerverwaltung", Login-Beschreibung auf das neue Modell aktualisiert.
+- **Zentrale Navbar**: eine einzige Funktion `render_navbar($pdo)` in `includes/auth.php` rendert die Navbar auf jeder Seite (statt pro Seite dupliziertem HTML) — Icons/Reihenfolge werden nur an einer Stelle gepflegt. Reihenfolge: Streak-Badge, Personenname, Passwort ändern (`bi-key`), Person wechseln (`bi-person-lines-fill`, nur Admin), Benutzerverwaltung (`bi-person-gear`, nur Admin), Einstellungen (`bi-gear`, nur Admin), Logout (`bi-box-arrow-right`), Hilfe (`bi-info-lg`). Zugehörige Aktionen laufen über `handle_navbar_actions($pdo)`, ebenfalls zentral.
+- **"Person wechseln" übernimmt jetzt exakt die Berechtigungen der Zielperson** (sieht z.B. keine Admin-Icons mehr, `settings.php`/`users.php` sind blockiert, wenn als Nicht-Admin agiert wird) — einzige Ausnahme: das Recht, die Person erneut zu wechseln, bleibt erhalten (verhindert Selbst-Aussperren). Technisch über ein separates Session-Flag `real_is_admin`, das beim Wechseln unverändert bleibt.
+
+### Entfernt
+- Die bisherige globale Passwortänderung in `settings.php` (bezog sich auf das jetzt entfernte globale Passwort).
+- Die Personenwahl-Ansicht ("Wer bist du?") sowie "Neuen Benutzer hinzufügen" auf der Startseite — Personen werden jetzt ausschliesslich über `users.php` angelegt.
+- Die "Benutzerverwaltung"-Karte in `settings.php` (ersetzt durch das direkte Navbar-Icon).
+- Text-Beschriftungen "Einstellungen", "Person wechseln" und "Logout" in der Navbar (jetzt reine Icon-Buttons mit Tooltip).
+
+### Behoben
+- `users.php`: "Neue Person anlegen" und "Passwort zurücksetzen" verlangten das neue Passwort nur einmal (Tippfehler unbemerkt möglich) — beide Formulare verlangen es jetzt zweimal und prüfen auf Übereinstimmung, analog zu den bereits bestehenden Passwort-Formularen auf der Startseite und in `reset-password.php`.
+
+---
+
 ## [2.8.0] - 2026-07-29
 
 ### Neu

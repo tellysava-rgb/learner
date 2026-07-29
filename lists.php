@@ -4,7 +4,6 @@ require_once __DIR__ . '/includes/db.php';
 require_person();
 
 $person_id   = $_SESSION['person_id'];
-$person_name = $_SESSION['person_name'];
 $error   = $_SESSION['flash_error'] ?? '';
 $success = $_SESSION['flash_success'] ?? '';
 unset($_SESSION['flash_error'], $_SESSION['flash_success']);
@@ -12,6 +11,7 @@ unset($_SESSION['flash_error'], $_SESSION['flash_success']);
 // --- POST-Aktionen ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_validate();
+    handle_navbar_actions($pdo);
     $action = $_POST['action'] ?? '';
 
     // Liste erstellen
@@ -106,11 +106,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: lists.php');
         exit;
     }
-
-    // Logout
-    if ($action === 'logout') {
-        logout();
-    }
 }
 
 // Eigene Listen laden
@@ -156,21 +151,7 @@ if ($edit_id) {
 </head>
 <body>
 
-<nav class="navbar navbar-expand-sm navbar-dark bg-primary">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="home.php"><?= APP_NAME ?></a>
-        <div class="ms-auto d-flex align-items-center gap-3">
-            <?= streak_badge() ?>
-            <span class="text-white small"><?= htmlspecialchars($person_name) ?></span>
-            <form method="post" class="d-inline">
-                <?= csrf_field() ?>
-                <input type="hidden" name="action" value="logout">
-                <button class="btn btn-sm btn-outline-light">Logout</button>
-            </form>
-            <a href="help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
-        </div>
-    </div>
-</nav>
+<?php render_navbar($pdo); ?>
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Meine Listen', '']]) ?></div>
 

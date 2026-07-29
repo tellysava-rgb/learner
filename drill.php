@@ -4,12 +4,11 @@ require_once __DIR__ . '/includes/db.php';
 require_person();
 
 $person_id   = $_SESSION['person_id'];
-$person_name = $_SESSION['person_name'];
 
-// Logout
-if (($_POST['action'] ?? '') === 'logout') {
+// Navbar-Aktionen (Logout, eigenes Konto, Person wechseln)
+if (in_array($_POST['action'] ?? '', ['logout', 'switch_to_person', 'change_own_password', 'change_own_email'], true)) {
     csrf_validate();
-    logout();
+    handle_navbar_actions($pdo);
 }
 
 // Session abbrechen
@@ -338,28 +337,22 @@ if (!$state && !$done_data) {
 </head>
 <body>
 
+<?php if ($state): ?>
 <nav class="navbar navbar-expand-sm navbar-dark bg-primary">
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="home.php"><?= APP_NAME ?></a>
         <div class="ms-auto d-flex align-items-center gap-3">
-            <?php if ($state): ?>
             <span class="text-white small fw-semibold" id="drill-timer"></span>
             <span class="text-white small opacity-75">·</span>
             <span class="text-white small"><?= (int)($state['stats']['mastered'] ?? 0) ?> gemeistert</span>
             <a href="drill.php?action=abort" class="btn btn-sm btn-outline-light">Session abbrechen</a>
-            <?php else: ?>
-            <?= streak_badge() ?>
-            <span class="text-white small"><?= htmlspecialchars($person_name) ?></span>
-            <form method="post" class="d-inline">
-                <?= csrf_field() ?>
-                <input type="hidden" name="action" value="logout">
-                <button class="btn btn-sm btn-outline-light">Logout</button>
-            </form>
-            <?php endif; ?>
             <a href="help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
         </div>
     </div>
 </nav>
+<?php else: ?>
+<?php render_navbar($pdo); ?>
+<?php endif; ?>
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Drill', '']]) ?></div>
 

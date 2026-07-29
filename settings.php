@@ -1,9 +1,8 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
-require_login();
+require_admin();
 
-$person_name    = $_SESSION['person_name'] ?? '';
 $runtime_path   = __DIR__ . '/includes/config-runtime.php';
 $success        = $_SESSION['flash_success'] ?? '';
 $errors      = $_SESSION['flash_errors']  ?? [];
@@ -13,35 +12,7 @@ unset($_SESSION['flash_success'], $_SESSION['flash_errors']);
 // --- POST ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_validate();
-
-    if (($_POST['action'] ?? '') === 'logout') {
-        logout();
-    }
-
-    if (($_POST['action'] ?? '') === 'change_password') {
-        $cur_pw  = $_POST['current_password'] ?? '';
-        $new_pw  = $_POST['new_password']     ?? '';
-        $new_pw2 = $_POST['new_password2']    ?? '';
-
-        $stmt = $pdo->prepare("SELECT value FROM settings WHERE `key` = 'password_hash'");
-        $stmt->execute();
-        $hash = $stmt->fetchColumn();
-
-        if (!$hash || !password_verify($cur_pw, $hash)) {
-            $_SESSION['flash_errors'] = ['Aktuelles Passwort ist falsch.'];
-        } elseif (mb_strlen($new_pw) < 8) {
-            $_SESSION['flash_errors'] = ['Neues Passwort muss mindestens 8 Zeichen haben.'];
-        } elseif ($new_pw !== $new_pw2) {
-            $_SESSION['flash_errors'] = ['Die neuen Passwörter stimmen nicht überein.'];
-        } else {
-            $new_hash = password_hash($new_pw, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("UPDATE settings SET `value` = ? WHERE `key` = 'password_hash'");
-            $stmt->execute([$new_hash]);
-            $_SESSION['flash_success'] = 'Passwort erfolgreich geändert.';
-        }
-        header('Location: settings.php');
-        exit;
-    }
+    handle_navbar_actions($pdo);
 
     if (($_POST['action'] ?? '') === 'save_settings') {
         $int_fields = [
@@ -127,23 +98,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
 </head>
 <body>
 
-<nav class="navbar navbar-expand-sm navbar-dark bg-primary">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="home.php"><?= APP_NAME ?></a>
-        <div class="ms-auto d-flex align-items-center gap-3">
-            <?= streak_badge() ?>
-            <?php if ($person_name): ?>
-            <span class="text-white small"><?= htmlspecialchars($person_name) ?></span>
-            <?php endif; ?>
-            <form method="post" class="d-inline">
-                <?= csrf_field() ?>
-                <input type="hidden" name="action" value="logout">
-                <button class="btn btn-sm btn-outline-light">Logout</button>
-            </form>
-            <a href="help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
-        </div>
-    </div>
-</nav>
+<?php render_navbar($pdo); ?>
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Einstellungen', '']]) ?></div>
 
@@ -296,60 +251,6 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
         <div class="mt-3">
             <button type="submit" class="btn btn-primary">Alle speichern</button>
             <span class="text-muted small ms-3">Dauerhaft in config-runtime.php geschrieben.</span>
-        </div>
-
-    </form>
-
-    <form method="post" class="mt-4" style="max-width:640px;">
-        <?= csrf_field() ?>
-        <input type="hidden" name="action" value="change_password">
-
-        <div class="card">
-            <div class="list-group list-group-flush">
-
-                <div class="list-group-item bg-light py-2">
-                    <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing:.05em;">Sicherheit</span>
-                </div>
-
-                <div class="list-group-item d-flex align-items-center gap-3 py-2">
-                    <div class="flex-grow-1">
-                        <span class="fw-medium">Aktuelles Passwort</span>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <input type="password" class="form-control form-control-sm"
-                               name="current_password" autocomplete="current-password"
-                               style="width:200px;" required>
-                    </div>
-                </div>
-
-                <div class="list-group-item d-flex align-items-center gap-3 py-2">
-                    <div class="flex-grow-1">
-                        <span class="fw-medium">Neues Passwort</span>
-                        <span class="text-muted small ms-2">Min. 8 Zeichen</span>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <input type="password" class="form-control form-control-sm"
-                               name="new_password" autocomplete="new-password"
-                               minlength="8" style="width:200px;" required>
-                    </div>
-                </div>
-
-                <div class="list-group-item d-flex align-items-center gap-3 py-2">
-                    <div class="flex-grow-1">
-                        <span class="fw-medium">Neues Passwort (Wiederholung)</span>
-                    </div>
-                    <div class="flex-shrink-0">
-                        <input type="password" class="form-control form-control-sm"
-                               name="new_password2" autocomplete="new-password"
-                               style="width:200px;" required>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="mt-3">
-            <button type="submit" class="btn btn-outline-danger">Passwort ändern</button>
         </div>
 
     </form>

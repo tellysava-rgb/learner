@@ -3,6 +3,14 @@
 // Schützt sich über die eigene Skip-Liste vor Überschreiben — Änderungen manuell per FTP auf Prod kopieren
 // Aufruf: https://deinserver.ch/learner/deploy.php?token=DEPLOY_TOKEN
 
+require_once __DIR__ . '/includes/auth.php';
+
+// Admin-Session zusätzlich zum Token erforderlich (kein reiner Token-Aufruf mehr ohne Login)
+if (empty($_SESSION['authenticated']) || empty($_SESSION['person_id']) || empty($_SESSION['is_admin'])) {
+    http_response_code(403);
+    die('Admin-Login erforderlich, um ein Deployment auszulösen.');
+}
+
 $config_file = __DIR__ . '/includes/deploy-config.php';
 if (!file_exists($config_file)) {
     http_response_code(500);

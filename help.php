@@ -1,14 +1,11 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
-require_login();
+require_person();
 
-$person_id   = $_SESSION['person_id'] ?? null;
-$person_name = $_SESSION['person_name'] ?? '';
-
-// Logout
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logout') {
-    logout();
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_validate();
+    handle_navbar_actions($pdo);
 }
 ?>
 <!DOCTYPE html>
@@ -23,32 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
 </head>
 <body>
 
-<nav class="navbar navbar-expand-sm navbar-dark bg-primary">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="home.php"><?= APP_NAME ?></a>
-        <?php if ($person_id): ?>
-        <div class="d-flex align-items-center gap-3 ms-auto">
-            <?= streak_badge() ?>
-            <span class="text-white small"><?= htmlspecialchars($person_name) ?></span>
-            <form method="post" class="d-inline">
-                <?= csrf_field() ?>
-                <input type="hidden" name="action" value="logout">
-                <button type="submit" class="btn btn-sm btn-outline-light">Logout</button>
-            </form>
-            <a href="help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
-        </div>
-        <?php else: ?>
-        <div class="d-flex align-items-center gap-3 ms-auto">
-            <form method="post" class="d-inline">
-                <?= csrf_field() ?>
-                <input type="hidden" name="action" value="logout">
-                <button type="submit" class="btn btn-sm btn-outline-light">Logout</button>
-            </form>
-            <a href="help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
-        </div>
-        <?php endif; ?>
-    </div>
-</nav>
+<?php render_navbar($pdo); ?>
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Hilfe', '']]) ?></div>
 
@@ -67,8 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
             </h2>
             <div id="h1" class="accordion-collapse collapse show" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
-                    <p>Der Login erfolgt mit einem gemeinsamen Passwort. Danach wählst du eine <strong>Person</strong> — jede Person hat ihren eigenen Lernfortschritt, auch wenn mehrere Personen dieselbe Liste nutzen.</p>
-                    <p class="mb-0">Über <em>Person wechseln</em> auf der Startseite kannst du jederzeit zu einer anderen Person wechseln, ohne dich neu einzuloggen.</p>
+                    <p>Der Login erfolgt mit deinem Namen und deinem eigenen Passwort — jede Person hat ihren eigenen Lernfortschritt, auch wenn mehrere Personen dieselbe Liste nutzen.</p>
+                    <p>Über das 🔑-Icon oben in der Navbar kannst du dein eigenes Passwort ändern und optional eine E-Mail-Adresse hinterlegen — damit kannst du dein Passwort selbst zurücksetzen, falls du es vergisst (Link "Passwort vergessen?" auf der Login-Seite).</p>
+                    <p class="mb-0">Neue Personen anlegen sowie Passwörter zurücksetzen kann nur ein <strong>Admin</strong> (Benutzerverwaltung).</p>
                 </div>
             </div>
         </div>
@@ -177,10 +150,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'logou
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h8">
-                    Für Technik-Fans: Karten per KI-Agent verwalten
+                    Für Admins: Einstellungen & Benutzerverwaltung
                 </button>
             </h2>
             <div id="h8" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                    <p>Manche Bereiche sind nur für Personen mit <strong>Admin-Status</strong> sichtbar und zugänglich — erkennbar am zusätzlichen "Einstellungen"-Link und "Person wechseln" in der Navbar der Startseite.</p>
+                    <ul class="mb-2">
+                        <li><strong>Einstellungen:</strong> Seitentitel, Session-Timeout, tägliches Karten-Limit sowie Timer und Schwellenwerte für den Drill-Modus.</li>
+                        <li><strong>Benutzerverwaltung:</strong> von den Einstellungen aus erreichbar — neue Personen anlegen, Passwörter zurücksetzen, E-Mail-Adressen einer Person setzen, Admin-Status vergeben oder entziehen (der letzte verbleibende Admin kann nicht entfernt werden).</li>
+                        <li><strong>Person wechseln:</strong> ein Admin kann vorübergehend als eine andere Person agieren (z.B. für Support), ohne sich neu einzuloggen — der eigene Admin-Status bleibt dabei erhalten.</li>
+                    </ul>
+                    <p class="mb-0">Alle Personen — auch ohne Admin-Status — können ihr eigenes Passwort und ihre eigene E-Mail-Adresse selbst über das 🔑-Icon verwalten (siehe "Einstieg: Login & Person").</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h9">
+                    Für Technik-Fans: Karten per KI-Agent verwalten
+                </button>
+            </h2>
+            <div id="h9" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p class="mb-0">Für technisch versierte Nutzer bietet die App eine Schnittstelle (MCP), über die ein KI-Agent (z.B. Claude) Personen und Listen abfragen sowie Karten hinzufügen oder bestehende Karten korrigieren kann — praktisch, um z.B. grössere Wortlisten im Gespräch mit einer KI zu erstellen. Der Agent zeigt vorgeschlagene Änderungen immer erst zur Bestätigung an, bevor etwas gespeichert wird. Damit das funktioniert, muss der MCP-Server separat eingerichtet und konfiguriert werden (Zugangs-Token, Verbindung im jeweiligen KI-Tool) — Details dazu bei Bedarf beim Administrator erfragen.</p>
                 </div>

@@ -19,22 +19,31 @@ if (!empty($_SESSION['authenticated'])) {
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_validate();
+
+    $name     = trim($_POST['name'] ?? '');
     $password = $_POST['password'] ?? '';
 
     require_once __DIR__ . '/includes/db.php';
-    $stmt = $pdo->prepare("SELECT value FROM settings WHERE `key` = 'password_hash'");
-    $stmt->execute();
-    $row = $stmt->fetch();
+    $stmt = $pdo->prepare("SELECT id, name, password_hash, is_admin FROM persons WHERE name = ?");
+    $stmt->execute([$name]);
+    $person = $stmt->fetch();
 
-    if ($row && password_verify($password, $row['value'])) {
+    if ($person && $person['password_hash'] && password_verify($password, $person['password_hash'])) {
         session_regenerate_id(true);
-        $_SESSION['authenticated']  = true;
-        $_SESSION['last_activity']  = time();
+        $_SESSION['authenticated'] = true;
+        $_SESSION['person_id']     = (int) $person['id'];
+        $_SESSION['person_name']   = $person['name'];
+        $_SESSION['is_admin']      = (bool) $person['is_admin'];
+        // real_is_admin bleibt beim "Person wechseln" unverändert (auch wenn is_admin sich dabei
+        // an die jeweils angezeigte Person anpasst) — steuert, ob überhaupt gewechselt werden darf.
+        $_SESSION['real_is_admin'] = (bool) $person['is_admin'];
+        $_SESSION['last_activity'] = time();
         header('Location: home.php');
         exit;
     }
 
-    $error = 'Falsches Passwort.';
+    $error = 'Name oder Passwort falsch.';
 }
 ?>
 <!DOCTYPE html>
@@ -65,13 +74,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
 
             <form method="post">
+                <?= csrf_field() ?>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Name</label>
+                    <input type="text" name="name" class="form-control form-control-lg"
+                           autofocus required autocomplete="username">
+                </div>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Passwort</label>
                     <input type="password" name="password" class="form-control form-control-lg"
-                           autofocus required autocomplete="current-password">
+                           required autocomplete="current-password">
                 </div>
                 <button type="submit" class="btn btn-primary w-100 btn-lg">Einloggen</button>
             </form>
+            <a href="forgot-password.php" class="d-block text-center small mt-3 text-muted">Passwort vergessen?</a>
         </div>
     </div>
 </div>

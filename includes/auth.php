@@ -42,7 +42,7 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) >
 }
 $_SESSION['last_activity'] = time();
 
-// App-Login prüfen (globales Passwort)
+// Login prüfen (Name + Passwort pro Person)
 function require_login(): void {
     if (empty($_SESSION['authenticated'])) {
         header('Location: index.php');
@@ -54,6 +54,16 @@ function require_login(): void {
 function require_person(): void {
     require_login();
     if (empty($_SESSION['person_id'])) {
+        header('Location: home.php');
+        exit;
+    }
+}
+
+// Admin-Rolle prüfen (settings.php, deploy.php, users.php, "Person wechseln")
+function require_admin(): void {
+    require_person();
+    if (empty($_SESSION['is_admin'])) {
+        $_SESSION['flash_error'] = 'Nur für Admins zugänglich.';
         header('Location: home.php');
         exit;
     }
@@ -101,6 +111,197 @@ function logout(): void {
     session_destroy();
     header('Location: index.php');
     exit;
+}
+
+// Gemeinsame Navbar-Aktionen (Logout, eigenes Konto, Person wechseln) — wird von jeder Seite
+// direkt nach csrf_validate() aufgerufen. Bei Treffer wird die Aktion ausgeführt und zur
+// aktuellen URL zurückgeleitet (PRG); bei keinem Treffer kehrt die Funktion einfach zurück,
+// damit die Seite ihre eigene, seitenspezifische Aktion weiterverarbeiten kann.
+function handle_navbar_actions(PDO $pdo): void {
+    $action        = $_POST['action'] ?? '';
+    $person_id     = (int) ($_SESSION['person_id'] ?? 0);
+    $real_is_admin = !empty($_SESSION['real_is_admin']);
+    $back          = $_SERVER['REQUEST_URI'];
+
+    if ($action === 'logout') {
+        logout();
+    }
+
+    // Nur wer WIRKLICH Admin ist (real_is_admin, unabhängig davon als wen gerade agiert wird)
+    // darf die Person wechseln — verhindert, dass man sich beim Wechseln selbst aussperrt.
+    if ($action === 'switch_to_person' && $real_is_admin) {
+        $id = intval($_POST['person_id'] ?? 0);
+        $stmt = $pdo->prepare("SELECT id, name, is_admin FROM persons WHERE id = ?");
+        $stmt->execute([$id]);
+        $p = $stmt->fetch();
+        if ($p) {
+            unset($_SESSION['streak'], $_SESSION['streak_date']);
+            session_regenerate_id(true);
+            $_SESSION['person_id']   = $p['id'];
+            $_SESSION['person_name'] = $p['name'];
+            // Übernimmt die Berechtigungen der Zielperson (genau das sehen, was sie sieht) —
+            // real_is_admin bleibt unverändert, damit "Person wechseln" weiterhin möglich ist.
+            $_SESSION['is_admin']    = (bool) $p['is_admin'];
+        } else {
+            $_SESSION['flash_error'] = 'Person nicht gefunden.';
+        }
+        header('Location: ' . $back);
+        exit;
+    }
+
+    if ($action === 'change_own_password') {
+        $cur_pw  = $_POST['current_password'] ?? '';
+        $new_pw  = $_POST['new_password']     ?? '';
+        $new_pw2 = $_POST['new_password2']    ?? '';
+
+        $stmt = $pdo->prepare("SELECT password_hash FROM persons WHERE id = ?");
+        $stmt->execute([$person_id]);
+        $hash = $stmt->fetchColumn();
+
+        if (!$hash || !password_verify($cur_pw, $hash)) {
+            $_SESSION['flash_error'] = 'Aktuelles Passwort ist falsch.';
+        } elseif (mb_strlen($new_pw) < 8) {
+            $_SESSION['flash_error'] = 'Neues Passwort muss mindestens 8 Zeichen haben.';
+        } elseif ($new_pw !== $new_pw2) {
+            $_SESSION['flash_error'] = 'Die neuen Passwörter stimmen nicht überein.';
+        } else {
+            $new_hash = password_hash($new_pw, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("UPDATE persons SET password_hash = ? WHERE id = ?");
+            $stmt->execute([$new_hash, $person_id]);
+            $_SESSION['flash_success'] = 'Passwort erfolgreich geändert.';
+        }
+        header('Location: ' . $back);
+        exit;
+    }
+
+    if ($action === 'change_own_email') {
+        $email = trim($_POST['email'] ?? '');
+        if ($email === '') {
+            $stmt = $pdo->prepare("UPDATE persons SET email = NULL WHERE id = ?");
+            $stmt->execute([$person_id]);
+            $_SESSION['flash_success'] = 'E-Mail-Adresse entfernt.';
+        } else {
+            try {
+                $stmt = $pdo->prepare("UPDATE persons SET email = ? WHERE id = ?");
+                $stmt->execute([$email, $person_id]);
+                $_SESSION['flash_success'] = 'E-Mail-Adresse gespeichert.';
+            } catch (PDOException $e) {
+                $_SESSION['flash_error'] = $e->getCode() === '23000'
+                    ? 'Diese E-Mail-Adresse wird bereits von einer anderen Person verwendet.'
+                    : 'Fehler beim Speichern der E-Mail-Adresse.';
+            }
+        }
+        header('Location: ' . $back);
+        exit;
+    }
+}
+
+// Zentrale Navbar — von jeder Seite mit Person-Kontext aufgerufen, damit Icons/Reihenfolge
+// nur an einer Stelle gepflegt werden müssen. $abort_url: falls gesetzt, ersetzt "Session
+// abbrechen" den Logout-Button (für laufende Leitner-/Drill-Sessions).
+function render_navbar(PDO $pdo, ?string $abort_url = null): void {
+    $person_id     = $_SESSION['person_id'];
+    $person_name   = $_SESSION['person_name'];
+    $is_admin      = !empty($_SESSION['is_admin']);       // Berechtigungen der aktuell angezeigten Person
+    $real_is_admin = !empty($_SESSION['real_is_admin']);  // wirkliche Berechtigung — steuert "Person wechseln"
+
+    $persons = $real_is_admin ? $pdo->query("SELECT id, name FROM persons ORDER BY name")->fetchAll() : [];
+
+    $stmt = $pdo->prepare("SELECT email FROM persons WHERE id = ?");
+    $stmt->execute([$person_id]);
+    $own_email = $stmt->fetchColumn() ?: '';
+    ?>
+    <nav class="navbar navbar-expand-sm navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="home.php"><?= APP_NAME ?></a>
+            <div class="d-flex align-items-center gap-2 ms-auto">
+                <?= streak_badge() ?>
+                <span class="text-white small"><?= htmlspecialchars($person_name) ?></span>
+                <button type="button" class="btn btn-sm btn-outline-light" title="Passwort ändern" aria-label="Passwort ändern"
+                        data-bs-toggle="modal" data-bs-target="#pwModal"><i class="bi bi-key"></i></button>
+                <?php if ($real_is_admin && count($persons) > 1): ?>
+                <div class="dropdown d-inline">
+                    <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                            title="Person wechseln" aria-label="Person wechseln"><i class="bi bi-person-lines-fill"></i></button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <?php foreach ($persons as $p): ?>
+                        <li>
+                            <form method="post" class="d-inline">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="action" value="switch_to_person">
+                                <input type="hidden" name="person_id" value="<?= $p['id'] ?>">
+                                <button type="submit" class="dropdown-item<?= $p['id'] == $person_id ? ' active' : '' ?>">
+                                    <?= htmlspecialchars($p['name']) ?>
+                                </button>
+                            </form>
+                        </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+                <?php endif; ?>
+                <?php if ($is_admin): ?>
+                <a href="users.php" class="btn btn-sm btn-outline-light" title="Benutzerverwaltung" aria-label="Benutzerverwaltung"><i class="bi bi-person-gear"></i></a>
+                <a href="settings.php" class="btn btn-sm btn-outline-light" title="Einstellungen" aria-label="Einstellungen"><i class="bi bi-gear"></i></a>
+                <?php endif; ?>
+                <?php if ($abort_url): ?>
+                <a href="<?= htmlspecialchars($abort_url) ?>" class="btn btn-sm btn-outline-light">Session abbrechen</a>
+                <?php else: ?>
+                <form method="post" class="d-inline">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="action" value="logout">
+                    <button type="submit" class="btn btn-sm btn-outline-light" title="Logout" aria-label="Logout"><i class="bi bi-box-arrow-right"></i></button>
+                </form>
+                <?php endif; ?>
+                <a href="help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Modal: eigenes Konto (E-Mail + Passwort) -->
+    <div class="modal fade" id="pwModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Konto</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+          </div>
+          <div class="modal-body">
+
+            <form method="post" class="mb-4 pb-4 border-bottom">
+              <?= csrf_field() ?>
+              <input type="hidden" name="action" value="change_own_email">
+              <label class="form-label fw-medium">E-Mail-Adresse</label>
+              <div class="form-text mb-2">Optional — nur nötig, um das Passwort selbst per E-Mail zurücksetzen zu können.</div>
+              <div class="d-flex gap-2">
+                <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($own_email) ?>" placeholder="name@beispiel.ch">
+                <button type="submit" class="btn btn-outline-primary flex-shrink-0">Speichern</button>
+              </div>
+            </form>
+
+            <form method="post">
+              <?= csrf_field() ?>
+              <input type="hidden" name="action" value="change_own_password">
+              <label class="form-label fw-medium mb-2">Passwort ändern</label>
+              <div class="mb-3">
+                <input type="password" name="current_password" class="form-control" placeholder="Aktuelles Passwort" autocomplete="current-password" required>
+              </div>
+              <div class="mb-3">
+                <input type="password" name="new_password" class="form-control" placeholder="Neues Passwort (min. 8 Zeichen)" autocomplete="new-password" minlength="8" required>
+              </div>
+              <div class="mb-3">
+                <input type="password" name="new_password2" class="form-control" placeholder="Neues Passwort (Wiederholung)" autocomplete="new-password" required>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Passwort ändern</button>
+            </form>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schliessen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <?php
 }
 
 // Gültige ISO-639-1-Sprachcodes (klein) und ISO-3166-1-Alpha-2-Ländercodes (gross)

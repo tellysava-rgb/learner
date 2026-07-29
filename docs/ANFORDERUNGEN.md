@@ -22,14 +22,19 @@
 
 ---
 
-## Zugang / Benutzerverwaltung
+## Zugang / Benutzerverwaltung _(Login-Modell überarbeitet v3.0.0)_
 
-- Ein **globales Passwort** schützt die gesamte App
-- Nach Login: **Person auswählen** (aus Liste) — Personenliste ist prominent; "Neuen Benutzer hinzufügen" ist hinter einem Button versteckt um versehentliches Erstellen zu verhindern
-- **Personenname muss eindeutig sein** — beim Erstellen wird geprüft ob der Name bereits existiert, sonst Fehlermeldung
-- Keine individuellen Passwörter pro Person (alle kennen sich)
+- **Kein globales Passwort mehr.** Jede Person hat ein eigenes Login: **Name + Passwort** (Name ist das bestehende eindeutige `persons.name`-Feld, kein separates Username-Feld)
+- Login führt **direkt** auf die Startseite der jeweiligen Person — kein separater "Person auswählen"-Schritt mehr
+- **Personenname muss eindeutig sein** — beim Anlegen (über `users.php`) wird geprüft ob der Name bereits existiert, sonst Fehlermeldung
+- **Admin-Rolle** (`persons.is_admin`): nur Admins dürfen `settings.php`, `deploy.php` und `users.php` öffnen, sowie als andere Person agieren ("Person wechseln"). Der Admin-Status wird beim Login in die Session geladen — Änderungen wirken erst ab dem nächsten Login der betroffenen Person
+- **Eigenes Passwort ändern**: jede Person kann ihr eigenes Passwort über ein Modal ("Konto") auf der Startseite ändern (aktuelles Passwort zur Bestätigung nötig, min. 8 Zeichen)
+- **Optionale E-Mail-Adresse pro Person** _(v3.0.0)_: im selben "Konto"-Modal kann jede Person selbst eine E-Mail-Adresse hinterlegen/entfernen (eindeutig über alle Personen, sonst Fehlermeldung). Ausschliesslicher Zweck: **eigenständiges Zurücksetzen des Passworts** per E-Mail, falls es vergessen wurde — ohne hinterlegte E-Mail ist ein Reset nur über den Admin (`users.php`) möglich
+- **Passwort vergessen** (`forgot-password.php`, `reset-password.php`) _(v3.0.0)_: Link auf der Login-Seite → E-Mail-Adresse eingeben → falls sie einer Person zugeordnet ist, wird ein Link mit Einmal-Token per E-Mail verschickt (60 Min. gültig, Versand über PHPs `mail()`). Antwort ist immer dieselbe generische Meldung, unabhängig davon ob die E-Mail existiert (verhindert Enumeration). Token wird nur gehasht in der DB gespeichert, ist einmalig verwendbar und wird nach erfolgreichem Reset gelöscht
+- **Benutzerverwaltung** (`users.php`, nur Admin): Personen anlegen (Name + initiales Passwort + optionale E-Mail + optionales Admin-Flag), E-Mail-Adresse einer Person setzen/ändern, Passwort einer Person zurücksetzen (ohne deren altes Passwort zu kennen), Admin-Status umschalten — der letzte verbleibende Admin kann nicht entfernt werden (verhindert Aussperren)
+- **"Person wechseln"** (nur Admin, in der zentralen Navbar auf jeder Seite _(v3.0.0)_): Dropdown aller Personen, um vorübergehend als eine andere Person zu agieren (z.B. für Support). Übernimmt dabei **exakt deren Berechtigungen** — als Nicht-Admin-Person agieren verbirgt "Einstellungen"/"Benutzerverwaltung" und sperrt diese Seiten genauso wie für die echte Person. Einzige Ausnahme: **das Recht, die Person erneut zu wechseln bleibt erhalten**, damit man sich nicht selbst aussperrt — dafür merkt sich die Session getrennt, wer *wirklich* Admin ist (`real_is_admin`), unabhängig von den gerade angezeigten Berechtigungen (`is_admin`) _(v3.0.0)_
 - Jede Person hat **eigene Listen** und **eigenen Lernfortschritt** (Fortschritt ist nicht öffentlich)
-- Struktur ist so aufgebaut, dass ein individuelles Login später einfach nachrüstbar ist (`persons` Tabelle bekommt dann `email` + `password_hash`)
+- **Migration von der alten Version**: bestehende Personen ohne Zugangsdaten bekommen einmalig automatisch das Passwort `123456` gesetzt (per DB-Migration, läuft beim ersten Request nach dem Update) — jede Person sollte es danach selbst ändern
 
 ---
 
@@ -48,7 +53,22 @@
 - **Session-Abbruch:** Bei Bestätigung wird die Session server-seitig beendet (`$_SESSION['drill']` bzw. `$_SESSION['learn']` wird gelöscht) bevor zur Zielseite navigiert wird — verhindert Geisterzustände im Hintergrund
 - **Streak-Badge in Navbar:** Das 🔥-Badge mit Streak-Anzahl wird auf allen Seiten angezeigt (via Session-Cache, einmal täglich berechnet auf home.php). Verschwindet wenn heute und gestern kein Lerntag war.
 - **Container-Breite:** `lists.php` nutzt dieselbe (Bootstrap-Standard-)Container-Breite wie die Startseite `home.php` — kein eigenes `max-width` mehr _(v2.1.0)_
-- **Hilfe-Icon in Navbar** _(v2.8.0)_: Auf jeder Seite mit Navbar (alle ausser Login) erscheint ganz rechts, nach dem Logout-Button, ein Icon-Button (`bi-info-lg`, Tooltip "Hilfe") zu `help.php` — unabhängig davon, ob bereits eine Person gewählt ist.
+
+### Zentrale Navbar _(v3.0.0)_
+
+Die Navbar wird über eine einzige Funktion `render_navbar($pdo)` in `includes/auth.php` gerendert und auf jeder Seite mit Person-Kontext aufgerufen (`<?php render_navbar($pdo); ?>`) — Icons, Reihenfolge und Verhalten müssen dadurch nur an einer Stelle gepflegt werden, nicht auf jeder Seite einzeln. Zugehörige Aktionen (Logout, eigenes Konto, Person wechseln) laufen ebenfalls über eine gemeinsame Funktion `handle_navbar_actions($pdo)`, die jede Seite direkt nach `csrf_validate()` aufruft.
+
+Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
+1. **Streak-Badge** (🔥 N Tage)
+2. **Personenname**
+3. **Passwort ändern** — Icon `bi-key`, öffnet das "Konto"-Modal (eigenes Passwort + eigene E-Mail-Adresse)
+4. **Person wechseln** _(nur Admin, nur wenn mehr als eine Person existiert)_ — Icon `bi-person-lines-fill` als Dropdown-Toggle, Auswahlliste aller Personen bleibt wie gehabt per Klick erreichbar
+5. **Benutzerverwaltung** _(nur Admin)_ — Icon `bi-person-gear`, führt zu `users.php`
+6. **Einstellungen** _(nur Admin)_ — Icon `bi-gear`, führt zu `settings.php`
+7. **Logout** — Icon `bi-box-arrow-right` (ersetzt den bisherigen Text-Button)
+8. **Hilfe** — Icon `bi-info-lg`, führt zu `help.php` _(v2.8.0, unverändert)_
+
+Auf `learn.php`/`drill.php` wird während einer aktiven Session weiterhin eine abweichende, seitenspezifische Navbar gerendert (z.B. Timer, "gemeistert"-Zähler, "Session abbrechen" statt Logout) — dieser Sonderfall bleibt bestehen und nutzt `render_navbar()` nicht.
 
 ---
 
@@ -368,8 +388,8 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 
 ## Einstellungsseite
 
-- Zugänglich auf allen Umgebungen (Login + CSRF-Schutz erforderlich)
-- Link "Einstellungen" erscheint in der Navbar der Startseite (home.php) auf allen Umgebungen
+- **Nur für Admins zugänglich** _(v3.0.0)_ — `require_admin()`, auf allen Umgebungen
+- Icon-Button (`bi-gear`, Tooltip "Einstellungen") in der zentralen Navbar, nur für Admins sichtbar _(v3.0.0)_
 - Einstellungen werden **dauerhaft in `config-runtime.php`** geschrieben (gitignored, wird nie per Deploy überschrieben)
 - Auf Localhost: zusätzlicher "Localhost"-Badge sichtbar
 - PRG-Muster: nach Speichern Redirect auf GET, Flash-Meldung via Session
@@ -386,10 +406,39 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 | Drill | Mastery-Schwelle | `DRILL_MASTERY_THRESHOLD` | Aufeinanderfolgende Korrekt-Antworten für «gemeistert» | 1–10 |
 | Drill | Bekannt/Neu-Verhältnis | `DRILL_KNOWN_RATIO` | Bekannte Karten pro neuer Karte in der Rotation | 1–30 |
 
-### Passwort ändern
-- Formular in der Einstellungsseite (Abschnitt «Sicherheit»)
-- Aktuelles Passwort muss bestätigt werden — kein Reset ohne Kenntnis des alten Passworts
-- CSRF-geschützt, Login erforderlich
+### Benutzerverwaltung _(v3.0.0)_
+- Kein eigener Passwort-Änderungs-Abschnitt mehr — das eigene Passwort ändert jede Person selbst über das "Konto"-Modal in der Navbar, siehe Abschnitt "Zugang / Benutzerverwaltung"
+- Kein Link auf `users.php` mehr innerhalb der Einstellungsseite — direkt über das Icon (`bi-person-gear`) in der zentralen Navbar erreichbar, siehe Abschnitt "Benutzerverwaltung"
+
+---
+
+## Benutzerverwaltung (`users.php`) _(v3.0.0)_
+
+- Nur für Admins zugänglich (`require_admin()`)
+- Icon-Button (`bi-person-gear`, Tooltip "Benutzerverwaltung") direkt in der zentralen Navbar auf jeder Seite, neben "Einstellungen" — nur für Admins sichtbar, führt direkt zu `users.php`. Nicht mehr aus `settings.php` verlinkt (entfernt)
+- Breadcrumb: `Startseite > Benutzerverwaltung` — nicht unter "Einstellungen" verschachtelt, da eigenständig aus der Navbar erreichbar
+- Tabelle aller Personen: Name, E-Mail _(v3.0.0)_, Status-Badge (Admin/Person), Aktionen
+- **E-Mail-Adresse setzen/ändern** _(v3.0.0)_: Modal pro Person, optional, leer lassen entfernt sie — dient dem eigenständigen Passwort-Reset dieser Person
+- **Passwort zurücksetzen**: Admin setzt direkt ein neues Passwort für eine Person, ohne deren altes Passwort zu kennen (Modal, min. 8 Zeichen)
+- **Admin-Status umschalten**: Button pro Person — der letzte verbleibende Admin kann nicht entfernt werden
+- **Neue Person anlegen**: Name (eindeutig) + initiales Passwort (min. 8 Zeichen) + optionale E-Mail-Adresse _(v3.0.0)_ + optionales Admin-Flag
+- Kein Löschen von Personen (nicht vorgesehen, analog zum Rest der App)
+- CSRF-geschützt, PRG-Muster wie überall sonst
+
+---
+
+## Passwort vergessen (`forgot-password.php`, `reset-password.php`) _(v3.0.0)_
+
+- Link "Passwort vergessen?" auf der Login-Seite (`index.php`), nur für nicht eingeloggte Nutzer relevant
+- `forgot-password.php`: E-Mail-Adresse eingeben → Server sucht eine Person mit exakt dieser E-Mail
+  - Treffer: Einmal-Token generiert (`random_bytes(32)`, als SHA-256-Hash in `persons.reset_token_hash` gespeichert, nie im Klartext), Ablaufzeit `persons.reset_token_expires` = jetzt + 60 Minuten, Link per E-Mail verschickt (`mail()`, kein SMTP/keine externe Bibliothek)
+  - Kein Treffer: keine E-Mail verschickt
+  - **In beiden Fällen dieselbe generische Erfolgsmeldung** — verhindert, dass sich per Ausprobieren herausfinden lässt, welche E-Mail-Adressen registriert sind
+- `reset-password.php?token=...`: Token wird gehasht und gegen `reset_token_hash` geprüft (muss existieren UND `reset_token_expires` in der Zukunft liegen)
+  - Ungültiger/abgelaufener Token: Fehlermeldung, Link zu `forgot-password.php` um einen neuen anzufordern
+  - Gültiger Token: Formular für neues Passwort (min. 8 Zeichen, Wiederholung muss übereinstimmen) — bei Erfolg wird `password_hash` gesetzt und `reset_token_hash`/`reset_token_expires` sofort geleert (Token ist danach unbrauchbar, auch bei erneutem Aufruf desselben Links)
+- Ohne hinterlegte E-Mail-Adresse ist für eine Person kein eigenständiger Reset möglich — nur der Admin kann über `users.php` das Passwort zurücksetzen
+- E-Mail-Adresse ist über alle Personen eindeutig (DB-Unique-Index, erlaubt aber beliebig viele Personen ohne E-Mail)
 
 ---
 
@@ -440,7 +489,7 @@ Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler 
 
 - `help.php` — Handbuch/Hilfeseite, erreichbar über das Info-Icon (`bi-info-lg`) ganz rechts in der Navbar auf jeder Seite (siehe Abschnitt "Navigation")
 - Erfordert nur Login (`require_login()`), keine gewählte Person — dadurch auch direkt nach dem Login erreichbar, bevor eine Person gewählt wurde
-- Inhalt als Bootstrap-Accordion (8 Abschnitte, erster Abschnitt initial aufgeklappt): Einstieg/Login, Wortlisten verwalten, Wörter hinzufügen, Leitner-Modus, Drill-Modus, Aussprache (Audio & Lautschrift), Statistik & Streak, MCP-Server (kurz, für technisch interessierte Nutzer — inkl. Hinweis, dass der MCP-Server separat eingerichtet/konfiguriert werden muss, damit die Funktion nutzbar ist)
+- Inhalt als Bootstrap-Accordion (9 Abschnitte, erster Abschnitt initial aufgeklappt): Einstieg/Login (inkl. eigenes Passwort/E-Mail ändern), Wortlisten verwalten, Wörter hinzufügen, Leitner-Modus, Drill-Modus, Aussprache (Audio & Lautschrift), Statistik & Streak, **Für Admins: Einstellungen & Benutzerverwaltung** _(v3.0.0)_, MCP-Server (kurz, für technisch interessierte Nutzer — inkl. Hinweis, dass der MCP-Server separat eingerichtet/konfiguriert werden muss, damit die Funktion nutzbar ist)
 - Nutzerorientiert mit Kernmechanik (z.B. 5 Leitner-Fächer, Warteschlangen-Prinzip, Drill-Übergang ins Leitner-System), aber ohne Datenbank-/Code-Details
 - Kein eigener Datenbankzugriff — rein statischer Erklärungstext, keine Formulare ausser Logout
 
@@ -465,6 +514,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 
 - `deploy.php` ist im Git-Repo versioniert _(v2.0.3)_ — schützt sich aber über die eigene Skip-Liste selbst vor Überschreiben, muss also bei Änderungen weiterhin manuell per FTP auf den Produktiv-Server kopiert werden
 - Aufruf: Deploy-Button in den Einstellungen (settings.php) — Token wird per POST-Formular übermittelt (nicht als URL-Parameter, verhindert Sichtbarkeit in Server-Logs)
+- **Zusätzlich zum Token ist eine aktive Admin-Session erforderlich** _(v3.0.0)_ — ein reiner Token-Aufruf per Lesezeichen ohne eingeloggten Admin funktioniert nicht mehr (`403`). Der Deploy-Button in `settings.php` funktioniert unverändert, da die Browser-Session automatisch mitgeschickt wird
 - Script lädt das GitHub-Repo als ZIP via cURL herunter, entpackt es und kopiert die Dateien
 - Token wird in `deploy-config.php` konfiguriert (bleibt in `.gitignore` — Trennung von Logik und Geheimnis)
 
@@ -504,7 +554,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 
 | Tabelle | Inhalt |
 |---|---|
-| `persons` | Personen (Name, erstellt am) |
+| `persons` | Personen (Name, Passwort-Hash, Admin-Flag, E-Mail, Reset-Token+Ablauf, erstellt am) _(seit v3.0.0)_ |
 | `lists` | Wortlisten (Name, Beschreibung, Sprachen, Besitzer, öffentlich/privat) |
 | `cards` | Karten (Sprache A/B, Beschreibung A/B, Liste, erstellt am) |
 | `card_progress` | Fortschritt pro Person/Karte (status, leitner_box, next_due_date, drill_mastery, drill_too_hard) |
@@ -538,8 +588,8 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 
 ```
 /learner/
-  index.php                ← Login (globales Passwort)
-  home.php                 ← Personenwahl / Startseite / Dashboard
+  index.php                ← Login (Name + eigenes Passwort pro Person)
+  home.php                 ← Startseite / Dashboard der eingeloggten Person
   learn.php                ← Leitner-Session
   drill.php                ← Drill-Modus (Incremental Rehearsal)
   lists.php                ← Listen verwalten (erstellen, umbenennen, löschen)
@@ -550,7 +600,10 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
   stats.php                ← Statistik-Dashboard
   math.php                 ← Mathe-Generator (Multiplikation + Division)
   help.php                 ← Hilfe/Handbuch, erreichbar über Info-Icon in der Navbar
-  settings.php             ← Einstellungsseite (alle Umgebungen, schreibt in config-runtime.php)
+  settings.php             ← Einstellungsseite (nur Admin, schreibt in config-runtime.php)
+  users.php                ← Benutzerverwaltung: Personen anlegen, Passwort zurücksetzen, Admin-Flag (nur Admin)
+  forgot-password.php      ← Passwort-Reset anfordern (E-Mail eingeben, Link erhalten)
+  reset-password.php       ← Neues Passwort setzen (via Link aus forgot-password.php)
   install.php               ← Erstinstallation: Tabellen erstellen, Passwort setzen (manuell löschen nach Setup)
   mcp-server.php            ← MCP-Endpoint für Agenten (JSON-RPC über HTTP)
   deploy.php                ← ZIP-Deploy via Browser (im Repo versioniert, schützt sich selbst vor Überschreiben)
