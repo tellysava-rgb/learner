@@ -180,7 +180,7 @@ for ($w = 0; $w < $heatmap_weeks; $w++) {
         if ($cnt > 0) {
             $level = $max_day_count > 0 ? (int) min(4, max(1, ceil($cnt / $max_day_count * 4))) : 1;
         }
-        $heatmap_cells[] = ['date' => $date_str, 'cnt' => $cnt, 'level' => $level];
+        $heatmap_cells[] = ['date' => $date_str, 'date_display' => $date->format('d.m.Y'), 'cnt' => $cnt, 'level' => $level];
     }
 }
 
@@ -298,7 +298,7 @@ $drill_pct   = $drill_total > 0 ? round($drill_stats['known'] / $drill_total * 1
                                 <div class="heatmap-cell heatmap-cell-empty"></div>
                                 <?php else: ?>
                                 <div class="heatmap-cell lvl-<?= $cell['level'] ?>"
-                                     title="<?= htmlspecialchars($cell['date']) ?><?= $cell['cnt'] > 0 ? ' — ' . $cell['cnt'] . ' Karte' . ($cell['cnt'] == 1 ? '' : 'n') . ' gelernt' : ' — nicht gelernt' ?>"></div>
+                                     title="<?= htmlspecialchars($cell['date_display']) ?><?= $cell['cnt'] > 0 ? ' — ' . $cell['cnt'] . ' Karte' . ($cell['cnt'] == 1 ? '' : 'n') . ' gelernt' : ' — nicht gelernt' ?>"></div>
                                 <?php endif; ?>
                             <?php endforeach; ?>
                         </div>

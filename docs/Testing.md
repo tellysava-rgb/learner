@@ -435,6 +435,7 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Monatsbeschriftungen erscheinen über der jeweils ersten Wochenspalte eines neuen Monats. _(v3.0.3)_
 [ ] Wochentag-Labels links zeigen nur "Mo", "Mi", "Fr". _(v3.0.3)_
 [ ] Hover über eine Tages-Zelle zeigt Tooltip mit Datum und Anzahl gelernter Karten bzw. "nicht gelernt". _(v3.0.3)_
+[ ] Datum im Tooltip ist im Format `TT.MM.JJJJ` (z.B. "29.07.2026"), nicht `YYYY-MM-DD`. _(v3.2.10)_
 [ ] Tage nach heute (Rest der laufenden Kalenderwoche) werden leer dargestellt, ohne Tooltip. _(v3.0.3)_
 [ ] Heatmap ist auf schmalen Bildschirmen (Mobile) horizontal scrollbar, restliche Seite scrollt nicht mit. _(v3.0.3)_
 [ ] Auf breiten Bildschirmen (Desktop, genug Platz) ist die Heatmap horizontal zentriert dargestellt, nicht linksbündig. _(v3.1.1)_

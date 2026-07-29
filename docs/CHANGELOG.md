@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.10] - 2026-07-29
+
+### Behoben
+- Statistik-Heatmap: Datum im Hover-Tooltip zeigt jetzt `TT.MM.JJJJ` (z.B. "29.07.2026") statt `YYYY-MM-DD`.
+
+---
+
 ## [3.2.9] - 2026-07-29
 
 ### Neu
