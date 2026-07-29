@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.7] - 2026-07-29
+
+### Verbessert
+- Deploy-Ablauf zweistufig gemacht: Klick auf "Deploy-Status öffnen" in `settings.php` (früher "Deploy starten") navigiert nur noch zu `deploy.php` und löst kein Deployment mehr aus. `deploy.php` zeigt beim reinen Aufruf den Versionsvergleich sowie einen eigenen, CSRF-geschützten "Deploy starten"-Button — erst dessen Klick lädt das ZIP herunter und kopiert die Dateien. Nach erfolgreichem Deploy liest die Seite `config.php` erneut ein, sodass "Installiert" die tatsächlich neue Versionsnummer mit `=` zu GitHub zeigt, statt weiterhin den Stand von vorher anzuzeigen.
+
+---
+
 ## [3.2.6] - 2026-07-29
 
 ### Verbessert

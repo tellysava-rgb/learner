@@ -523,8 +523,10 @@ Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler 
 Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`/`exec` nötig):
 
 - `deploy.php` ist im Git-Repo versioniert _(v2.0.3)_ — schützt sich aber über die eigene Skip-Liste selbst vor Überschreiben, muss also bei Änderungen weiterhin manuell per FTP auf den Produktiv-Server kopiert werden
-- Aufruf: Deploy-Button in den Einstellungen (settings.php) — Token wird per POST-Formular übermittelt (nicht als URL-Parameter, verhindert Sichtbarkeit in Server-Logs)
-- **Zusätzlich zum Token ist eine aktive Admin-Session erforderlich** _(v3.0.0)_ — ein reiner Token-Aufruf per Lesezeichen ohne eingeloggten Admin funktioniert nicht mehr (`403`). Der Deploy-Button in `settings.php` funktioniert unverändert, da die Browser-Session automatisch mitgeschickt wird
+- Aufruf: Button "Deploy-Status öffnen" in den Einstellungen (settings.php) führt zu `deploy.php?token=...` — löst noch **kein** Deployment aus, zeigt nur die Statusanzeige (installierte vs. GitHub-Version) _(zweistufig seit v3.2.7)_
+- **Zweistufiger Ablauf** _(v3.2.7)_: `deploy.php` zeigt beim reinen Aufruf (GET) nur den Versionsvergleich und einen eigenen Button "Deploy starten". Erst ein Klick auf diesen Button (POST, CSRF-geschützt, `action=run_deploy`) lädt das ZIP herunter und kopiert die Dateien. Verhindert, dass ein Klick auf der Einstellungsseite versehentlich sofort ein echtes Deployment auslöst
+- Nach einem erfolgreichen Deploy liest die Seite `includes/config.php` erneut ein und zeigt die tatsächlich installierte Versionsnummer — "Installiert" und "GitHub" zeigen dann `=`, kein scheinbarer Widerspruch zur Erfolgsmeldung mehr
+- **Zusätzlich zum Token ist eine aktive Admin-Session erforderlich** _(v3.0.0)_ — ein reiner Token-Aufruf per Lesezeichen ohne eingeloggten Admin funktioniert nicht mehr (`403`). Der Button in `settings.php` funktioniert unverändert, da die Browser-Session automatisch mitgeschickt wird
 - Script lädt das GitHub-Repo als ZIP via cURL herunter, entpackt es und kopiert die Dateien
 - Token wird in `deploy-config.php` konfiguriert (bleibt in `.gitignore` — Trennung von Logik und Geheimnis)
 
@@ -549,8 +551,8 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 - settings.php zeigt installierte Version und GitHub-Version nebeneinander
 - Grün = aktuell, Blau = Update verfügbar
 - Pfeil zwischen den Versionen zeigt die Update-Richtung: `←` (Updates fliessen von GitHub zur Installation) — bei identischen Versionen wird stattdessen `=` angezeigt _(v3.0.1)_
-- Dieselbe `=`-Logik gilt auch auf der Statusseite von `deploy.php` selbst (nach einem Deploy) _(v3.0.1)_
-- **`deploy.php`-Statusseite** _(v3.2.4)_: Die obere Vergleichsanzeige zeigt bewusst den Stand **vor** diesem Deploy-Lauf (Label "Bisher installiert" → GitHub-Version) — das ist kein Widerspruch zur Erfolgsmeldung darunter, da diese explizit die soeben installierte Versionsnummer nennt ("Version vX.Y.Z wurde erfolgreich auf Prod installiert."), statt nur generisch "Erfolgreich deployed" zu sagen
+- Dieselbe `=`-Logik gilt auch auf der Statusseite von `deploy.php` selbst, sowohl vor als auch nach einem tatsächlich ausgeführten Deploy _(v3.0.1, zweistufiger Ablauf v3.2.7)_
+- **`deploy.php`-Statusseite** _(v3.2.4, überarbeitet v3.2.7)_: Erfolgsmeldung nennt explizit die installierte Versionsnummer ("Version vX.Y.Z wurde erfolgreich auf Prod installiert.") statt nur generisch "Erfolgreich deployed". Die obere Vergleichsanzeige liest nach einem Deploy `config.php` erneut ein und zeigt daher den tatsächlichen Stand danach (`=` bei Erfolg) — kein Widerspruch mehr zwischen Anzeige und Erfolgsmeldung
 
 ---
 

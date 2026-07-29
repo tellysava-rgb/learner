@@ -392,17 +392,26 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 ### Deploy nur mit Admin-Session _(v3.0.0)_
 
 [ ] `deploy.php` direkt per URL mit gültigem Token, aber OHNE eingeloggte Admin-Session (z.B. neuer Browser/Incognito) → HTTP 403 "Admin-Login erforderlich...". _(v3.0.0)_
-[ ] `deploy.php` mit gültigem Token UND aktiver Admin-Session → funktioniert wie bisher (Version wird aktualisiert). _(v3.0.0)_
-[ ] "Deploy starten"-Button in `settings.php` funktioniert weiterhin unverändert (Browser-Session wird automatisch mitgeschickt). _(v3.0.0)_
+[ ] `deploy.php` mit gültigem Token UND aktiver Admin-Session → Statusseite wird angezeigt. _(v3.0.0, zweistufiger Ablauf v3.2.7)_
+[ ] Button in `settings.php` funktioniert weiterhin unverändert (Browser-Session wird automatisch mitgeschickt). _(v3.0.0)_
 [ ] Eingeloggt als Nicht-Admin: `deploy.php` mit gültigem Token → ebenfalls HTTP 403. _(v3.0.0)_
+
+### Zweistufiger Deploy-Ablauf (Status vs. tatsächliches Deployment) _(v3.2.7)_
+
+[ ] Klick auf "Deploy-Status öffnen" in `settings.php` navigiert zu `deploy.php`, löst aber KEIN Deployment aus — keine Dateien werden verändert, kein Log/Erfolgsmeldung sichtbar. _(v3.2.7)_
+[ ] `deploy.php` (reiner Aufruf, kein Deploy ausgelöst) zeigt Versionsvergleich und einen Button "Deploy starten". _(v3.2.7)_
+[ ] Installierte Version ≠ GitHub-Version, noch kein Deploy ausgelöst: Hinweistext "Neue Version auf GitHub verfügbar. Noch nichts wurde verändert...". _(v3.2.7)_
+[ ] Installierte Version = GitHub-Version, noch kein Deploy ausgelöst: "✓ Bereits auf dem neuesten Stand" statt Hinweistext, Button "Deploy starten" bleibt trotzdem nutzbar (harmloser Re-Sync). _(v3.2.7)_
+[ ] Klick auf "Deploy starten" auf `deploy.php` (POST, CSRF-Feld vorhanden) → führt den tatsächlichen Download/Kopiervorgang aus, zeigt danach Log und Erfolgs-/Fehlermeldung. _(v3.2.7)_
+[ ] POST an `deploy.php` mit `action=run_deploy` aber ungültigem/fehlendem CSRF-Token → 403 CSRF-Fehler, kein Deployment ausgeführt. _(v3.2.7)_
+[ ] Nach erfolgreichem Deploy: obere Vergleichsanzeige liest `config.php` neu ein und zeigt "Installiert" = "GitHub" mit `=`, passend zur Erfolgsmeldung darunter — kein Widerspruch mehr. _(v3.2.7)_
+[ ] Erfolgsmeldung nennt explizit die installierte Versionsnummer ("✅ Version vX.Y.Z wurde erfolgreich auf Prod installiert."), nicht mehr nur generisch "Erfolgreich deployed". _(v3.2.4, v3.2.7)_
 
 ### Versions-Vergleich (Pfeil/Gleichheitszeichen) _(v3.0.1)_
 
 [ ] `settings.php`, Bereich "Deployment": installierte Version ≠ GitHub-Version → Pfeil `←` zwischen den beiden Versionsangaben. _(v3.0.1)_
 [ ] `settings.php`: installierte Version = GitHub-Version → `=` statt Pfeil, zusätzlich weiterhin "✓ Bereits auf dem neuesten Stand". _(v3.0.1)_
-[ ] `deploy.php`-Statusseite (nach einem Deploy): dieselbe Logik — `←` bei unterschiedlichen Versionen, `=` bei identischen. _(v3.0.1)_
-[ ] `deploy.php`-Statusseite: obere Vergleichsanzeige ist jetzt mit "Bisher installiert" beschriftet (statt nur "Installiert"), um klarzustellen dass dies der Stand VOR diesem Deploy-Lauf ist. _(v3.2.4)_
-[ ] `deploy.php`-Statusseite: Erfolgsmeldung nennt explizit die neu installierte Versionsnummer ("✅ Version vX.Y.Z wurde erfolgreich auf Prod installiert."), nicht mehr nur generisch "Erfolgreich deployed". _(v3.2.4)_
+[ ] `deploy.php`-Statusseite: dieselbe Logik — `←` bei unterschiedlichen Versionen, `=` bei identischen, sowohl vor als auch nach einem tatsächlich ausgeführten Deploy. _(v3.0.1, zweistufiger Ablauf v3.2.7)_
 
 ---
 
