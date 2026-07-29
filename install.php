@@ -56,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     language_a  VARCHAR(50)  NOT NULL,
                     language_b  VARCHAR(50)  NOT NULL,
                     is_public   TINYINT(1)   NOT NULL DEFAULT 0,
+                    is_active   TINYINT(1)   NOT NULL DEFAULT 1,
                     created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     last_used_at TIMESTAMP   NULL     DEFAULT NULL,
                     FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE

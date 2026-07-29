@@ -23,11 +23,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $success = '10 weitere Karten wurden aktiviert.';
         }
     }
+
+    // Liste als aktiv/inaktiv markieren
+    if ($action === 'toggle_list_active') {
+        $list_id = intval($_POST['list_id'] ?? 0);
+        $stmt = $pdo->prepare("SELECT is_active FROM lists WHERE id = ? AND person_id = ?");
+        $stmt->execute([$list_id, $person_id]);
+        $current = $stmt->fetch();
+        if ($current) {
+            $new_status = $current['is_active'] ? 0 : 1;
+            $pdo->prepare("UPDATE lists SET is_active = ? WHERE id = ?")->execute([$new_status, $list_id]);
+            $_SESSION['flash_success'] = $new_status ? 'Liste wurde aktiviert.' : 'Liste wurde als inaktiv markiert.';
+        }
+        header('Location: home.php');
+        exit;
+    }
 }
 
 // Eigene Listen laden
 $stmt = $pdo->prepare("
-    SELECT l.id, l.name, l.description, l.language_a, l.language_b, l.is_public, l.last_used_at,
+    SELECT l.id, l.name, l.description, l.language_a, l.language_b, l.is_public, l.is_active, l.last_used_at,
            COUNT(c.id) AS card_count
     FROM lists l
     LEFT JOIN cards c ON c.list_id = l.id
@@ -38,10 +53,13 @@ $stmt = $pdo->prepare("
 $stmt->execute([$person_id]);
 $own_lists = $stmt->fetchAll();
 
-// Warteschlangen-Anzahl und heute fällige Karten (Leitner) pro Liste
+$active_lists   = array_values(array_filter($own_lists, fn($l) => $l['is_active']));
+$inactive_lists = array_values(array_filter($own_lists, fn($l) => !$l['is_active']));
+
+// Warteschlangen-Anzahl und heute fällige Karten (Leitner) pro aktiver Liste
 $queued_counts    = [];
 $due_today_counts = [];
-foreach ($own_lists as $list) {
+foreach ($active_lists as $list) {
     $stmt = $pdo->prepare("
         SELECT
             SUM(CASE WHEN cp.status = 'queued' THEN 1 ELSE 0 END) AS queued,
@@ -181,8 +199,12 @@ $_SESSION['streak_date'] = today();
         <?php if (!$own_lists): ?>
             <p class="text-muted">Du hast noch keine Listen. <a href="lists.php">Erstelle jetzt deine erste Liste</a>.</p>
         <?php else: ?>
+
+        <?php if (!$active_lists): ?>
+            <p class="text-muted">Keine aktiven Listen.</p>
+        <?php else: ?>
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mb-4">
-            <?php foreach ($own_lists as $list): ?>
+            <?php foreach ($active_lists as $list): ?>
             <div class="col">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body">
@@ -221,15 +243,59 @@ $_SESSION['streak_date'] = today();
                         <?php endif; ?>
                     </div>
                     <div class="card-footer bg-transparent border-0 pb-3">
-                        <div class="d-flex flex-wrap gap-2">
-                            <a href="learn.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-primary">Leitner</a>
-                            <a href="drill.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-primary">Drill</a>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="learn.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-primary">Leitner</a>
+                                <a href="drill.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-primary">Drill</a>
+                            </div>
+                            <form method="post" class="d-inline">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="action" value="toggle_list_active">
+                                <input type="hidden" name="list_id" value="<?= $list['id'] ?>">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                        title="Inaktiv setzen" aria-label="Inaktiv setzen"><i class="bi bi-check-circle-fill"></i></button>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
             <?php endforeach; ?>
         </div>
+        <?php endif; ?>
+
+        <?php if ($inactive_lists): ?>
+        <h3 class="h6 text-muted mb-2">Inaktive Listen</h3>
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2">
+            <?php foreach ($inactive_lists as $list): ?>
+            <div class="col">
+                <div class="card h-100 border-secondary-subtle">
+                    <div class="card-body p-2">
+                        <p class="small fw-medium mb-1">
+                            <?= htmlspecialchars($list['name']) ?>
+                            <?php if (!$list['is_public']): ?>
+                            <span class="badge bg-secondary ms-1">privat</span>
+                            <?php endif; ?>
+                        </p>
+                        <p class="small text-muted mb-0">
+                            <?= htmlspecialchars($list['language_a']) ?> → <?= htmlspecialchars($list['language_b']) ?>
+                            &nbsp;·&nbsp; <?= $list['card_count'] ?> Karte<?= $list['card_count'] != 1 ? 'n' : '' ?>
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 p-2 pt-0 d-flex justify-content-end">
+                        <form method="post" class="d-inline">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="action" value="toggle_list_active">
+                            <input type="hidden" name="list_id" value="<?= $list['id'] ?>">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                    title="Aktiv setzen" aria-label="Aktiv setzen"><i class="bi bi-circle text-secondary"></i></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+
         <?php endif; ?>
     </div>
 

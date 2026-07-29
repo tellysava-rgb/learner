@@ -65,7 +65,7 @@ switch ($method) {
             'serverInfo'      => ['name' => 'learner-mcp', 'version' => APP_VERSION],
             'instructions'    => 'Workflow zum Hinzufügen von Vokabeln: '
                 . '1. list_persons aufrufen, dem User die Personen zeigen und fragen für wen. '
-                . '2. list_lists aufrufen, dem User ALLE Listen anzeigen und explizit fragen in welche Liste. Anhand language_a/language_b bestimmen, welche Seite Deutsch ist. '
+                . '2. list_lists aufrufen (zeigt standardmässig nur AKTIVE Listen), dem User diese anzeigen und explizit fragen in welche Liste. Anhand language_a/language_b bestimmen, welche Seite Deutsch ist. Nennt der User eine Liste beim Namen, die nicht in den aktiven Listen auftaucht: list_lists erneut mit include_inactive=true aufrufen, bevor angenommen wird die Liste existiere nicht — Karten dürfen auch in eine explizit genannte inaktive Liste eingefügt werden. '
                 . '3. Begriff (Fremdsprache): exakter Begriff — bei Verben die Grundform (Infinitiv), bei unregelmässigen Verben alle drei Formen (z.B. "go / went / gone"). Begriff (Deutsch): exakter Begriff, Gross-/Kleinschreibung nach deutscher Rechtschreibung — Nomen IMMER gross (z.B. "Haus", "Tisch"), alle anderen Wortarten (Verben in Grundform, Adjektive, Adverbien etc.) klein (z.B. "laufen", "schnell", "oft"), ausser am Satzanfang bei mehrteiligen Begriffen/Wendungen (dann nur das erste Wort gross, unabhängig von der Wortart). '
                 . '4. Beschreibung (Fremdsprache): Beispielsatz mit dem exakten fremdsprachigen Begriff. Beschreibung (Deutsch): beschreibt die Bedeutung genauer, OHNE den fremdsprachigen Begriff zu nennen — bei unregelmässigen Verben ggf. vermerken, dass es sich um ein unregelmässiges Verb handelt; bei mehrdeutigen Begriffen den konkreten Verwendungskontext angeben. NIEMALS den fremdsprachigen Begriff in der deutschen Beschreibung wiederholen — das ist ein Fehler, der Lernkarten unbrauchbar macht. '
                 . '5. Ist Sprache B Englisch: Hat die Liste ein speech_lang_b (z.B. "en-GB" vs. "en-US") gesetzt, müssen Schreibweise und Wortwahl von Begriff UND Beispielsatz in Sprache B zu diesem Dialekt passen (z.B. en-GB → "colour", "lorry", "flat"; en-US → "color", "truck", "apartment") — diese Listen-Definition hat Vorrang vor allem anderen. Hat die Liste KEIN speech_lang_b gesetzt, gilt als Standard BRITISCHES Englisch (en-GB), ausser der User verlangt im Gespräch ausdrücklich einen anderen Dialekt (z.B. "amerikanisches Englisch"). Das wiederkehrende Fehlerbild "US-Begriffe statt gewünschter britischer Begriffe" muss durch diese Regel verhindert werden. Zusätzlich phonetik_b mit vereinfachter Lautschrift füllen (Silben mit Bindestrich, betonte Silbe GROSS, keine IPA-Zeichen, z.B. "toh-ken-eye-ZAY-shun") — hat die Liste kein speech_lang_b, phonetik_b leer lassen. Bei NICHT-rhotischen Dialekten (en-GB und ähnliche wie en-AU/en-NZ/en-ZA): "r" nach Vokal vor Konsonant oder am Wortende NICHT mitschreiben — "-er"/"-or" wird zu "-uh"/"aw" (z.B. "thunder" → "THUN-duh", "forecast" → "FAW-kahst", "storm" → "stawm"); "r" nur schreiben wenn direkt ein Vokal folgt (Silbenanfang wie "rain" → "rayn", oder verbindendes R zwischen Wörtern wie "for a" → "fer uh"). Bei rhotischen Dialekten (z.B. en-US) "r" normal mitschreiben. '
@@ -115,6 +115,7 @@ function tool_list_lists(PDO $pdo, array $args): array {
     if ($person_id <= 0) {
         return tool_error('person_id ist erforderlich (positive Ganzzahl)');
     }
+    $include_inactive = !empty($args['include_inactive']);
 
     $stmt = $pdo->prepare("SELECT id, name FROM persons WHERE id = ?");
     $stmt->execute([$person_id]);
@@ -123,7 +124,10 @@ function tool_list_lists(PDO $pdo, array $args): array {
         return tool_error("Person mit id=$person_id nicht gefunden");
     }
 
-    $stmt = $pdo->prepare("SELECT id, name, language_a, language_b, speech_lang_b FROM lists WHERE person_id = ? ORDER BY name");
+    $sql = "SELECT id, name, language_a, language_b, speech_lang_b, is_active FROM lists WHERE person_id = ?"
+         . ($include_inactive ? "" : " AND is_active = 1")
+         . " ORDER BY name";
+    $stmt = $pdo->prepare($sql);
     $stmt->execute([$person_id]);
     $lists = $stmt->fetchAll();
 
@@ -320,11 +324,12 @@ function mcp_tools_schema(): array {
         ],
         [
             'name'        => 'list_lists',
-            'description' => 'Gibt alle Vokabellisten einer Person zurück (id, name, Sprachen, speech_lang_b). Zweiter Schritt: Listen dem User anzeigen und explizit fragen welche Liste verwendet werden soll — niemals eine Liste ohne Rückfrage auswählen. speech_lang_b (z.B. "en-GB") gibt den Dialekt vor, falls gesetzt — Schreibweise/Wortwahl in add_cards muss dazu passen. Ist Sprache B Englisch und speech_lang_b NICHT gesetzt: Standarddialekt ist BRITISCHES Englisch (en-GB), nicht US-Englisch.',
+            'description' => 'Gibt die Vokabellisten einer Person zurück (id, name, Sprachen, speech_lang_b, is_active). Zeigt standardmässig NUR aktive Listen (is_active=true) — inaktive Listen werden dem User nicht proaktiv erwähnt. Nennt der User beim Namen eine Liste, die hier nicht auftaucht, dieses Tool erneut mit include_inactive=true aufrufen, bevor angenommen wird die Liste existiere nicht — Karten dürfen auch in eine explizit genannte inaktive Liste eingefügt werden. Zweiter Schritt: (aktive) Listen dem User anzeigen und explizit fragen welche Liste verwendet werden soll — niemals eine Liste ohne Rückfrage auswählen. speech_lang_b (z.B. "en-GB") gibt den Dialekt vor, falls gesetzt — Schreibweise/Wortwahl in add_cards muss dazu passen. Ist Sprache B Englisch und speech_lang_b NICHT gesetzt: Standarddialekt ist BRITISCHES Englisch (en-GB), nicht US-Englisch.',
             'inputSchema' => [
                 'type'       => 'object',
                 'properties' => [
-                    'person_id' => ['type' => 'integer', 'description' => 'ID der Person (von list_persons)'],
+                    'person_id'        => ['type' => 'integer', 'description' => 'ID der Person (von list_persons)'],
+                    'include_inactive' => ['type' => 'boolean', 'description' => 'Falls true: auch inaktive Listen zurückgeben. Standard false — nur aktive Listen.'],
                 ],
                 'required' => ['person_id'],
             ],

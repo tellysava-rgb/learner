@@ -29,6 +29,7 @@ function run_pending_migrations(PDO $pdo): void {
         8 => "ALTER TABLE persons ADD UNIQUE INDEX IF NOT EXISTS idx_persons_email (email)",
         9 => "ALTER TABLE persons ADD COLUMN IF NOT EXISTS reset_token_hash VARCHAR(64) NULL DEFAULT NULL",
         10 => "ALTER TABLE persons ADD COLUMN IF NOT EXISTS reset_token_expires DATETIME NULL DEFAULT NULL",
+        11 => "ALTER TABLE lists ADD COLUMN IF NOT EXISTS is_active TINYINT(1) NOT NULL DEFAULT 1",
     ];
 
     // db_version aus settings lesen — falls Tabelle noch nicht existiert (vor install.php): abbrechen
