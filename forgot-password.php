@@ -31,14 +31,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $base_url = $scheme . $_SERVER['HTTP_HOST'] . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
             $link     = $base_url . '/reset-password.php?token=' . $raw_token;
 
-            $subject = APP_NAME . ': Passwort zurücksetzen';
+            $subject = mb_encode_mimeheader(APP_NAME . ': Passwort zurücksetzen', 'UTF-8', 'B');
             $body    = "Hallo " . $person['name'] . ",\n\n"
                      . "Hier ist dein Link zum Zurücksetzen deines Passworts (gültig 60 Minuten):\n\n"
                      . $link . "\n\n"
                      . "Falls du das nicht angefordert hast, kannst du diese E-Mail ignorieren.";
-            $headers = "From: " . APP_NAME . " <no-reply@" . $_SERVER['HTTP_HOST'] . ">";
+            $from_address = 'no-reply@' . $_SERVER['HTTP_HOST'];
+            $headers = "From: " . APP_NAME . " <" . $from_address . ">\r\n"
+                     . "Content-Type: text/plain; charset=utf-8";
 
-            $sent = mail($email, $subject, $body, $headers);
+            $sent = mail($email, $subject, $body, $headers, '-f ' . $from_address);
             if (!$sent) {
                 error_log('forgot-password.php: mail() fehlgeschlagen für person_id=' . $person['id']);
             }

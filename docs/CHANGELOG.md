@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.3] - 2026-07-29
+
+### Behoben
+- `forgot-password.php`: Reset-E-Mails kamen auf Produktion (HostFactory) nie an. Ursache: der Subject-Header enthielt ein rohes Umlaut-Zeichen ("zurücksetzen") statt RFC-1342-kodiertem Text — HostFactorys Outbound-Filter stuft nicht-ASCII-Zeichen in Mail-Headern als Spam ein und stellt die Nachricht kommentarlos nicht zu. Ausserdem fehlte der von HostFactory verlangte `-f`-Parameter (Return-Path/Envelope-Sender). Subject wird jetzt per `mb_encode_mimeheader()` kodiert, `-f` gesetzt, `Content-Type: text/plain; charset=utf-8` ergänzt.
+
+---
+
 ## [3.2.2] - 2026-07-29
 
 ### Verbessert

@@ -558,6 +558,9 @@ Testtools: `curl` oder Claude Code mit `.mcp.json`.
 [ ] Nach erfolgreichem Reset: derselbe Link (Token) erneut aufgerufen → "ungültig oder abgelaufen" (Token ist nach Gebrauch entwertet, nicht wiederverwendbar). _(v3.0.0)_
 [ ] Person ohne hinterlegte E-Mail-Adresse: `forgot-password.php` mit einer beliebigen E-Mail führt nie zu einem Reset dieser Person (da keine Zuordnung existiert). _(v3.0.0)_
 [ ] Bereits eingeloggt und `forgot-password.php`/`reset-password.php` aufgerufen → Redirect zu `home.php`. _(v3.0.0)_
+[ ] Auf Produktion (getestet mit echtem Hosting-Mailversand): E-Mail mit Reset-Link kommt tatsächlich im Postfach an (nicht nur im Spam-Ordner) — insbesondere bei Hostern mit strikter Outbound-Spam-Prüfung (z.B. HostFactory). _(v3.2.3)_
+[ ] Subject der Reset-E-Mail zeigt Umlaute korrekt im E-Mail-Programm (kein Mojibake, keine sichtbaren `=?UTF-8?B?...?=`-Reste). _(v3.2.3)_
+[ ] Bei fehlgeschlagenem `mail()`-Versand landet ein Eintrag im PHP-Error-Log der Produktion (`forgot-password.php: mail() fehlgeschlagen für person_id=...`). _(v3.2.3)_
 
 ---
 
