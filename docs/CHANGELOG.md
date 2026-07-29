@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.9] - 2026-07-29
+
+### Neu
+- `deploy.php`: Warnt jetzt, bevor eine ältere GitHub-Version über eine neuere lokal installierte Version deployed würde (z.B. weil lokale Änderungen noch nicht gepusht wurden). Klick auf "Deploy starten" zeigt in diesem Fall zuerst eine Warnung mit separater Bestätigung ("Ja, trotzdem deployen") statt sofort zu deployen. Die Statusanzeige formuliert diesen Fall auch schon vor dem Klick korrekt, statt fälschlich "Neue Version auf GitHub verfügbar" zu zeigen.
+
+---
+
 ## [3.2.8] - 2026-07-29
 
 ### Behoben

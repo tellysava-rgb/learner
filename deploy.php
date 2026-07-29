@@ -53,16 +53,33 @@ $local_config    = __DIR__ . '/includes/config.php';
 $current_version = deploy_read_local_version($local_config);
 $new_version     = deploy_read_github_version();
 
-$deploy_ran = false;
-$success    = false;
-$log        = [];
+// GitHub-Version älter als installierte Version? (z.B. lokale Änderungen noch nicht gepusht)
+$is_downgrade = $current_version !== 'unbekannt' && $new_version !== 'unbekannt'
+    && version_compare($new_version, $current_version, '<');
+
+$deploy_ran             = false;
+$show_downgrade_warning = false;
+$success                = false;
+$log                    = [];
 
 // Deployment nur bei explizitem POST-Trigger ausführen — reiner Seitenaufruf zeigt nur den Status.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'run_deploy') {
     csrf_validate();
-    $deploy_ran = true;
+    $confirmed_downgrade = ($_POST['confirm_downgrade'] ?? '') === '1';
 
-    // Diese Dateien werden nie deployed (müssen manuell verwaltet werden)
+    if ($is_downgrade && !$confirmed_downgrade) {
+        // Erst warnen statt direkt zu deployen — verhindert versehentliches Überschreiben
+        // einer neueren lokalen Version mit einem älteren GitHub-Stand.
+        $show_downgrade_warning = true;
+    } else {
+        $deploy_ran = true;
+        deploy_run($log, $success);
+        $current_version = deploy_read_local_version($local_config);
+    }
+}
+
+// Führt den eigentlichen Download/Kopiervorgang aus (Dateien, die nie deployed werden, siehe $protected)
+function deploy_run(array &$log, bool &$success): void {
     $protected = [
         'db-credentials.php',
         'config-runtime.php',
@@ -171,9 +188,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'run_d
     } catch (RuntimeException $e) {
         $log[] = 'FEHLER: ' . $e->getMessage();
     }
-
-    // Nach dem Kopieren die tatsächlich jetzt installierte Version neu einlesen (statt des Stands von vor dem Deploy)
-    $current_version = deploy_read_local_version($local_config);
 }
 ?>
 <!DOCTYPE html>
@@ -213,9 +227,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'run_d
         </div>
     </div>
 
-    <?php if (!$deploy_ran): ?>
+    <?php if ($show_downgrade_warning): ?>
+        <p class="err">⚠️ Achtung: Die Version auf GitHub (v<?= htmlspecialchars($new_version) ?>) ist ÄLTER als die hier installierte Version (v<?= htmlspecialchars($current_version) ?>).</p>
+        <p>Ein Deployment würde die neuere lokale Version mit dem älteren GitHub-Stand überschreiben. Falls hier Änderungen liegen, die noch nicht auf GitHub gepusht wurden, gehen sie dabei verloren.</p>
+        <form method="post" style="display:inline;">
+            <?= csrf_field() ?>
+            <input type="hidden" name="action" value="run_deploy">
+            <input type="hidden" name="token" value="<?= htmlspecialchars($token) ?>">
+            <input type="hidden" name="confirm_downgrade" value="1">
+            <button type="submit" style="background:#dc2626;">Ja, trotzdem deployen</button>
+        </form>
+        <a href="deploy.php?token=<?= urlencode($token) ?>">Abbrechen</a>
+    <?php elseif (!$deploy_ran): ?>
         <?php if ($current_version === $new_version): ?>
         <p class="ok">✓ Bereits auf dem neuesten Stand.</p>
+        <?php elseif ($is_downgrade): ?>
+        <p>Die installierte Version ist neuer als der Stand auf GitHub (nicht gepushte lokale Änderungen?). Noch nichts wurde verändert — der Button unten fragt vor dem Deployment sicherheitshalber nochmal nach.</p>
         <?php else: ?>
         <p>Neue Version auf GitHub verfügbar. Noch nichts wurde verändert — erst der Button unten löst das Deployment aus.</p>
         <?php endif; ?>

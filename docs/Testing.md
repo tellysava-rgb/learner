@@ -407,6 +407,14 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Nach erfolgreichem Deploy: obere Vergleichsanzeige liest `config.php` neu ein und zeigt "Installiert" = "GitHub" mit `=`, passend zur Erfolgsmeldung darunter — kein Widerspruch mehr. _(v3.2.7)_
 [ ] Erfolgsmeldung nennt explizit die installierte Versionsnummer ("✅ Version vX.Y.Z wurde erfolgreich auf Prod installiert."), nicht mehr nur generisch "Erfolgreich deployed". _(v3.2.4, v3.2.7)_
 
+### Downgrade-Warnung (GitHub-Version älter als installiert) _(v3.2.9)_
+
+[ ] Installierte Version ist neuer als GitHub-Version (z.B. lokale Änderungen noch nicht gepusht): Statusanzeige zeigt einen Hinweis auf diesen Fall, nicht die normale "Neue Version auf GitHub verfügbar"-Meldung. _(v3.2.9)_
+[ ] In diesem Fall: Klick auf "Deploy starten" führt NICHT sofort das Deployment aus, sondern zeigt eine Warnung ("Version auf GitHub ist ÄLTER...", Hinweis auf möglichen Verlust nicht gepushter Änderungen). _(v3.2.9)_
+[ ] Auf der Warnseite: Klick auf "Abbrechen" → zurück zur normalen Statusanzeige, kein Deployment ausgeführt. _(v3.2.9)_
+[ ] Auf der Warnseite: Klick auf "Ja, trotzdem deployen" → Deployment wird jetzt tatsächlich ausgeführt (überschreibt mit der älteren GitHub-Version). _(v3.2.9)_
+[ ] Ist GitHub-Version gleich oder neuer als installierte Version: kein Warnschritt, "Deploy starten" führt wie gewohnt direkt aus. _(v3.2.9)_
+
 ### Versions-Vergleich (Pfeil/Gleichheitszeichen) _(v3.0.1)_
 
 [ ] `settings.php`, Bereich "Deployment": installierte Version ≠ GitHub-Version → Pfeil `←` zwischen den beiden Versionsangaben. _(v3.0.1)_
