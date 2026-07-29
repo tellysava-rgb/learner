@@ -102,7 +102,7 @@ function streak_badge(): string {
     $streak = (int)($_SESSION['streak'] ?? 0);
     if ($streak <= 0 || ($_SESSION['streak_date'] ?? '') !== today()) return '';
     $days = $streak === 1 ? 'Tag' : 'Tage';
-    return '<span class="badge bg-warning text-dark">🔥 ' . $streak . ' ' . $days . '</span>';
+    return '<a href="stats.php" class="badge bg-warning text-dark text-decoration-none" title="Zur Statistik">🔥 ' . $streak . ' ' . $days . '</a>';
 }
 
 // Logout

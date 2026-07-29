@@ -45,6 +45,7 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Breadcrumb steht auf allen Seiten an derselben horizontalen Position. _(v0.5.0)_
 [ ] Streak-Badge (🔥 N Tage) erscheint in der Navbar auf allen Seiten wenn Streak aktiv. _(v0.7.0)_
 [ ] Streak-Badge verschwindet wenn kein Streak (heute/gestern nicht gelernt). _(v0.7.0)_
+[ ] Klick auf das Streak-Badge führt zu `stats.php`. _(v3.2.15)_
 [ ] Nach Person-Wechsel: Streak zeigt korrekten Wert für neue Person (nach home.php). _(v0.7.0)_
 [ ] Startseite: Button "Meine Listen" führt zu lists.php (kein "Verwalten" mehr). _(v0.5.0)_
 [ ] Startseite: kein "Mathe-Generator"-Button sichtbar. _(v0.5.0)_

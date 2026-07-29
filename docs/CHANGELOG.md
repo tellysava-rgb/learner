@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.15] - 2026-07-29
+
+### Verbessert
+- Streak-Badge (🔥) in der Navbar ist jetzt klickbar und führt zu `stats.php`.
+
+---
+
 ## [3.2.14] - 2026-07-29
 
 ### Verbessert
