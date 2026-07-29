@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.12] - 2026-07-29
+
+### Neu
+- Einstellungen: neue Karte "E-Mail-Test" — E-Mail-Adresse eingeben und eine Test-Mail mit derselben Versandmethode wie "Passwort vergessen" verschicken (RFC-konform: kodierter Subject, `-f`-Parameter, UTF-8-Content-Type), Erfolgs-/Fehlermeldung je nach Ergebnis. Erlaubt, den Mailversand auf einem Server unabhängig vom Passwort-Reset-Ablauf zu prüfen.
+
+---
+
 ## [3.2.11] - 2026-07-29
 
 ### Verbessert

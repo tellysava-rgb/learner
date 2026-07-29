@@ -74,6 +74,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: settings.php');
         exit;
     }
+
+    if (($_POST['action'] ?? '') === 'send_test_mail') {
+        $test_email = trim($_POST['test_email'] ?? '');
+
+        if (!filter_var($test_email, FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['flash_errors'] = ['Ungültige E-Mail-Adresse.'];
+        } else {
+            $subject = mb_encode_mimeheader(APP_NAME . ': Test-E-Mail', 'UTF-8', 'B');
+            $body    = "Dies ist eine Test-E-Mail von " . APP_NAME . ".\n\n"
+                     . "Wenn du diese Nachricht erhältst, funktioniert der E-Mail-Versand (inkl. Umlaut-Kodierung) auf diesem Server korrekt.";
+            $from_address = 'no-reply@' . $_SERVER['HTTP_HOST'];
+            $headers = "From: " . APP_NAME . " <" . $from_address . ">\r\n"
+                     . "Content-Type: text/plain; charset=utf-8";
+
+            $sent = mail($test_email, $subject, $body, $headers, '-f ' . $from_address);
+            if ($sent) {
+                $_SESSION['flash_success'] = 'Test-E-Mail an ' . $test_email . ' wurde übergeben.';
+            } else {
+                error_log('settings.php: Test-Mail-Versand fehlgeschlagen für ' . $test_email);
+                $_SESSION['flash_errors'] = ['Versand der Test-E-Mail ist fehlgeschlagen.'];
+            }
+        }
+        header('Location: settings.php');
+        exit;
+    }
 }
 
 // Aktuelle Werte (frisch aus config, nach PRG-Redirect)
@@ -254,6 +279,25 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
         </div>
 
     </form>
+
+    <div class="mt-4" style="max-width:640px;">
+        <div class="card">
+            <div class="list-group list-group-flush">
+                <div class="list-group-item bg-light py-2">
+                    <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing:.05em;">E-Mail-Test</span>
+                </div>
+                <div class="list-group-item py-3">
+                    <p class="text-muted small mb-2">Verschickt eine Test-E-Mail mit derselben Methode wie "Passwort vergessen" — nützlich um den Mailversand auf diesem Server zu prüfen.</p>
+                    <form method="post" class="d-flex gap-2">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="action" value="send_test_mail">
+                        <input type="email" name="test_email" class="form-control form-control-sm" placeholder="name@beispiel.ch" required style="max-width:260px;">
+                        <button type="submit" class="btn btn-sm btn-outline-primary flex-shrink-0">Test-E-Mail senden</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <?php
     $deploy_exists = file_exists(__DIR__ . '/deploy.php');

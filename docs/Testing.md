@@ -422,6 +422,14 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] `settings.php`: installierte Version = GitHub-Version → `=` statt Pfeil, zusätzlich weiterhin "✓ Bereits auf dem neuesten Stand". _(v3.0.1)_
 [ ] `deploy.php`-Statusseite: dieselbe Logik — `←` bei unterschiedlichen Versionen, `=` bei identischen, sowohl vor als auch nach einem tatsächlich ausgeführten Deploy. _(v3.0.1, zweistufiger Ablauf v3.2.7)_
 
+### E-Mail-Test _(v3.2.12)_
+
+[ ] Eigene Karte "E-Mail-Test" auf `settings.php` mit E-Mail-Feld und Button "Test-E-Mail senden". _(v3.2.12)_
+[ ] Ungültiges E-Mail-Format eingegeben → Fehlermeldung "Ungültige E-Mail-Adresse.", keine Mail verschickt. _(v3.2.12)_
+[ ] Gültige E-Mail-Adresse eingegeben und gesendet → Erfolgsmeldung "Test-E-Mail an ... wurde übergeben." bei erfolgreichem `mail()`-Aufruf. _(v3.2.12)_
+[ ] Test-Mail nutzt dieselbe RFC-konforme Versandmethode wie "Passwort vergessen" (kodierter Subject, `-f`-Parameter, UTF-8-Content-Type) — auf Produktion (HostFactory) kommt sie tatsächlich an. _(v3.2.12)_
+[ ] Schlägt `mail()` fehl (z.B. simuliert) → Fehlermeldung "Versand der Test-E-Mail ist fehlgeschlagen.", Eintrag im PHP-Error-Log. _(v3.2.12)_
+
 ---
 
 ## 9. Statistik 

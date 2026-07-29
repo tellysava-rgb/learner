@@ -413,6 +413,11 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 - Kein eigener Passwort-Änderungs-Abschnitt mehr — das eigene Passwort ändert jede Person selbst über das "Konto"-Modal in der Navbar, siehe Abschnitt "Zugang / Benutzerverwaltung"
 - Kein Link auf `users.php` mehr innerhalb der Einstellungsseite — direkt über das Icon (`bi-person-gear`) in der zentralen Navbar erreichbar, siehe Abschnitt "Benutzerverwaltung"
 
+### E-Mail-Test _(v3.2.12)_
+- Eigene Karte auf der Einstellungsseite: E-Mail-Adresse eingeben, "Test-E-Mail senden" klicken → verschickt eine Test-Mail mit derselben Versandmethode wie "Passwort vergessen" (`mb_encode_mimeheader()` für den Subject, `-f`-Parameter, `Content-Type: text/plain; charset=utf-8`)
+- Erfolgsmeldung ("Test-E-Mail an ... wurde übergeben.") oder Fehlermeldung, je nach Rückgabewert von `mail()` — Fehlschläge zusätzlich im PHP-Error-Log
+- Zweck: Mailversand auf einem Server (v.a. nach Umzug/Hosterwechsel) unabhängig vom Passwort-Reset-Ablauf prüfen können
+
 ---
 
 ## Benutzerverwaltung (`users.php`) _(v3.0.0)_
