@@ -28,6 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['flash_error'] = 'Passwort muss mindestens 8 Zeichen haben.';
         } elseif ($password !== $password2) {
             $_SESSION['flash_error'] = 'Die Passwörter stimmen nicht überein.';
+        } elseif ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['flash_error'] = 'Ungültige E-Mail-Adresse.';
         } else {
             try {
                 $hash = password_hash($password, PASSWORD_DEFAULT);
@@ -51,14 +53,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $target_id = intval($_POST['person_id'] ?? 0);
         $email     = trim($_POST['email'] ?? '');
 
-        try {
-            $stmt = $pdo->prepare("UPDATE persons SET email = ? WHERE id = ?");
-            $stmt->execute([$email !== '' ? $email : null, $target_id]);
-            $_SESSION['flash_success'] = 'E-Mail-Adresse gespeichert.';
-        } catch (PDOException $e) {
-            $_SESSION['flash_error'] = $e->getCode() === '23000'
-                ? 'Diese E-Mail-Adresse wird bereits von einer anderen Person verwendet.'
-                : 'Fehler beim Speichern der E-Mail-Adresse.';
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['flash_error'] = 'Ungültige E-Mail-Adresse.';
+        } else {
+            try {
+                $stmt = $pdo->prepare("UPDATE persons SET email = ? WHERE id = ?");
+                $stmt->execute([$email !== '' ? $email : null, $target_id]);
+                $_SESSION['flash_success'] = 'E-Mail-Adresse gespeichert.';
+            } catch (PDOException $e) {
+                $_SESSION['flash_error'] = $e->getCode() === '23000'
+                    ? 'Diese E-Mail-Adresse wird bereits von einer anderen Person verwendet.'
+                    : 'Fehler beim Speichern der E-Mail-Adresse.';
+            }
         }
         header('Location: users.php');
         exit;
@@ -122,7 +128,7 @@ $persons = $pdo->query("SELECT id, name, email, is_admin FROM persons ORDER BY n
     <title>Benutzerverwaltung — <?= APP_NAME ?></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/style.css?v=<?= APP_VERSION ?>">
 </head>
 <body>
 

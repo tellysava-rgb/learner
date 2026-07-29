@@ -42,6 +42,7 @@ body {
 /* Lernaktivität-Heatmap (Statistik) */
 .heatmap-wrap {
     overflow-x: auto;
+    text-align: center;
 }
 
 .heatmap-inner {

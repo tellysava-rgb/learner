@@ -389,6 +389,7 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Hover über eine Tages-Zelle zeigt Tooltip mit Datum und Anzahl gelernter Karten bzw. "nicht gelernt". _(v3.0.3)_
 [ ] Tage nach heute (Rest der laufenden Kalenderwoche) werden leer dargestellt, ohne Tooltip. _(v3.0.3)_
 [ ] Heatmap ist auf schmalen Bildschirmen (Mobile) horizontal scrollbar, restliche Seite scrollt nicht mit. _(v3.0.3)_
+[ ] Auf breiten Bildschirmen (Desktop, genug Platz) ist die Heatmap horizontal zentriert dargestellt, nicht linksbündig. _(v3.1.1)_
 [ ] Bei aktiviertem dunklen Farbschema (Browser/OS) sind Heatmap-Farben und Beschriftungen weiterhin gut lesbar. _(v3.0.3)_
 [ ] Person ohne jegliche Lernaktivität: Kennzahlen zeigen 0, Heatmap komplett leer/grau, keine Fehler. _(v3.0.3)_
 
@@ -496,9 +497,11 @@ Testtools: `curl` oder Claude Code mit `.mcp.json`.
 [ ] Neue Person anlegen mit unterschiedlichen Passwort/Wiederholung-Werten → Fehlermeldung "Die Passwörter stimmen nicht überein.", Person wird nicht angelegt. _(v3.0.0)_
 [ ] Neue Person mit bereits vergebenem Namen anlegen → Fehlermeldung. _(v3.0.0)_
 [ ] Neue Person mit bereits vergebener E-Mail-Adresse anlegen → Fehlermeldung, Person wird nicht angelegt. _(v3.0.0)_
+[ ] Neue Person mit ungültig formatierter E-Mail-Adresse (z.B. "nicht-valide") anlegen → Fehlermeldung "Ungültige E-Mail-Adresse.", Person wird nicht angelegt. _(v3.1.1)_
 [ ] Aktions-Buttons pro Person sind Icons mit Tooltip statt Text: E-Mail (`bi-envelope-plus`), Passwort zurücksetzen (`bi-key`), Admin umschalten (`bi-person-dash`/"Admin entfernen" bei Admin-Personen, `bi-person-lock`/"Zu Admin machen" bei Nicht-Admin-Personen). _(v3.0.1)_
 [ ] "E-Mail"-Icon bei einer Person → Modal, E-Mail setzen/ändern/entfernen (leeres Feld speichern = entfernen). _(v3.0.0, Icon v3.0.1)_
 [ ] E-Mail-Adresse setzen, die bereits einer anderen Person gehört → Fehlermeldung, keine Änderung. _(v3.0.0)_
+[ ] E-Mail-Adresse mit ungültigem Format setzen (z.B. "nicht-valide") → Fehlermeldung "Ungültige E-Mail-Adresse.", keine Änderung gespeichert. _(v3.1.1)_
 [ ] "Passwort zurücksetzen"-Icon bei einer Person → Modal mit neuem Passwort + Wiederholung (min. 8 Zeichen, müssen identisch sein, kein altes Passwort nötig) → Person kann sich mit neuem Passwort einloggen. _(v3.0.0, Icon v3.0.1)_
 [ ] "Passwort zurücksetzen" mit unterschiedlichen Werten in Passwort/Wiederholung → Fehlermeldung, Passwort bleibt unverändert. _(v3.0.0)_
 [ ] "Zu Admin machen"-Icon (`bi-person-lock`) bei einer Nicht-Admin-Person → Status wechselt zu Admin-Badge, Icon wechselt zu `bi-person-dash`/"Admin entfernen". _(v3.0.0, Icon v3.0.1)_
@@ -553,4 +556,6 @@ Testtools: `curl` oder Claude Code mit `.mcp.json`.
 [ ] `learn.php` MIT aktiver Session: weiterhin "Session abbrechen" statt der Standard-Navbar-Elemente (Sonderfall bleibt bestehen, unverändert). _(v3.0.0)_
 [ ] `drill.php` MIT aktiver Session: weiterhin Timer + "gemeistert"-Zähler + "Session abbrechen" statt der Standard-Navbar-Elemente (Sonderfall bleibt bestehen, unverändert). _(v3.0.0)_
 [ ] Konto-Modal (Passwort/E-Mail ändern) funktioniert von JEDER Seite aus (nicht nur `home.php`) und landet nach dem Speichern wieder auf derselben Seite. _(v3.0.0)_
+[ ] `assets/style.css` wird auf JEDER Seite mit Versions-Query-String eingebunden (`?v=<APP_VERSION>`), sichtbar im Seitenquelltext. _(v3.1.1)_
+[ ] Nach einem Release mit CSS-Änderung: neue Seite ohne manuellen Hard-Refresh korrekt gestylt (Browser holt CSS neu, da sich der `?v=`-Parameter geändert hat). _(v3.1.1)_
 

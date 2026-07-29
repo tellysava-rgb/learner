@@ -419,10 +419,10 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 - Breadcrumb: `Startseite > Benutzerverwaltung` — nicht unter "Einstellungen" verschachtelt, da eigenständig aus der Navbar erreichbar
 - Tabelle aller Personen: Name, E-Mail _(v3.0.0)_, Status-Badge (Admin/Person), Aktionen
 - **Aktions-Buttons als Icons mit Tooltip** _(v3.0.1)_: E-Mail (`bi-envelope-plus`), Passwort zurücksetzen (`bi-key`), Admin-Status umschalten (`bi-person-dash` wenn aktuell Admin/"Admin entfernen", `bi-person-lock` wenn aktuell Person/"Zu Admin machen") — statt Text-Buttons
-- **E-Mail-Adresse setzen/ändern** _(v3.0.0)_: Modal pro Person, optional, leer lassen entfernt sie — dient dem eigenständigen Passwort-Reset dieser Person
+- **E-Mail-Adresse setzen/ändern** _(v3.0.0)_: Modal pro Person, optional, leer lassen entfernt sie — dient dem eigenständigen Passwort-Reset dieser Person. Format wird serverseitig validiert (`FILTER_VALIDATE_EMAIL`) — bei ungültigem Format Fehlermeldung, keine Speicherung _(v3.1.1)_
 - **Passwort zurücksetzen**: Admin setzt direkt ein neues Passwort für eine Person, ohne deren altes Passwort zu kennen (Modal, min. 8 Zeichen)
 - **Admin-Status umschalten**: Button pro Person — der letzte verbleibende Admin kann nicht entfernt werden
-- **Neue Person anlegen**: Name (eindeutig) + initiales Passwort (min. 8 Zeichen) + optionale E-Mail-Adresse _(v3.0.0)_ + optionales Admin-Flag
+- **Neue Person anlegen**: Name (eindeutig) + initiales Passwort (min. 8 Zeichen) + optionale E-Mail-Adresse (ebenfalls formatvalidiert) _(v3.0.0, Validierung v3.1.1)_ + optionales Admin-Flag
 - Kein Löschen von Personen (nicht vorgesehen, analog zum Rest der App)
 - CSRF-geschützt, PRG-Muster wie überall sonst
 
@@ -468,7 +468,7 @@ Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler 
   - Mindestens eine Karte beantwortet (gewusst oder nicht gewusst) = Lerntag
   - Überspringen allein zählt nicht
   - Abgebrochene Session zählt wenn mindestens eine Karte beantwortet wurde
-- Heatmap der letzten 52 Kalenderwochen bis heute (GitHub-Contribution-Graph-Stil): Spalten = Kalenderwochen (links = älteste), Zeilen = Mo–So, 5-stufige Grün-Skala nach Anzahl beantworteter Karten am jeweiligen Tag relativ zum eigenen Maximum im sichtbaren Zeitraum (kein Tag = leer/grau), Monatsbeschriftung über den Spalten, Wochentag-Labels links (nur Mo/Mi/Fr), Tooltip beim Hover zeigt Datum + Anzahl gelernter Karten bzw. "nicht gelernt". Zukünftige Tage der laufenden Woche bleiben leer. Reine CSS-Grid/HTML-Lösung ohne externe Charting-Library, horizontal scrollbar auf kleinen Screens, hell/dunkel-kompatibel per `prefers-color-scheme`.
+- Heatmap der letzten 52 Kalenderwochen bis heute (GitHub-Contribution-Graph-Stil): Spalten = Kalenderwochen (links = älteste), Zeilen = Mo–So, 5-stufige Grün-Skala nach Anzahl beantworteter Karten am jeweiligen Tag relativ zum eigenen Maximum im sichtbaren Zeitraum (kein Tag = leer/grau), Monatsbeschriftung über den Spalten, Wochentag-Labels links (nur Mo/Mi/Fr), Tooltip beim Hover zeigt Datum + Anzahl gelernter Karten bzw. "nicht gelernt". Zukünftige Tage der laufenden Woche bleiben leer. Reine CSS-Grid/HTML-Lösung ohne externe Charting-Library, horizontal zentriert innerhalb der Karte (bleibt bei Überbreite horizontal scrollbar auf kleinen Screens) _(zentriert seit v3.1.1)_, hell/dunkel-kompatibel per `prefers-color-scheme`.
 
 **Leitner-Übersicht:**
 - Anzahl Karten pro Fach (Fach 1–5 + archiviert)

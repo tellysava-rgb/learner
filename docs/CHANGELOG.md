@@ -5,6 +5,17 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.1.1] - 2026-07-29
+
+### Behoben
+- `users.php`: E-Mail-Adresse (beim Anlegen einer Person und beim Setzen/Ändern über das E-Mail-Modal) wird jetzt serverseitig auf gültiges Format geprüft (`FILTER_VALIDATE_EMAIL`) — ungültige Eingaben werden mit einer Fehlermeldung abgelehnt statt ungeprüft gespeichert zu werden.
+
+### Verbessert
+- `assets/style.css` wird auf allen Seiten jetzt mit Versions-Query-String (`?v=<?= APP_VERSION ?>`) eingebunden, damit Browser nach einem Release mit CSS-Änderungen die neue Datei zuverlässig laden statt eine veraltete Version aus dem Cache zu verwenden.
+- Statistik: Lernaktivitäts-Heatmap wird jetzt horizontal zentriert dargestellt statt linksbündig (bleibt bei Überbreite weiterhin scrollbar).
+
+---
+
 ## [3.1.0] - 2026-07-29
 
 ### Neu
