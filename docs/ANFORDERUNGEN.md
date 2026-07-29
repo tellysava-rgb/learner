@@ -467,7 +467,7 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 
 ## Statistik-Dashboard
 
-Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler "Alle Listen"-Modus. Auswahl per Button oben.
+Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler "Alle Listen"-Modus. Auswahl per Button oben — zeigt nur **aktive** Listen (`is_active = 1`), inaktive Listen erscheinen dort nicht zur Auswahl _(v3.2.13)_.
 
 **Lernaktivität** _(v3.0.3)_ — eigene Karte oben, unabhängig vom Listen-Filter (zählt über alle Listen der Person):
 - Drei Kennzahlen nebeneinander: 🔥 Aktueller Streak, Lerntage gesamt (Anzahl distinkter Tage mit mindestens einer beantworteten Karte, je über alle Zeit), Beste Woche (maximale Anzahl Lerntage in einer einzelnen Kalenderwoche, Mo–So, über alle Zeit)
@@ -532,6 +532,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 - **Zweistufiger Ablauf** _(v3.2.7)_: `deploy.php` zeigt beim reinen Aufruf (GET) nur den Versionsvergleich und einen eigenen Button "Deploy starten". Erst ein Klick auf diesen Button (POST, CSRF-geschützt, `action=run_deploy`) lädt das ZIP herunter und kopiert die Dateien. Verhindert, dass ein Klick auf der Einstellungsseite versehentlich sofort ein echtes Deployment auslöst
 - Nach einem erfolgreichen Deploy liest die Seite `includes/config.php` erneut ein und zeigt die tatsächlich installierte Versionsnummer — "Installiert" und "GitHub" zeigen dann `=`, kein scheinbarer Widerspruch zur Erfolgsmeldung mehr
 - **Warnung bei "Downgrade"** _(v3.2.9)_: Ist die Version auf GitHub älter als die aktuell installierte (`version_compare`, z.B. weil lokale Änderungen noch nicht gepusht wurden), löst der Klick auf "Deploy starten" das Deployment NICHT sofort aus, sondern zeigt zuerst eine Warnung ("Ein Deployment würde die neuere lokale Version mit dem älteren GitHub-Stand überschreiben...") mit einem separaten Bestätigungs-Button ("Ja, trotzdem deployen") sowie einer Abbrechen-Möglichkeit. Bereits auf der reinen Statusanzeige wird dieser Fall entsprechend anders formuliert als der normale "Update verfügbar"-Hinweis
+- **Zurück-Link** _(v3.2.13)_: Auf jeder Ansicht von `deploy.php` (Statusanzeige, Downgrade-Warnung, Ergebnis) führt ein Link "← Zurück zu Einstellungen" zurück zu `settings.php`
 - **Zusätzlich zum Token ist eine aktive Admin-Session erforderlich** _(v3.0.0)_ — ein reiner Token-Aufruf per Lesezeichen ohne eingeloggten Admin funktioniert nicht mehr (`403`). Der Button in `settings.php` funktioniert unverändert, da die Browser-Session automatisch mitgeschickt wird
 - Script lädt das GitHub-Repo als ZIP via cURL herunter, entpackt es und kopiert die Dateien
 - Token wird in `deploy-config.php` konfiguriert (bleibt in `.gitignore` — Trennung von Logik und Geheimnis)

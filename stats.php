@@ -10,8 +10,8 @@ if (in_array($_POST['action'] ?? '', ['logout', 'switch_to_person', 'change_own_
     handle_navbar_actions($pdo);
 }
 
-// Eigene Listen
-$stmt = $pdo->prepare("SELECT id, name, language_a, language_b FROM lists WHERE person_id = ? ORDER BY name");
+// Eigene Listen — nur aktive stehen zur Auswahl (Filter-Buttons unterhalb der Heatmap)
+$stmt = $pdo->prepare("SELECT id, name, language_a, language_b FROM lists WHERE person_id = ? AND is_active = 1 ORDER BY name");
 $stmt->execute([$person_id]);
 $own_lists = $stmt->fetchAll();
 

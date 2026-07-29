@@ -260,9 +260,8 @@ function deploy_run(array &$log, bool &$success): void {
         </p>
         <pre><?= htmlspecialchars(implode("\n", $log)) ?></pre>
         <p class="meta"><?= date('Y-m-d H:i:s') ?></p>
-        <?php if ($success): ?>
-        <p><a href="home.php">→ Zur App</a></p>
-        <?php endif; ?>
     <?php endif; ?>
+
+    <p class="meta"><a href="settings.php">← Zurück zu Einstellungen</a></p>
 </body>
 </html>

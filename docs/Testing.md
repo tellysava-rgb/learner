@@ -415,6 +415,7 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Auf der Warnseite: Klick auf "Abbrechen" → zurück zur normalen Statusanzeige, kein Deployment ausgeführt. _(v3.2.9)_
 [ ] Auf der Warnseite: Klick auf "Ja, trotzdem deployen" → Deployment wird jetzt tatsächlich ausgeführt (überschreibt mit der älteren GitHub-Version). _(v3.2.9)_
 [ ] Ist GitHub-Version gleich oder neuer als installierte Version: kein Warnschritt, "Deploy starten" führt wie gewohnt direkt aus. _(v3.2.9)_
+[ ] Auf jeder Ansicht von `deploy.php` (Statusanzeige, Downgrade-Warnung, Ergebnis nach Deploy) führt ein Link "← Zurück zu Einstellungen" zu `settings.php`. _(v3.2.13)_
 
 ### Versions-Vergleich (Pfeil/Gleichheitszeichen) _(v3.0.1)_
 
@@ -433,6 +434,10 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 ---
 
 ## 9. Statistik 
+
+### Listen-Filter zeigt nur aktive Listen _(v3.2.13)_
+[ ] Listen-Filter-Buttons unterhalb der Heatmap zeigen nur aktive Listen — eine als "Inaktiv" markierte Liste erscheint dort nicht. _(v3.2.13)_
+[ ] Erstaufruf von `stats.php` ohne `list_id` springt zur ersten AKTIVEN Liste, nicht zu einer inaktiven. _(v3.2.13)_
 
 ### Lernaktivität (Kennzahlen + Heatmap) _(v3.0.3)_
 [ ] Karte "Lernaktivität" erscheint oben auf `stats.php`, oberhalb des Listen-Filters, und bleibt beim Wechsel des Listen-Filters unverändert (zählt über alle Listen). _(v3.0.3)_

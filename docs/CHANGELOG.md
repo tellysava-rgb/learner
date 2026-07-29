@@ -5,6 +5,16 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.13] - 2026-07-29
+
+### Neu
+- `deploy.php`: Link "← Zurück zu Einstellungen" auf jeder Ansicht (Status, Downgrade-Warnung, Ergebnis).
+
+### Verbessert
+- `stats.php`: Listen-Filter unterhalb der Heatmap zeigt nur noch aktive Listen — inaktive Listen erscheinen dort nicht mehr zur Auswahl.
+
+---
+
 ## [3.2.12] - 2026-07-29
 
 ### Neu
