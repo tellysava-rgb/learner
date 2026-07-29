@@ -293,11 +293,13 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                             <div class="text-muted small mb-1">Installiert</div>
                             <span class="badge bg-secondary fs-6">v<?= htmlspecialchars(APP_VERSION) ?></span>
                         </div>
-                        <div class="text-muted fs-5">←</div>
+                        <?php
+                        $up_to_date = ($github_version !== null && $github_version === APP_VERSION);
+                        ?>
+                        <div class="text-muted fs-5"><?= $up_to_date ? '=' : '←' ?></div>
                         <div class="text-center">
                             <div class="text-muted small mb-1">GitHub (main)</div>
                             <?php if ($github_version !== null): ?>
-                                <?php $up_to_date = ($github_version === APP_VERSION); ?>
                                 <span class="badge fs-6 <?= $up_to_date ? 'bg-success' : 'bg-primary' ?>">
                                     v<?= htmlspecialchars($github_version) ?>
                                 </span>
@@ -306,7 +308,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                             <?php endif; ?>
                         </div>
                     </div>
-                    <?php if (isset($up_to_date) && $up_to_date): ?>
+                    <?php if ($up_to_date): ?>
                     <div class="text-success small mb-2">✓ Bereits auf dem neuesten Stand</div>
                     <?php endif; ?>
                     <form method="post" action="deploy.php" class="d-inline">

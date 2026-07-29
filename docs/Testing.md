@@ -365,6 +365,11 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] "Deploy starten"-Button in `settings.php` funktioniert weiterhin unverändert (Browser-Session wird automatisch mitgeschickt). _(v3.0.0)_
 [ ] Eingeloggt als Nicht-Admin: `deploy.php` mit gültigem Token → ebenfalls HTTP 403. _(v3.0.0)_
 
+### Versions-Vergleich (Pfeil/Gleichheitszeichen) _(v3.0.1)_
+
+[ ] `settings.php`, Bereich "Deployment": installierte Version ≠ GitHub-Version → Pfeil `←` zwischen den beiden Versionsangaben. _(v3.0.1)_
+[ ] `settings.php`: installierte Version = GitHub-Version → `=` statt Pfeil, zusätzlich weiterhin "✓ Bereits auf dem neuesten Stand". _(v3.0.1)_
+[ ] `deploy.php`-Statusseite (nach einem Deploy): dieselbe Logik — `←` bei unterschiedlichen Versionen, `=` bei identischen. _(v3.0.1)_
 ---
 
 ## 9. Statistik 
@@ -474,12 +479,13 @@ Testtools: `curl` oder Claude Code mit `.mcp.json`.
 [ ] Neue Person anlegen mit unterschiedlichen Passwort/Wiederholung-Werten → Fehlermeldung "Die Passwörter stimmen nicht überein.", Person wird nicht angelegt. _(v3.0.0)_
 [ ] Neue Person mit bereits vergebenem Namen anlegen → Fehlermeldung. _(v3.0.0)_
 [ ] Neue Person mit bereits vergebener E-Mail-Adresse anlegen → Fehlermeldung, Person wird nicht angelegt. _(v3.0.0)_
-[ ] "E-Mail"-Button bei einer Person → Modal, E-Mail setzen/ändern/entfernen (leeres Feld speichern = entfernen). _(v3.0.0)_
+[ ] Aktions-Buttons pro Person sind Icons mit Tooltip statt Text: E-Mail (`bi-envelope-plus`), Passwort zurücksetzen (`bi-key`), Admin umschalten (`bi-person-dash`/"Admin entfernen" bei Admin-Personen, `bi-person-lock`/"Zu Admin machen" bei Nicht-Admin-Personen). _(v3.0.1)_
+[ ] "E-Mail"-Icon bei einer Person → Modal, E-Mail setzen/ändern/entfernen (leeres Feld speichern = entfernen). _(v3.0.0, Icon v3.0.1)_
 [ ] E-Mail-Adresse setzen, die bereits einer anderen Person gehört → Fehlermeldung, keine Änderung. _(v3.0.0)_
-[ ] "Passwort zurücksetzen" bei einer Person → Modal mit neuem Passwort + Wiederholung (min. 8 Zeichen, müssen identisch sein, kein altes Passwort nötig) → Person kann sich mit neuem Passwort einloggen. _(v3.0.0)_
+[ ] "Passwort zurücksetzen"-Icon bei einer Person → Modal mit neuem Passwort + Wiederholung (min. 8 Zeichen, müssen identisch sein, kein altes Passwort nötig) → Person kann sich mit neuem Passwort einloggen. _(v3.0.0, Icon v3.0.1)_
 [ ] "Passwort zurücksetzen" mit unterschiedlichen Werten in Passwort/Wiederholung → Fehlermeldung, Passwort bleibt unverändert. _(v3.0.0)_
-[ ] "Zu Admin machen" bei einer Nicht-Admin-Person → Status wechselt zu Admin-Badge. _(v3.0.0)_
-[ ] "Admin entfernen" bei einer Admin-Person, sofern mind. ein weiterer Admin existiert → Status wechselt zu Person-Badge. _(v3.0.0)_
+[ ] "Zu Admin machen"-Icon (`bi-person-lock`) bei einer Nicht-Admin-Person → Status wechselt zu Admin-Badge, Icon wechselt zu `bi-person-dash`/"Admin entfernen". _(v3.0.0, Icon v3.0.1)_
+[ ] "Admin entfernen"-Icon (`bi-person-dash`) bei einer Admin-Person, sofern mind. ein weiterer Admin existiert → Status wechselt zu Person-Badge, Icon wechselt zu `bi-person-lock`/"Zu Admin machen". _(v3.0.0, Icon v3.0.1)_
 [ ] "Admin entfernen" beim LETZTEN verbleibenden Admin → Fehlermeldung "Der letzte verbleibende Admin kann nicht entfernt werden.", Status bleibt Admin. _(v3.0.0)_
 [ ] Admin-Status-Änderung wirkt erst beim nächsten Login der betroffenen Person (nicht rückwirkend auf eine bereits laufende Session). _(v3.0.0)_
 

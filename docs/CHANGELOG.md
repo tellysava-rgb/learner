@@ -5,6 +5,14 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.0.1] - 2026-07-29
+
+### Verbessert
+- `users.php`: Aktions-Buttons pro Person sind jetzt Icons mit Tooltip statt Text-Buttons — E-Mail (`bi-envelope-plus`), Passwort zurücksetzen (`bi-key`), Admin-Status umschalten (`bi-person-dash`/„Admin entfernen" bzw. `bi-person-lock`/„Zu Admin machen").
+- Versions-Vergleich (Einstellungen und `deploy.php`-Statusseite): zeigt jetzt `=` statt Pfeil, wenn installierte Version und GitHub-Version identisch sind.
+
+---
+
 ## [3.0.0] - 2026-07-29
 
 ### Breaking

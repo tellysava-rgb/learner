@@ -173,20 +173,22 @@ $persons = $pdo->query("SELECT id, name, email, is_admin FROM persons ORDER BY n
                         <td class="text-end">
                             <div class="d-flex justify-content-end gap-1 flex-wrap">
                                 <button type="button" class="btn btn-sm btn-outline-secondary"
-                                        data-bs-toggle="modal" data-bs-target="#emailModal<?= $p['id'] ?>">
-                                    E-Mail
-                                </button>
+                                        data-bs-toggle="modal" data-bs-target="#emailModal<?= $p['id'] ?>"
+                                        title="E-Mail" aria-label="E-Mail"><i class="bi bi-envelope-plus"></i></button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary"
-                                        data-bs-toggle="modal" data-bs-target="#resetModal<?= $p['id'] ?>">
-                                    Passwort zurücksetzen
-                                </button>
+                                        data-bs-toggle="modal" data-bs-target="#resetModal<?= $p['id'] ?>"
+                                        title="Passwort zurücksetzen" aria-label="Passwort zurücksetzen"><i class="bi bi-key"></i></button>
                                 <form method="post" class="d-inline">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="action" value="toggle_admin">
                                     <input type="hidden" name="person_id" value="<?= $p['id'] ?>">
-                                    <button type="submit" class="btn btn-sm btn-outline-primary">
-                                        <?= $p['is_admin'] ? 'Admin entfernen' : 'Zu Admin machen' ?>
-                                    </button>
+                                    <?php if ($p['is_admin']): ?>
+                                    <button type="submit" class="btn btn-sm btn-outline-primary"
+                                            title="Admin entfernen" aria-label="Admin entfernen"><i class="bi bi-person-dash"></i></button>
+                                    <?php else: ?>
+                                    <button type="submit" class="btn btn-sm btn-outline-primary"
+                                            title="Zu Admin machen" aria-label="Zu Admin machen"><i class="bi bi-person-lock"></i></button>
+                                    <?php endif; ?>
                                 </form>
                             </div>
                         </td>

@@ -195,7 +195,7 @@ try {
             <span>Installiert</span>
             <strong>v<?= htmlspecialchars($current_version) ?></strong>
         </div>
-        <div class="arrow">←</div>
+        <div class="arrow"><?= ($current_version === $new_version) ? '=' : '←' ?></div>
         <div class="ver">
             <span>GitHub (main)</span>
             <strong>v<?= htmlspecialchars($new_version) ?></strong>

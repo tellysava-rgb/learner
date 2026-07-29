@@ -418,6 +418,7 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 - Icon-Button (`bi-person-gear`, Tooltip "Benutzerverwaltung") direkt in der zentralen Navbar auf jeder Seite, neben "Einstellungen" — nur für Admins sichtbar, führt direkt zu `users.php`. Nicht mehr aus `settings.php` verlinkt (entfernt)
 - Breadcrumb: `Startseite > Benutzerverwaltung` — nicht unter "Einstellungen" verschachtelt, da eigenständig aus der Navbar erreichbar
 - Tabelle aller Personen: Name, E-Mail _(v3.0.0)_, Status-Badge (Admin/Person), Aktionen
+- **Aktions-Buttons als Icons mit Tooltip** _(v3.0.1)_: E-Mail (`bi-envelope-plus`), Passwort zurücksetzen (`bi-key`), Admin-Status umschalten (`bi-person-dash` wenn aktuell Admin/"Admin entfernen", `bi-person-lock` wenn aktuell Person/"Zu Admin machen") — statt Text-Buttons
 - **E-Mail-Adresse setzen/ändern** _(v3.0.0)_: Modal pro Person, optional, leer lassen entfernt sie — dient dem eigenständigen Passwort-Reset dieser Person
 - **Passwort zurücksetzen**: Admin setzt direkt ein neues Passwort für eine Person, ohne deren altes Passwort zu kennen (Modal, min. 8 Zeichen)
 - **Admin-Status umschalten**: Button pro Person — der letzte verbleibende Admin kann nicht entfernt werden
@@ -538,6 +539,8 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 **Versions-Vergleich in Einstellungen:**
 - settings.php zeigt installierte Version und GitHub-Version nebeneinander
 - Grün = aktuell, Blau = Update verfügbar
+- Pfeil zwischen den Versionen zeigt die Update-Richtung: `←` (Updates fliessen von GitHub zur Installation) — bei identischen Versionen wird stattdessen `=` angezeigt _(v3.0.1)_
+- Dieselbe `=`-Logik gilt auch auf der Statusseite von `deploy.php` selbst (nach einem Deploy) _(v3.0.1)_
 
 ---
 
