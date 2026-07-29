@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.11] - 2026-07-29
+
+### Verbessert
+- `help.php`: Abschnitt "Statistik & Streak" erklärt jetzt auch die Lernaktivitäts-Heatmap (Kennzahlen, Wochen-/Wochentag-Layout, Grünstufen nach Lernintensität, Hover-Tooltip) statt nur den Streak-Badge zu erwähnen.
+
+---
+
 ## [3.2.10] - 2026-07-29
 
 ### Behoben

@@ -61,6 +61,7 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] `help.php`: Accordion mit 9 Abschnitten, erster Abschnitt initial aufgeklappt, restliche eingeklappt; Klick klappt jeweils auf/zu. _(v2.8.0, 9. Abschnitt "Für Admins" ergänzt v3.0.0)_
 [ ] `help.php`: Abschnitt "Für Admins: Einstellungen & Benutzerverwaltung" beschreibt Einstellungen, Benutzerverwaltung und "Person wechseln" korrekt als admin-only. _(v3.0.0)_
 [ ] `help.php`: Logout-Button auf der Hilfeseite funktioniert wie auf jeder anderen Seite. _(v2.8.0)_
+[ ] `help.php`: Abschnitt "Statistik & Streak" erklärt zusätzlich die Lernaktivitäts-Heatmap (Kennzahlen, Wochen-/Wochentag-Layout, Grünstufen nach Lernintensität, Hover-Tooltip). _(v3.2.11)_
 [ ] `help.php`: Abschnitt "Leitner-Modus" nennt die tatsächlich konfigurierten Intervalle (Fach 2–5 aus `LEITNER_INTERVALS`), das tägliche Warteschlangen-Limit (`DAILY_CARD_LIMIT`) und die Default-Kartenanzahl pro Session (`LEITNER_DEFAULT_CARDS`) — Werte müssen mit `settings.php` übereinstimmen. _(v3.0.2)_
 [ ] `help.php`: Abschnitt "Drill-Modus" nennt die tatsächlich konfigurierte Session-Dauer in Minuten (`DRILL_SESSION_SECONDS`), das Bekannt/Neu-Verhältnis (`DRILL_KNOWN_RATIO`), die Mastery-Schwelle (`DRILL_MASTERY_THRESHOLD`) und das "Musste nachdenken"-Limit (`DRILL_TOO_HARD_LIMIT`) — Werte müssen mit `settings.php` übereinstimmen. _(v3.0.2)_
 [ ] Wird ein Wert in `settings.php` geändert (z.B. `DRILL_SESSION_SECONDS`), zeigt `help.php` beim nächsten Aufruf automatisch den neuen Wert, ohne Code-Änderung. _(v3.0.2)_

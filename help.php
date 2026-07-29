@@ -153,7 +153,14 @@ $drill_ratio      = DRILL_KNOWN_RATIO;
             </h2>
             <div id="h7" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
-                    <p class="mb-0">Die Statistik-Seite zeigt Lernverlauf und Fortschritt pro Liste. Das 🔥-Abzeichen in der Navbar zeigt die aktuelle <strong>Streak</strong> (Anzahl Tage in Folge mit mindestens einer abgeschlossenen Lernsession) — verschwindet, sobald ein Tag ausgelassen wird.</p>
+                    <p>Die Statistik-Seite zeigt Lernverlauf und Fortschritt pro Liste. Das 🔥-Abzeichen in der Navbar zeigt die aktuelle <strong>Streak</strong> (Anzahl Tage in Folge mit mindestens einer abgeschlossenen Lernsession) — verschwindet, sobald ein Tag ausgelassen wird.</p>
+                    <p class="mb-1">Ganz oben auf der Statistik-Seite zeigt die Karte <strong>"Lernaktivität"</strong> (listenübergreifend, unabhängig vom Listen-Filter darunter):</p>
+                    <ul class="mb-2">
+                        <li>Drei Kennzahlen: 🔥 aktueller Streak, Lerntage insgesamt, sowie die beste Woche (meiste Lerntage in einer einzelnen Kalenderwoche)</li>
+                        <li>Eine <strong>Jahres-Heatmap</strong> der letzten 52 Wochen, im Stil von GitHubs Beitrags-Übersicht: jede Spalte eine Kalenderwoche (links die älteste), jede Zeile ein Wochentag (Mo–So). Je mehr Karten an einem Tag gelernt wurden, desto dunkler das Grün — ein leeres/graues Feld bedeutet, dass an diesem Tag nicht gelernt wurde</li>
+                        <li>Beim Hovern über ein Feld zeigt ein Tooltip das genaue Datum und die Anzahl gelernter Karten an diesem Tag</li>
+                    </ul>
+                    <p class="mb-0">Ein Lerntag zählt, sobald mindestens eine Karte beantwortet wurde — egal ob im Leitner- oder Drill-Modus.</p>
                 </div>
             </div>
         </div>
