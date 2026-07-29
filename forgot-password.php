@@ -38,7 +38,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                      . "Falls du das nicht angefordert hast, kannst du diese E-Mail ignorieren.";
             $headers = "From: " . APP_NAME . " <no-reply@" . $_SERVER['HTTP_HOST'] . ">";
 
-            @mail($email, $subject, $body, $headers);
+            $sent = mail($email, $subject, $body, $headers);
+            if (!$sent) {
+                error_log('forgot-password.php: mail() fehlgeschlagen für person_id=' . $person['id']);
+            }
         }
     }
 

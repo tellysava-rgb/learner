@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.2] - 2026-07-29
+
+### Verbessert
+- `forgot-password.php`: `mail()`-Fehler werden nicht mehr stillschweigend unterdrückt (`@` entfernt), Fehlschläge landen jetzt im PHP-Error-Log (`mail() fehlgeschlagen für person_id=...`) — Grundlage zur Diagnose des gemeldeten Problems, dass auf Produktion keine Reset-E-Mail ankommt.
+
+---
+
 ## [3.2.1] - 2026-07-29
 
 ### Behoben
