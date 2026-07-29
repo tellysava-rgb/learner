@@ -7,6 +7,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_validate();
     handle_navbar_actions($pdo);
 }
+
+// Aktuell konfigurierte Werte für die Hilfetexte (Leitner/Drill) — passen sich automatisch an,
+// falls die Werte in den Einstellungen geändert werden.
+$li               = LEITNER_INTERVALS;
+$daily_limit      = DAILY_CARD_LIMIT;
+$default_cards    = LEITNER_DEFAULT_CARDS;
+$drill_minutes    = (int) round(DRILL_SESSION_SECONDS / 60);
+$drill_mastery    = DRILL_MASTERY_THRESHOLD;
+$drill_too_hard   = DRILL_TOO_HARD_LIMIT;
+$drill_ratio      = DRILL_KNOWN_RATIO;
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -92,11 +102,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </h2>
             <div id="h4" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
-                    <p>Das Leitner-System arbeitet mit <strong>5 Fächern</strong>. Jedes Fach hat ein Wiederholungs-Intervall (Fach 1 = morgen, Fach 2 = in 2 Tagen, bis Fach 5 = alle 30 Tage). Eine Karte rückt bei richtiger Antwort ein Fach auf, bei falscher Antwort fällt sie zurück auf Fach 1.</p>
+                    <p>Das Leitner-System arbeitet mit <strong>5 Fächern</strong>. Jedes Fach hat ein festes Wiederholungs-Intervall: Fach 1 = morgen, Fach 2 = in <?= $li[2] ?> Tagen, Fach 3 = in <?= $li[3] ?> Tagen, Fach 4 = in <?= $li[4] ?> Tagen, Fach 5 = alle <?= $li[5] ?> Tage. Eine Karte rückt bei richtiger Antwort ein Fach auf, bei falscher Antwort fällt sie zurück auf Fach 1.</p>
                     <ul class="mb-2">
-                        <li><strong>Warteschlange:</strong> Neue Karten werden nicht alle auf einmal aktiv — pro Tag wird nur eine begrenzte Anzahl aus der Warteschlange in Fach 1 aufgenommen (Anzahl einstellbar).</li>
-                        <li><strong>Session:</strong> Eine Lernrunde zeigt fällige Karten (aus einer oder mehreren ausgewählten Listen gemischt); Sprachrichtung ist wählbar (A→B, B→A oder gemischt).</li>
-                        <li><strong>Fach 5:</strong> gilt als "gut gelernt", wird aber weiterhin alle 30 Tage zur Auffrischung gezeigt.</li>
+                        <li><strong>Warteschlange:</strong> Neue Karten werden nicht alle auf einmal aktiv — aktuell werden pro Tag <?= $daily_limit ?> Karten aus der Warteschlange in Fach 1 aufgenommen (in den Einstellungen anpassbar).</li>
+                        <li><strong>Session:</strong> Eine Lernrunde zeigt standardmässig bis zu <?= $default_cards ?> fällige Karten (beim Start der Session anpassbar), aus einer oder mehreren ausgewählten Listen gemischt; Sprachrichtung ist wählbar (A→B, B→A oder gemischt).</li>
+                        <li><strong>Fach 5:</strong> gilt als "gut gelernt", wird aber weiterhin alle <?= $li[5] ?> Tage zur Auffrischung gezeigt.</li>
                     </ul>
                     <p class="mb-0">Geeignet für <strong>längerfristiges</strong> Lernen mit wenigen Karten pro Tag, dafür über lange Zeit verteilt.</p>
                 </div>
@@ -111,10 +121,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </h2>
             <div id="h5" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
-                    <p>Kurze, intensive Trainingsrunde (Standard: ca. 10 Minuten) mit wenigen Karten gleichzeitig im Umlauf — neue und bereits bekannte Karten werden gemischt gezeigt, mit deutlichem Übergewicht bekannter Karten.</p>
+                    <p>Kurze, intensive Trainingsrunde (aktuell <?= $drill_minutes ?> Minuten, in den Einstellungen anpassbar) mit wenigen Karten gleichzeitig im Umlauf — neue und bereits bekannte Karten werden im Verhältnis <?= $drill_ratio ?>:1 (bekannt:neu) gemischt gezeigt, mit deutlichem Übergewicht bekannter Karten.</p>
                     <ul class="mb-2">
-                        <li>Bei richtiger Antwort mehrmals in Folge gilt eine Karte als <strong>gemeistert</strong> und wechselt danach automatisch ins Leitner-System.</li>
+                        <li>Bei <?= $drill_mastery ?>× richtiger Antwort <strong>in Folge</strong> gilt eine Karte als <strong>gemeistert</strong> und wechselt danach automatisch ins Leitner-System (ein einzelner Fehler setzt diese Zählung zurück auf 0).</li>
                         <li>Bei einem Fehler kommt nur diese eine Karte ans Ende der aktuellen Runde — nicht die ganze Runde von vorne.</li>
+                        <li>Wird eine Karte <?= $drill_too_hard ?>× als "musste nachdenken" bewertet, wird sie für den Rest dieser Session pausiert und taucht erst am nächsten Tag wieder auf.</li>
                     </ul>
                     <p class="mb-0">Geeignet für <strong>intensives Kurzzeit-Pauken</strong>, z.B. vor einem Test — als Ergänzung zum Leitner-System, nicht als Ersatz.</p>
                 </div>

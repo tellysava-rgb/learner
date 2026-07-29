@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.0.2] - 2026-07-29
+
+### Verbessert
+- `help.php`: Abschnitte "Leitner-Modus" und "Drill-Modus" ausführlicher formuliert und binden jetzt die tatsächlich konfigurierten Werte live in den Text ein (`LEITNER_INTERVALS`, `DAILY_CARD_LIMIT`, `LEITNER_DEFAULT_CARDS`, `DRILL_SESSION_SECONDS`, `DRILL_MASTERY_THRESHOLD`, `DRILL_TOO_HARD_LIMIT`, `DRILL_KNOWN_RATIO`) — die Hilfeseite zeigt dadurch immer die aktuell wirksamen Zahlen, statt statischer Beispielwerte.
+
+---
+
 ## [3.0.1] - 2026-07-29
 
 ### Verbessert

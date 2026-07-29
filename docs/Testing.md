@@ -46,13 +46,16 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 
 [ ] Auf jeder Seite mit Navbar erscheint ganz rechts, nach dem Logout-Button, ein Icon-Button (`bi-info-lg`, Tooltip "Hilfe"). _(v2.8.0)_
 [ ] Klick auf das Icon führt zu `help.php`. _(v2.8.0)_
-[ ] `help.php` ist bereits erreichbar direkt nach dem Login, bevor eine Person gewählt wurde (Navbar zeigt nur Logout + Hilfe-Icon, kein Personenname). _(v2.8.0)_
+[ ] `help.php` ist nach dem Login direkt erreichbar (`require_person()` — Login löst immer direkt eine Person auf, kein separater Personenwahl-Schritt mehr). _(v2.8.0, Login-Modell aktualisiert v3.0.0)_
 [ ] `help.php` ohne Login → Redirect zu `index.php`. _(v2.8.0)_
 [ ] Auf `learn.php`/`drill.php`: Hilfe-Icon erscheint auch während einer aktiven Session (wenn statt Logout "Session abbrechen" angezeigt wird). _(v2.8.0)_
 [ ] `help.php`: Breadcrumb zeigt "Startseite > Hilfe". _(v2.8.0)_
 [ ] `help.php`: Accordion mit 9 Abschnitten, erster Abschnitt initial aufgeklappt, restliche eingeklappt; Klick klappt jeweils auf/zu. _(v2.8.0, 9. Abschnitt "Für Admins" ergänzt v3.0.0)_
 [ ] `help.php`: Abschnitt "Für Admins: Einstellungen & Benutzerverwaltung" beschreibt Einstellungen, Benutzerverwaltung und "Person wechseln" korrekt als admin-only. _(v3.0.0)_
 [ ] `help.php`: Logout-Button auf der Hilfeseite funktioniert wie auf jeder anderen Seite. _(v2.8.0)_
+[ ] `help.php`: Abschnitt "Leitner-Modus" nennt die tatsächlich konfigurierten Intervalle (Fach 2–5 aus `LEITNER_INTERVALS`), das tägliche Warteschlangen-Limit (`DAILY_CARD_LIMIT`) und die Default-Kartenanzahl pro Session (`LEITNER_DEFAULT_CARDS`) — Werte müssen mit `settings.php` übereinstimmen. _(v3.0.2)_
+[ ] `help.php`: Abschnitt "Drill-Modus" nennt die tatsächlich konfigurierte Session-Dauer in Minuten (`DRILL_SESSION_SECONDS`), das Bekannt/Neu-Verhältnis (`DRILL_KNOWN_RATIO`), die Mastery-Schwelle (`DRILL_MASTERY_THRESHOLD`) und das "Musste nachdenken"-Limit (`DRILL_TOO_HARD_LIMIT`) — Werte müssen mit `settings.php` übereinstimmen. _(v3.0.2)_
+[ ] Wird ein Wert in `settings.php` geändert (z.B. `DRILL_SESSION_SECONDS`), zeigt `help.php` beim nächsten Aufruf automatisch den neuen Wert, ohne Code-Änderung. _(v3.0.2)_
 
 ---
 

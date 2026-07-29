@@ -489,10 +489,11 @@ Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler 
 ## Hilfeseite _(v2.8.0)_
 
 - `help.php` — Handbuch/Hilfeseite, erreichbar über das Info-Icon (`bi-info-lg`) ganz rechts in der Navbar auf jeder Seite (siehe Abschnitt "Navigation")
-- Erfordert nur Login (`require_login()`), keine gewählte Person — dadurch auch direkt nach dem Login erreichbar, bevor eine Person gewählt wurde
+- Erfordert Login (`require_person()`) — Login löst seit v3.0.0 immer direkt eine Person auf, daher kein separater "keine Person gewählt"-Zustand mehr nötig
 - Inhalt als Bootstrap-Accordion (9 Abschnitte, erster Abschnitt initial aufgeklappt): Einstieg/Login (inkl. eigenes Passwort/E-Mail ändern), Wortlisten verwalten, Wörter hinzufügen, Leitner-Modus, Drill-Modus, Aussprache (Audio & Lautschrift), Statistik & Streak, **Für Admins: Einstellungen & Benutzerverwaltung** _(v3.0.0)_, MCP-Server (kurz, für technisch interessierte Nutzer — inkl. Hinweis, dass der MCP-Server separat eingerichtet/konfiguriert werden muss, damit die Funktion nutzbar ist)
 - Nutzerorientiert mit Kernmechanik (z.B. 5 Leitner-Fächer, Warteschlangen-Prinzip, Drill-Übergang ins Leitner-System), aber ohne Datenbank-/Code-Details
-- Kein eigener Datenbankzugriff — rein statischer Erklärungstext, keine Formulare ausser Logout
+- **Leitner-/Drill-Abschnitte zeigen die tatsächlich konfigurierten Werte live im Text** _(v3.0.2)_ — z.B. Leitner-Intervalle pro Fach (`LEITNER_INTERVALS`), tägliches Karten-Limit (`DAILY_CARD_LIMIT`), Default-Kartenanzahl (`LEITNER_DEFAULT_CARDS`), Drill-Timer in Minuten (`DRILL_SESSION_SECONDS`), Mastery-Schwelle (`DRILL_MASTERY_THRESHOLD`), «Musste nachdenken»-Limit (`DRILL_TOO_HARD_LIMIT`), Bekannt/Neu-Verhältnis (`DRILL_KNOWN_RATIO`) — passen sich automatisch an, wenn diese Werte in den Einstellungen geändert werden, keine statischen/veralteten Angaben mehr
+- Kein eigener Datenbankzugriff für Inhalte (Konfigurationswerte kommen aus PHP-Konstanten) — `db.php` wird nur für die zentrale Navbar (`render_navbar($pdo)`) benötigt, keine Formulare ausser Logout/Konto/Person-wechseln (Navbar-Aktionen)
 
 ---
 
