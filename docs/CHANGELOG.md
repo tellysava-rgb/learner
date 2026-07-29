@@ -5,11 +5,10 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
-## [3.3.0] - 2026-07-29
+## [3.2.4] - 2026-07-29
 
-### Neu
-- Wortlisten haben jetzt einen Status Aktiv/Inaktiv (`lists.is_active`, Standard: aktiv). Auf der Startseite erscheinen inaktive Listen in einem eigenen, kompakteren Bereich unterhalb der aktiven Listen — ohne Warteschlangen-/Fällig-Anzeige und ohne Leitner-/Drill-Buttons. Umschalt-Button pro Liste (`bi-check-circle-fill`/"Inaktiv setzen" bzw. `bi-circle`/"Aktiv setzen"). Betrifft nur die Anzeige — Leitner-Fortschritt läuft im Hintergrund unverändert weiter.
-- MCP-Server: `list_lists` zeigt standardmässig nur aktive Listen; ein neuer Parameter `include_inactive` erlaubt gezieltes Nachschlagen, wenn der User eine inaktive Liste explizit beim Namen nennt. `add_cards` bleibt davon unberührt und funktioniert weiterhin auch für inaktive Listen.
+### Verbessert
+- `deploy.php`-Statusseite: obere Versionsanzeige jetzt mit "Bisher installiert" beschriftet (Stand vor diesem Deploy-Lauf), Erfolgsmeldung nennt explizit die neu installierte Versionsnummer statt nur generisch "Erfolgreich deployed" — vermeidet den Eindruck eines Widerspruchs zwischen oberer Anzeige und Erfolgsmeldung.
 
 ---
 

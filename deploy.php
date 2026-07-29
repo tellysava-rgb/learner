@@ -192,7 +192,7 @@ try {
 
     <div class="versions">
         <div class="ver">
-            <span>Installiert</span>
+            <span>Bisher installiert</span>
             <strong>v<?= htmlspecialchars($current_version) ?></strong>
         </div>
         <div class="arrow"><?= ($current_version === $new_version) ? '=' : '←' ?></div>
@@ -203,7 +203,9 @@ try {
     </div>
 
     <p class="<?= $success ? 'ok' : 'err' ?>">
-        <?= $success ? '✅ Erfolgreich deployed' : '❌ Deploy fehlgeschlagen' ?>
+        <?= $success
+            ? '✅ Version v' . htmlspecialchars($new_version) . ' wurde erfolgreich auf Prod installiert.'
+            : '❌ Deploy fehlgeschlagen' ?>
     </p>
     <pre><?= htmlspecialchars(implode("\n", $log)) ?></pre>
     <p class="meta"><?= date('Y-m-d H:i:s') ?></p>

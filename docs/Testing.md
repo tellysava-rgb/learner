@@ -82,26 +82,6 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Klick auf Statistik-Icon führt direkt zu `stats.php?list_id=X` mit dieser Liste vorausgewählt, nicht zur allgemeinen Übersicht. _(v2.7.0)_
 [ ] "Bearbeiten"-Textbutton ist aus dem Footer verschwunden, Leitner/Drill bleiben dort als grosse Buttons. _(v2.7.0)_
 
-### Listen-Status Aktiv/Inaktiv _(v3.3.0)_
-
-[ ] Neu erstellte Liste ist standardmässig aktiv, erscheint im normalen Listen-Bereich mit Warteschlange/"heute fällig"/Leitner/Drill. _(v3.3.0)_
-[ ] Aktive Liste hat zusätzlich zu Leitner/Drill einen Icon-Button unten rechts im Footer: `bi-check-circle-fill`, Tooltip "Inaktiv setzen". _(v3.3.0)_
-[ ] Klick auf "Inaktiv setzen" → Liste verschwindet aus dem aktiven Bereich, erscheint stattdessen kompakt im neuen Bereich "Inaktive Listen" darunter. _(v3.3.0)_
-[ ] Karten in "Inaktive Listen" zeigen NUR Name, Sprachpaar und Kartenzahl — keine Warteschlangen-/Fällig-Anzeige, keine Leitner-/Drill-Buttons — und sind sichtbar kleiner/kompakter als aktive Listen-Karten. _(v3.3.0)_
-[ ] Inaktive Listen-Karte hat einen Icon-Button unten rechts: `bi-circle text-secondary`, Tooltip "Aktiv setzen". _(v3.3.0)_
-[ ] Klick auf "Aktiv setzen" → Liste erscheint wieder im normalen aktiven Bereich mit allen gewohnten Anzeigen. _(v3.3.0)_
-[ ] Bereich "Inaktive Listen" erscheint nur, wenn mindestens eine inaktive Liste existiert — sonst nicht sichtbar. _(v3.3.0)_
-[ ] Alle Listen einer Person inaktiv gesetzt → aktiver Bereich zeigt "Keine aktiven Listen." statt einer leeren Kartengruppe. _(v3.3.0)_
-[ ] Leitner-Fortschritt einer inaktiven Liste läuft im Hintergrund unverändert weiter (z.B. `next_due_date` verschiebt sich normal weiter) — Inaktiv-Status pausiert nur die Anzeige, nicht die Lernmechanik. _(v3.3.0)_
-[ ] `lists.php` (separate Listenverwaltung) ist von der Aktiv/Inaktiv-Unterscheidung unberührt — zeigt weiterhin alle Listen unabhängig vom Status. _(v3.3.0)_
-
-### MCP-Server: Aktiv/Inaktiv-Filter _(v3.3.0)_
-
-[ ] `list_lists` ohne `include_inactive` gibt nur aktive Listen zurück, inaktive fehlen komplett in der Antwort. _(v3.3.0)_
-[ ] `list_lists` mit `include_inactive=true` gibt zusätzlich inaktive Listen zurück, jeweils mit `is_active: 0` gekennzeichnet. _(v3.3.0)_
-[ ] Nennt der User im Gespräch eine Liste beim Namen, die nicht unter den aktiven Listen auftaucht, fragt der Agent nicht "existiert nicht", sondern ruft `list_lists` erneut mit `include_inactive=true` auf. _(v3.3.0)_
-[ ] `add_cards` funktioniert unverändert auch mit der `list_id` einer inaktiven Liste (kein Status-Check beim Einfügen). _(v3.3.0)_
-
 ---
 
 ## 5. Listen (Import / Export / Bearbeiten)
@@ -401,6 +381,9 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] `settings.php`, Bereich "Deployment": installierte Version ≠ GitHub-Version → Pfeil `←` zwischen den beiden Versionsangaben. _(v3.0.1)_
 [ ] `settings.php`: installierte Version = GitHub-Version → `=` statt Pfeil, zusätzlich weiterhin "✓ Bereits auf dem neuesten Stand". _(v3.0.1)_
 [ ] `deploy.php`-Statusseite (nach einem Deploy): dieselbe Logik — `←` bei unterschiedlichen Versionen, `=` bei identischen. _(v3.0.1)_
+[ ] `deploy.php`-Statusseite: obere Vergleichsanzeige ist jetzt mit "Bisher installiert" beschriftet (statt nur "Installiert"), um klarzustellen dass dies der Stand VOR diesem Deploy-Lauf ist. _(v3.2.4)_
+[ ] `deploy.php`-Statusseite: Erfolgsmeldung nennt explizit die neu installierte Versionsnummer ("✅ Version vX.Y.Z wurde erfolgreich auf Prod installiert."), nicht mehr nur generisch "Erfolgreich deployed". _(v3.2.4)_
+
 ---
 
 ## 9. Statistik 
