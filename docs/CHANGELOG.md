@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.17] - 2026-07-30
+
+### Behoben
+- Statistik-Heatmap: Leerzellen-Farbe im Dark Mode war mit `#161b22` fast schwarz und kaum von der dunkelsten Grünstufe (`lvl-1`, `#0e4429`) zu unterscheiden. Jetzt ein klar erkennbares mittleres Grau (`#484f58`).
+
+---
+
 ## [3.2.16] - 2026-07-30
 
 ### Neu
