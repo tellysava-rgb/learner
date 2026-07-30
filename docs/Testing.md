@@ -59,8 +59,13 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] `help.php` ohne Login → Redirect zu `index.php`. _(v2.8.0)_
 [ ] Auf `learn.php`/`drill.php`: Hilfe-Icon erscheint auch während einer aktiven Session (wenn statt Logout "Session abbrechen" angezeigt wird). _(v2.8.0)_
 [ ] `help.php`: Breadcrumb zeigt "Startseite > Hilfe". _(v2.8.0)_
-[ ] `help.php`: Accordion mit 9 Abschnitten, erster Abschnitt initial aufgeklappt, restliche eingeklappt; Klick klappt jeweils auf/zu. _(v2.8.0, 9. Abschnitt "Für Admins" ergänzt v3.0.0)_
+[ ] `help.php`: Accordion mit 9 Abschnitten (als Admin) bzw. 7 Abschnitten (als Nicht-Admin), erster Abschnitt initial aufgeklappt, restliche eingeklappt; Klick klappt jeweils auf/zu. _(v2.8.0, 9. Abschnitt "Für Admins" ergänzt v3.0.0, admin-only Filterung v3.2.16)_
 [ ] `help.php`: Abschnitt "Für Admins: Einstellungen & Benutzerverwaltung" beschreibt Einstellungen, Benutzerverwaltung und "Person wechseln" korrekt als admin-only. _(v3.0.0)_
+[ ] `help.php`: Als Nicht-Admin eingeloggt → Abschnitte "Für Admins: Einstellungen & Benutzerverwaltung" und "Für Technik-Fans: Karten per KI-Agent verwalten" erscheinen NICHT im Accordion. _(v3.2.16)_
+[ ] `help.php`: Als Admin eingeloggt → beide Abschnitte erscheinen normal. _(v3.2.16)_
+[ ] `help.php`: Abschnitt "Drill-Modus" erwähnt, dass bei neuen Listen dieselbe Karte anfangs mehrfach hintereinander gezeigt werden kann (beabsichtigt) und dass es keine Leitner-Fach-Obergrenze für den Drill-Modus gibt. _(v3.2.16)_
+[ ] `help.php`: Abschnitt "Aussprache" erwähnt, dass Stimme/Klang vom Gerät kommen, nicht von der App. _(v3.2.16)_
+[ ] `help.php`: Abschnitt "Für Technik-Fans" erklärt MCP-Setup (Server-Adresse + Token in der KI-Anwendung hinterlegen) ohne konkrete Zugangsdaten zu nennen, sowie konkrete Beispiele (Personen/Listen abfragen, Karten hinzufügen/korrigieren, Import-CSV erstellen). _(v3.2.16)_
 [ ] `help.php`: Logout-Button auf der Hilfeseite funktioniert wie auf jeder anderen Seite. _(v2.8.0)_
 [ ] `help.php`: Abschnitt "Statistik & Streak" erklärt zusätzlich die Lernaktivitäts-Heatmap (Kennzahlen, Wochen-/Wochentag-Layout, Grünstufen nach Lernintensität, Hover-Tooltip). _(v3.2.11)_
 [ ] `help.php`: Abschnitt "Leitner-Modus" nennt die tatsächlich konfigurierten Intervalle (Fach 2–5 aus `LEITNER_INTERVALS`), das tägliche Warteschlangen-Limit (`DAILY_CARD_LIMIT`) und die Default-Kartenanzahl pro Session (`LEITNER_DEFAULT_CARDS`) — Werte müssen mit `settings.php` übereinstimmen. _(v3.0.2)_

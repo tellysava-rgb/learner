@@ -5,6 +5,18 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.16] - 2026-07-30
+
+### Neu
+- `help.php`: Abschnitte "Für Admins: Einstellungen & Benutzerverwaltung" und "Für Technik-Fans: Karten per KI-Agent verwalten" sind jetzt nur noch für Admins sichtbar.
+
+### Verbessert
+- `help.php`, Drill-Modus: Hinweis ergänzt, dass bei neuen Listen dieselbe Karte anfangs mehrfach hintereinander gezeigt werden kann (beabsichtigt, kein Fehler) und dass es keine Leitner-Fach-Obergrenze für den Drill-Modus gibt.
+- `help.php`, Aussprache: Hinweis ergänzt, dass Stimme/Klang vom Gerät bzw. Betriebssystem kommen, nicht von der App selbst.
+- `help.php`, MCP-Server: ausführlichere Erklärung zur Einrichtung (ohne Zugangsdetails) sowie konkrete Beispiele der möglichen Aktionen (Personen/Listen abfragen, Karten hinzufügen/korrigieren, Import-CSV erstellen).
+
+---
+
 ## [3.2.15] - 2026-07-29
 
 ### Verbessert

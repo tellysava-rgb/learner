@@ -126,6 +126,8 @@ $drill_ratio      = DRILL_KNOWN_RATIO;
                         <li>Bei <?= $drill_mastery ?>× richtiger Antwort <strong>in Folge</strong> gilt eine Karte als <strong>gemeistert</strong> und wechselt danach automatisch ins Leitner-System (ein einzelner Fehler setzt diese Zählung zurück auf 0).</li>
                         <li>Bei einem Fehler kommt nur diese eine Karte ans Ende der aktuellen Runde — nicht die ganze Runde von vorne.</li>
                         <li>Wird eine Karte <?= $drill_too_hard ?>× als "musste nachdenken" bewertet, wird sie für den Rest dieser Session pausiert und taucht erst am nächsten Tag wieder auf.</li>
+                        <li>Bei einer <strong>neuen Liste</strong> mit lauter neuen Karten kann es am Anfang vorkommen, dass dieselbe Karte mehrmals kurz hintereinander gezeigt wird, bevor eine zweite dazukommt (bis zu <?= $drill_ratio ?>× — entsprechend dem Bekannt/Neu-Verhältnis). Das ist <strong>kein Fehler, sondern beabsichtigt</strong> und hilft, sich die Karte einzuprägen. Je mehr Karten im Umlauf sind, desto mehr vermischen sie sich.</li>
+                        <li>Es gibt <strong>keine Leitner-Fach-Obergrenze</strong> für den Drill-Modus — auch Karten, die bereits in einem höheren Leitner-Fach sind, können weiterhin im Drill auftauchen, solange sie nicht archiviert sind.</li>
                     </ul>
                     <p class="mb-0">Geeignet für <strong>intensives Kurzzeit-Pauken</strong>, z.B. vor einem Test — als Ergänzung zum Leitner-System, nicht als Ersatz.</p>
                 </div>
@@ -140,7 +142,8 @@ $drill_ratio      = DRILL_KNOWN_RATIO;
             </h2>
             <div id="h6" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
-                    <p class="mb-0">Hat eine Liste einen Aussprache-Dialekt hinterlegt (z.B. <code>en-GB</code>), erscheint bei Karten in Sprache B ein 🔊-Knopf, der das Wort per Sprachausgabe des Geräts vorliest. Zusätzlich kann pro Karte eine vereinfachte <strong>Lautschrift</strong> hinterlegt sein (in eckigen Klammern angezeigt) — beide Hilfen sind unabhängig voneinander nutzbar.</p>
+                    <p>Hat eine Liste einen Aussprache-Dialekt hinterlegt (z.B. <code>en-GB</code>), erscheint bei Karten in Sprache B ein 🔊-Knopf, der das Wort per Sprachausgabe des Geräts vorliest. Zusätzlich kann pro Karte eine vereinfachte <strong>Lautschrift</strong> hinterlegt sein (in eckigen Klammern angezeigt) — beide Hilfen sind unabhängig voneinander nutzbar.</p>
+                    <p class="mb-0">Die Stimme und ihr Klang kommen dabei <strong>nicht von der Anwendung selbst</strong>, sondern von der Sprachausgabe des jeweiligen Geräts bzw. Betriebssystems — sie kann daher je nach Gerät unterschiedlich und mitunter mechanisch klingen. Dennoch hilft sie dabei, auf die richtige <strong>Betonung</strong> zu achten, also welche Silbe bzw. welches Wort stärker betont wird.</p>
                 </div>
             </div>
         </div>
@@ -165,6 +168,7 @@ $drill_ratio      = DRILL_KNOWN_RATIO;
             </div>
         </div>
 
+        <?php if (!empty($_SESSION['is_admin'])): ?>
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h8">
@@ -192,9 +196,23 @@ $drill_ratio      = DRILL_KNOWN_RATIO;
             </h2>
             <div id="h9" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
-                    <p class="mb-0">Für technisch versierte Nutzer bietet die App eine Schnittstelle (MCP), über die ein KI-Agent (z.B. Claude) Personen und Listen abfragen sowie Karten hinzufügen oder bestehende Karten korrigieren kann — praktisch, um z.B. grössere Wortlisten im Gespräch mit einer KI zu erstellen. Der Agent zeigt vorgeschlagene Änderungen immer erst zur Bestätigung an, bevor etwas gespeichert wird. Damit das funktioniert, muss der MCP-Server separat eingerichtet und konfiguriert werden (Zugangs-Token, Verbindung im jeweiligen KI-Tool) — Details dazu bei Bedarf beim Administrator erfragen.</p>
+                    <p>Für technisch versierte Nutzer bietet die App eine Schnittstelle (MCP), über die ein KI-Agent (z.B. Claude) direkt mit den eigenen Wortlisten arbeiten kann — praktisch, um z.B. grössere Wortlisten im Gespräch mit einer KI zu erstellen oder zu pflegen. Der Agent zeigt vorgeschlagene Änderungen immer erst zur Bestätigung an, bevor etwas gespeichert wird.</p>
+                    <p class="mb-1">Damit ein KI-Agent so arbeiten kann:</p>
+                    <ul class="mb-2">
+                        <li>Der MCP-Server muss einmalig separat eingerichtet werden — die verwendete KI-Anwendung (z.B. Claude Code oder Claude Desktop) wird dafür mit der Server-Adresse der App verbunden</li>
+                        <li>Details zum Zugang (Adresse, Zugangs-Token) bei Bedarf beim Administrator erfragen — diese Hilfeseite nennt bewusst keine technischen Zugangsdaten</li>
+                    </ul>
+                    <p class="mb-1">Was der Agent über die Schnittstelle tun kann:</p>
+                    <ul class="mb-2">
+                        <li>Personen und deren Wortlisten abfragen</li>
+                        <li>Neue Vokabelkarten zu einer Liste hinzufügen</li>
+                        <li>Bestehende Karten korrigieren (z.B. Rechtschreibung, fehlende Lautschrift)</li>
+                    </ul>
+                    <p class="mb-0">Auch ganz ohne die MCP-Schnittstelle kann ein KI-Agent im Gespräch helfen, eine <strong>Import-Liste im richtigen CSV-Format</strong> zu erstellen (siehe Abschnitt "Wortlisten verwalten"/`import.php`) — diese lässt sich danach ganz normal manuell hochladen.</p>
                 </div>
             </div>
+        </div>
+        <?php endif; ?>
         </div>
 
     </div>
