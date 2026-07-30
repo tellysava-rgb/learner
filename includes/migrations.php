@@ -30,6 +30,43 @@ function run_pending_migrations(PDO $pdo): void {
         9 => "ALTER TABLE persons ADD COLUMN IF NOT EXISTS reset_token_hash VARCHAR(64) NULL DEFAULT NULL",
         10 => "ALTER TABLE persons ADD COLUMN IF NOT EXISTS reset_token_expires DATETIME NULL DEFAULT NULL",
         11 => "ALTER TABLE lists ADD COLUMN IF NOT EXISTS is_active TINYINT(1) NOT NULL DEFAULT 1",
+        // learning_sessions/session_lists wurden nie gelesen (nur beschrieben) — entfernt zugunsten
+        // eines schlankeren Schemas. learning_events.session_id (FK auf learning_sessions) entfällt;
+        // ein direkter FK person_id -> persons existierte auf einigen Installationen (u.a. Dev) bereits
+        // manuell und übernimmt die Kaskade beim Personen-Löschen weiterhin — Migration prüft das statt
+        // ihn blind neu anzulegen (sonst doppelter, redundanter Fremdschlüssel).
+        12 => function (PDO $pdo): void {
+            $exists = $pdo->query("SHOW TABLES LIKE 'learning_sessions'")->fetch();
+            if (!$exists) return; // Neuinstallation: install.php legt das schlanke Schema direkt an
+
+            $db = $pdo->query("SELECT DATABASE()")->fetchColumn();
+
+            $find_fk = function (string $column, string $refTable) use ($pdo, $db): ?string {
+                $stmt = $pdo->prepare("
+                    SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE
+                    WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'learning_events'
+                      AND COLUMN_NAME = ? AND REFERENCED_TABLE_NAME = ?
+                ");
+                $stmt->execute([$db, $column, $refTable]);
+                $name = $stmt->fetchColumn();
+                return $name !== false ? $name : null;
+            };
+
+            if ($fk = $find_fk('session_id', 'learning_sessions')) {
+                $pdo->exec("ALTER TABLE learning_events DROP FOREIGN KEY `$fk`");
+            }
+            $pdo->exec("ALTER TABLE learning_events DROP COLUMN session_id");
+
+            if (!$find_fk('person_id', 'persons')) {
+                $pdo->exec("ALTER TABLE learning_events ADD FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE");
+            }
+
+            $pdo->exec("DROP TABLE IF EXISTS session_lists");
+            $pdo->exec("DROP TABLE IF EXISTS learning_sessions");
+        },
+        // Nachgezogene Spalte, die auf manchen Installationen (u.a. Dev) bereits manuell existierte,
+        // in install.php aber bisher fehlte — wird von der App nicht gelesen, nur beim Insert automatisch gesetzt.
+        13 => "ALTER TABLE learning_events ADD COLUMN IF NOT EXISTS created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP",
     ];
 
     // db_version aus settings lesen — falls Tabelle noch nicht existiert (vor install.php): abbrechen

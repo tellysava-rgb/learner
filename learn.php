@@ -112,17 +112,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin
         exit;
     }
 
-    // Learning-Session in DB anlegen
-    $stmt = $pdo->prepare("INSERT INTO learning_sessions (person_id, mode, direction, started_at) VALUES (?,?,?,NOW())");
-    $stmt->execute([$person_id, 'leitner', $direction]);
-    $session_id = (int) $pdo->lastInsertId();
-
-    // session_lists befüllen
-    $ins_sl = $pdo->prepare("INSERT INTO session_lists (session_id, list_id) VALUES (?,?)");
-    foreach ($valid_ids as $lid) {
-        $ins_sl->execute([$session_id, $lid]);
-    }
-
     // last_used_at für alle beteiligten Listen aktualisieren
     $upd = $pdo->prepare("UPDATE lists SET last_used_at = NOW() WHERE id = ?");
     foreach ($valid_ids as $lid) {
@@ -131,7 +120,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin
 
     // Session-State initialisieren
     $_SESSION['learn'] = [
-        'session_id'    => $session_id,
         'list_ids'      => $valid_ids,
         'direction'     => $direction,
         'queue'         => $queue,
@@ -156,7 +144,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
     $card_id   = intval($_POST['card_id'] ?? 0);
     $result    = $_POST['result'] ?? ''; // 'correct' | 'incorrect' | 'skip'
     $today     = $state['today'];
-    $session_id = $state['session_id'];
 
     if (!in_array($result, ['correct', 'incorrect', 'skip'])) {
         header('Location: learn.php');
@@ -168,8 +155,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
     if ($result === 'skip') {
         // Übersprungen → ans Ende der Queue, next_due_date unverändert
         $state['queue'][] = $card_id;
-        $stmt = $pdo->prepare("INSERT INTO learning_events (session_id, person_id, card_id, result, learn_date) VALUES (?,?,?,?,?)");
-        $stmt->execute([$session_id, $person_id, $card_id, 'skipped', $today]);
+        $stmt = $pdo->prepare("INSERT INTO learning_events (person_id, card_id, result, learn_date) VALUES (?,?,?,?)");
+        $stmt->execute([$person_id, $card_id, 'skipped', $today]);
         array_shift($state['queue']);
         header('Location: learn.php');
         exit;
@@ -228,8 +215,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
     }
 
     // Event loggen
-    $stmt = $pdo->prepare("INSERT INTO learning_events (session_id, person_id, card_id, result, learn_date) VALUES (?,?,?,?,?)");
-    $stmt->execute([$session_id, $person_id, $card_id, $db_result, $today]);
+    $stmt = $pdo->prepare("INSERT INTO learning_events (person_id, card_id, result, learn_date) VALUES (?,?,?,?)");
+    $stmt->execute([$person_id, $card_id, $db_result, $today]);
 
     // Nächste Karte
     array_shift($state['queue']);
@@ -237,9 +224,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
     // Session beendet?
     if (!$state['queue']) {
         // Session abschliessen
-        $stmt = $pdo->prepare("UPDATE learning_sessions SET completed_at = NOW() WHERE id = ?");
-        $stmt->execute([$session_id]);
-
         $summary = $state['stats'];
         $list_ids = $state['list_ids'];
         unset($_SESSION['learn']);

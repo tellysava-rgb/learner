@@ -54,8 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
     }
 
     // Event loggen
-    $stmt = $pdo->prepare("INSERT INTO learning_events (session_id, person_id, card_id, result, learn_date) VALUES (?,?,?,?,?)");
-    $stmt->execute([$state['session_id'], $person_id, $card_id, $result, $state['today']]);
+    $stmt = $pdo->prepare("INSERT INTO learning_events (person_id, card_id, result, learn_date) VALUES (?,?,?,?)");
+    $stmt->execute([$person_id, $card_id, $result, $state['today']]);
 
     if ($result === 'known') {
         $state['stats']['known']++;
@@ -122,19 +122,12 @@ function start_drill_session(PDO $pdo, int $person_id, array $list_ids): void {
         exit;
     }
 
-    $stmt = $pdo->prepare("INSERT INTO learning_sessions (person_id, mode, started_at) VALUES (?,?,NOW())");
-    $stmt->execute([$person_id, 'drill']);
-    $session_id = (int) $pdo->lastInsertId();
-
-    $ins_sl = $pdo->prepare("INSERT INTO session_lists (session_id, list_id) VALUES (?,?)");
-    $upd    = $pdo->prepare("UPDATE lists SET last_used_at = NOW() WHERE id = ?");
+    $upd = $pdo->prepare("UPDATE lists SET last_used_at = NOW() WHERE id = ?");
     foreach ($valid_ids as $lid) {
-        $ins_sl->execute([$session_id, $lid]);
         $upd->execute([$lid]);
     }
 
     $state = [
-        'session_id'      => $session_id,
         'list_ids'        => $valid_ids,
         'pool_known'      => $pool_known,
         'pool_new'        => $pool_new,
@@ -277,9 +270,6 @@ function lazy_reset_drill_too_hard(PDO $pdo, int $person_id, int $card_id, strin
 }
 
 function finish_drill_session(PDO $pdo, array &$state, int $person_id): void {
-    $stmt = $pdo->prepare("UPDATE learning_sessions SET completed_at = NOW() WHERE id = ?");
-    $stmt->execute([$state['session_id']]);
-
     $_SESSION['drill_done'] = [
         'stats'        => $state['stats'],
         'mastered_ids' => $state['mastered_cards'],

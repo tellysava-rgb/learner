@@ -90,33 +90,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-                CREATE TABLE IF NOT EXISTS learning_sessions (
-                    id           INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                    person_id    INT          NOT NULL,
-                    mode         VARCHAR(20)  NOT NULL,
-                    direction    VARCHAR(10)  NULL DEFAULT NULL,
-                    started_at   DATETIME     NOT NULL,
-                    completed_at DATETIME     NULL DEFAULT NULL,
-                    FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-                CREATE TABLE IF NOT EXISTS session_lists (
-                    session_id INT NOT NULL,
-                    list_id    INT NOT NULL,
-                    PRIMARY KEY (session_id, list_id),
-                    FOREIGN KEY (session_id) REFERENCES learning_sessions(id) ON DELETE CASCADE,
-                    FOREIGN KEY (list_id)    REFERENCES lists(id)             ON DELETE CASCADE
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
                 CREATE TABLE IF NOT EXISTS learning_events (
                     id         INT         NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                    session_id INT         NOT NULL,
                     person_id  INT         NOT NULL,
                     card_id    INT         NOT NULL,
                     result     VARCHAR(20) NOT NULL,
                     learn_date DATE        NOT NULL,
-                    FOREIGN KEY (session_id) REFERENCES learning_sessions(id) ON DELETE CASCADE,
-                    FOREIGN KEY (card_id)    REFERENCES cards(id)             ON DELETE CASCADE
+                    created_at DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE,
+                    FOREIGN KEY (card_id)   REFERENCES cards(id)   ON DELETE CASCADE
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
             ");
             $tables_exist = true;

@@ -109,7 +109,6 @@ Auf `learn.php`/`drill.php` wird während einer aktiven Session weiterhin eine a
 - **Duplikate in der Zielliste** (gleiche Wörter bereits vorhanden) werden nicht geprüft — beide Einträge bleiben nebeneinander bestehen
 - Migration ist nur zwischen **eigenen** Listen derselben Person möglich — keine Vermischung mit Listen anderer Personen
 - Die Quellliste bleibt nach der Migration **leer bestehen** — der User löscht sie bei Bedarf manuell
-- Vergangene `learning_sessions`/`session_lists`-Einträge bleiben unverändert (historisch, kein Bezug zur aktuellen `list_id` der Karten)
 
 ### Metadaten pro Liste
 | Feld | Pflicht |
@@ -432,7 +431,7 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 - **Passwort zurücksetzen**: Admin setzt direkt ein neues Passwort für eine Person, ohne deren altes Passwort zu kennen (Modal, min. 8 Zeichen)
 - **Admin-Status umschalten**: Button pro Person — der letzte verbleibende Admin kann nicht entfernt werden. Ist eine Person der letzte verbleibende Admin, ist "Admin entfernen" gar nicht erst sichtbar (unsichtbar/nicht interagierbar wie beim Lösch-Icon, reserviert aber denselben Platz für bündige Ausrichtung) statt sich erst nach Klick per Fehlermeldung abzuweisen _(v3.2.6)_
 - **Neue Person anlegen**: Name (eindeutig) + initiales Passwort (min. 8 Zeichen) + optionale E-Mail-Adresse (ebenfalls formatvalidiert) _(v3.0.0, Validierung v3.1.1)_ + optionales Admin-Flag
-- **Person löschen** _(v3.2.0)_: Icon-Button (`bi-trash`) pro Person; bei der eigenen Zeile unsichtbar/nicht interagierbar (kein Selbstlöschen möglich, weder Button noch serverseitig), reserviert aber denselben Platz, damit die Aktions-Icons aller Zeilen bündig bleiben. Löscht die Person **unwiderruflich und vollständig** — eigene Listen, Karten (via Listen-Kaskade), gesamter Lernfortschritt (`card_progress`), Lernsessions und -events, alles über die bestehenden DB-Fremdschlüssel-Kaskaden (`ON DELETE CASCADE`), ausgeführt innerhalb einer expliziten Transaktion (Rollback bei Fehler). Bestätigung per Modal: Checkbox "Ich bin mir sicher..." muss angehakt werden (native HTML5-Pflichtfeld-Validierung, kein Custom-JS nötig) _(vereinfacht von Namenseingabe auf Checkbox in v3.2.8)_ — serverseitig zusätzlich geprüft (`confirm=1` muss mitgesendet werden, sonst Fehlermeldung ohne Löschung). Der letzte verbleibende Admin kann nicht gelöscht werden (gleicher Schutz wie beim Entfernen des Admin-Status)
+- **Person löschen** _(v3.2.0)_: Icon-Button (`bi-trash`) pro Person; bei der eigenen Zeile unsichtbar/nicht interagierbar (kein Selbstlöschen möglich, weder Button noch serverseitig), reserviert aber denselben Platz, damit die Aktions-Icons aller Zeilen bündig bleiben. Löscht die Person **unwiderruflich und vollständig** — eigene Listen, Karten (via Listen-Kaskade), gesamter Lernfortschritt (`card_progress`), Lernereignisse (`learning_events`), alles über die bestehenden DB-Fremdschlüssel-Kaskaden (`ON DELETE CASCADE`), ausgeführt innerhalb einer expliziten Transaktion (Rollback bei Fehler). Bestätigung per Modal: Checkbox "Ich bin mir sicher..." muss angehakt werden (native HTML5-Pflichtfeld-Validierung, kein Custom-JS nötig) _(vereinfacht von Namenseingabe auf Checkbox in v3.2.8)_ — serverseitig zusätzlich geprüft (`confirm=1` muss mitgesendet werden, sonst Fehlermeldung ohne Löschung). Der letzte verbleibende Admin kann nicht gelöscht werden (gleicher Schutz wie beim Entfernen des Admin-Status)
 - CSRF-geschützt, PRG-Muster wie überall sonst
 
 ---
@@ -584,9 +583,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 | `lists` | Wortlisten (Name, Beschreibung, Sprachen, Besitzer, öffentlich/privat) |
 | `cards` | Karten (Sprache A/B, Beschreibung A/B, Liste, erstellt am) |
 | `card_progress` | Fortschritt pro Person/Karte (status, leitner_box, next_due_date, drill_mastery, drill_too_hard) |
-| `learning_sessions` | Abgeschlossene Sessions (Person, Modus, Datum) |
-| `session_lists` | Join-Tabelle: welche Listen waren an einer Session beteiligt (session_id, list_id) |
-| `learning_events` | Einzelne Karten-Antworten (für Statistik und Streak-Berechnung) |
+| `learning_events` | Einzelne Karten-Antworten — Person, Karte, Ergebnis, Datum (für Statistik und Streak-Berechnung) _(bis v3.2.19 zusätzlich über `learning_sessions`/`session_lists` gruppiert, seit v3.2.20 direkter Fremdschlüssel auf `persons`, da die Session-Gruppierung nie ausgewertet wurde)_ |
 
 ### Lösch-Verhalten
 - Karte löschen → `card_progress` Einträge dieser Karte werden **physisch mitgelöscht** (kaskadierend)

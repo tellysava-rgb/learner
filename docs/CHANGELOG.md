@@ -5,6 +5,20 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.20] - 2026-07-30
+
+### Entfernt
+- DB-Tabellen `learning_sessions` und `session_lists` entfernt — sie wurden bei jeder Leitner-/Drill-Session befüllt, aber nirgends gelesen (Streak/Heatmap in `stats.php` liefen schon immer ausschliesslich über `learning_events`). `learning_events.session_id` (Fremdschlüssel auf `learning_sessions`) entfällt; die Kaskade beim Personen-Löschen läuft jetzt über einen direkten Fremdschlüssel `learning_events.person_id → persons(id) ON DELETE CASCADE`.
+- `drill.php`/`learn.php`: alle Schreibzugriffe auf `learning_sessions`/`session_lists` sowie die `session_id`-Verwaltung im Session-State entfernt.
+
+### Geändert
+- `install.php`: Tabellen-Definitionen für `learning_sessions`/`session_lists` entfernt, `learning_events` ohne `session_id`-Spalte, dafür mit direktem Fremdschlüssel auf `persons`. Zusätzlich `created_at`-Spalte ergänzt (existierte bereits live, fehlte aber bisher in `install.php`).
+- `includes/migrations.php`: zwei neue Migrationen (12, 13) für bestehende Installationen — bauen das Schema automatisch auf den schlankeren Stand um, ohne Datenverlust in `learning_events`.
+
+Getestet auf der lokalen Dev-Datenbank: Migration lief fehlerfrei durch (609 bestehende `learning_events`-Zeilen blieben erhalten), Leitner- und Drill-Session funktionieren mit dem neuen Schema, `stats.php` liefert weiterhin korrekte Werte, Personen-Löschen löscht die Lernhistorie weiterhin vollständig über die neue Kaskade.
+
+---
+
 ## [3.2.19] - 2026-07-30
 
 ### Behoben

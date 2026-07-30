@@ -24,6 +24,13 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Schritt 2 mit Passwort unter 8 Zeichen oder abweichender Wiederholung → Fehlermeldung, keine Person angelegt. _(v3.2.1)_
 [ ] Nachdem eine Person existiert: Schritt 2 zeigt "Erstellt" und einen Hinweis auf `users.php` statt eines erneuten Anlage-Formulars — kein zweiter Admin über `install.php` anlegbar. _(v3.2.1)_
 [ ] Nach Schritt 1 + 2 auf einer frischen Installation: `run_pending_migrations()` (nächster Seitenaufruf) läuft fehlerfrei durch und verändert nichts an der bereits angelegten Person (Migration 6 ist No-Op, da `password_hash` schon gesetzt ist und "Beat" ggf. gar nicht existiert). _(v3.2.1)_
+[ ] Frische Installation: Tabellen `learning_sessions`/`session_lists` werden NICHT angelegt, `learning_events` hat keine `session_id`-Spalte, dafür einen Fremdschlüssel `person_id → persons(id) ON DELETE CASCADE`. _(v3.2.20)_
+
+### Schema-Umbau `learning_sessions`/`session_lists` entfernt _(v3.2.20)_
+[ ] Bestehende (vor v3.2.20 migrierte) Installation: nach einem Seitenaufruf laufen Migrationen 12+13 durch — `learning_sessions`/`session_lists` sind danach weg, `learning_events.session_id` ist entfernt, bestehende Zeilen in `learning_events` bleiben inhaltlich unverändert erhalten (Zeilenzahl vorher = nachher). _(v3.2.20)_
+[ ] Nach der Migration: Leitner-Session starten und eine Karte beantworten → `learning_events`-Zeile wird korrekt ohne Fehler angelegt. _(v3.2.20)_
+[ ] Nach der Migration: Drill-Session starten und eine Karte beantworten → `learning_events`-Zeile wird korrekt ohne Fehler angelegt. _(v3.2.20)_
+[ ] `stats.php` (Streak/Heatmap) zeigt nach der Migration weiterhin korrekte Werte basierend auf den erhaltenen `learning_events`-Zeilen. _(v3.2.20)_
 
 ---
 
@@ -588,7 +595,7 @@ Testtools: `curl` oder Claude Code mit `.mcp.json`.
 [ ] Bei jeder anderen Person erscheint das "Person löschen"-Icon (`bi-trash`) → öffnet Bestätigungs-Modal mit Warntext und Checkbox "Ich bin mir sicher...". _(v3.2.0, Checkbox statt Namenseingabe v3.2.8)_
 [ ] Im Lösch-Modal: "Endgültig löschen"-Button lässt sich erst absenden, wenn die Checkbox angehakt ist (native Browser-Validierung, kein Klick möglich solange leer). _(v3.2.8)_
 [ ] POST ohne `confirm=1` (z.B. per manipuliertem Request trotz Checkbox-Pflichtfeld) → Fehlermeldung "Löschung nicht bestätigt, Person wurde nicht gelöscht.", Person bleibt bestehen. _(v3.2.8)_
-[ ] Löschen einer Person mit korrektem Namen → Person UND alle ihre Listen, Karten (via Listen), Lernfortschritt, Lernsessions/-events sind vollständig aus der DB entfernt (keine Restdaten). _(v3.2.0)_
+[ ] Löschen einer Person mit korrektem Namen → Person UND alle ihre Listen, Karten (via Listen), Lernfortschritt, Lernereignisse (`learning_events`) sind vollständig aus der DB entfernt (keine Restdaten). _(v3.2.0, Kaskade läuft seit v3.2.20 über einen direkten Fremdschlüssel `learning_events.person_id → persons` statt über die entfernten Tabellen `learning_sessions`/`session_lists`)_
 [ ] Löschen einer Person, die öffentliche Listen besitzt, die von ANDEREN Personen gelernt werden → auch die eigenen `card_progress`-Einträge dieser anderen Personen zu den gelöschten Listen/Karten werden mitgelöscht (bestehende Kaskade). _(v3.2.0)_
 [ ] Versuch, sich selbst zu löschen (direkter POST-Request mit eigener `person_id`, z.B. Button ist ja ausgeblendet) → Fehlermeldung "Du kannst dich nicht selbst löschen.", keine Löschung. _(v3.2.0)_
 [ ] Löschen des LETZTEN verbleibenden Admins → Fehlermeldung "Der letzte verbleibende Admin kann nicht gelöscht werden.", Person bleibt bestehen. _(v3.2.0)_
