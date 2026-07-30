@@ -5,6 +5,15 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.21] - 2026-07-30
+
+### Entfernt
+- `includes/migrations.php`: historische Migrationen 1–13 (v3.0.0-Login-Modell bis zur `learning_sessions`/`session_lists`-Entfernung in v3.2.20) entfernt. Beide bekannten Installationen (Dev + Prod) sind bereits auf dem aktuellen Schema, und `install.php` bildet dieses Schema seit v3.2.20 vollständig von Grund auf ab — die alten Migrationen waren damit für jeden realistischen Fall reine No-Ops. Der Migrations-Mechanismus selbst bleibt bestehen (leere Liste, bereit für künftige Änderungen ab ID 14); die alten Schritte bleiben in der Git-Historie nachvollziehbar, falls je ein Backup von vor v3.2.20 wiederhergestellt werden muss.
+
+Auf Dev getestet: `db_version` bleibt bei 13, `run_pending_migrations()` läuft ohne Fehler und ohne Wirkung durch.
+
+---
+
 ## [3.2.20] - 2026-07-30
 
 ### Entfernt

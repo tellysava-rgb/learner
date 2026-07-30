@@ -23,14 +23,8 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Schritt 2 mit gültigen Werten → Person wird in `persons` angelegt mit `is_admin = 1`, Erfolgsmeldung, Login mit diesem Namen/Passwort funktioniert sofort auf `index.php`. _(v3.2.1)_
 [ ] Schritt 2 mit Passwort unter 8 Zeichen oder abweichender Wiederholung → Fehlermeldung, keine Person angelegt. _(v3.2.1)_
 [ ] Nachdem eine Person existiert: Schritt 2 zeigt "Erstellt" und einen Hinweis auf `users.php` statt eines erneuten Anlage-Formulars — kein zweiter Admin über `install.php` anlegbar. _(v3.2.1)_
-[ ] Nach Schritt 1 + 2 auf einer frischen Installation: `run_pending_migrations()` (nächster Seitenaufruf) läuft fehlerfrei durch und verändert nichts an der bereits angelegten Person (Migration 6 ist No-Op, da `password_hash` schon gesetzt ist und "Beat" ggf. gar nicht existiert). _(v3.2.1)_
+[ ] Nach Schritt 1 + 2 auf einer frischen Installation: `run_pending_migrations()` (nächster Seitenaufruf) läuft fehlerfrei durch und verändert nichts an der bereits angelegten Person — Migrations-Liste ist seit v3.2.21 bewusst leer (historische Migrationen 1–13 sind vollständig in `install.php` aufgegangen). _(v3.2.1, Migrationen entfernt v3.2.21)_
 [ ] Frische Installation: Tabellen `learning_sessions`/`session_lists` werden NICHT angelegt, `learning_events` hat keine `session_id`-Spalte, dafür einen Fremdschlüssel `person_id → persons(id) ON DELETE CASCADE`. _(v3.2.20)_
-
-### Schema-Umbau `learning_sessions`/`session_lists` entfernt _(v3.2.20)_
-[ ] Bestehende (vor v3.2.20 migrierte) Installation: nach einem Seitenaufruf laufen Migrationen 12+13 durch — `learning_sessions`/`session_lists` sind danach weg, `learning_events.session_id` ist entfernt, bestehende Zeilen in `learning_events` bleiben inhaltlich unverändert erhalten (Zeilenzahl vorher = nachher). _(v3.2.20)_
-[ ] Nach der Migration: Leitner-Session starten und eine Karte beantworten → `learning_events`-Zeile wird korrekt ohne Fehler angelegt. _(v3.2.20)_
-[ ] Nach der Migration: Drill-Session starten und eine Karte beantworten → `learning_events`-Zeile wird korrekt ohne Fehler angelegt. _(v3.2.20)_
-[ ] `stats.php` (Streak/Heatmap) zeigt nach der Migration weiterhin korrekte Werte basierend auf den erhaltenen `learning_events`-Zeilen. _(v3.2.20)_
 
 ---
 
