@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.22] - 2026-07-30
+
+### Entfernt
+- `ANFORDERUNGEN.md`: veralteten Absatz zur alten Bootstrap-Passwort-Migration ("Migration von der alten Version" — Passwort `123456` für Personen ohne Zugangsdaten) entfernt. Der zugehörige Code (ehemals Migration 6) wurde bereits in v3.2.21 aus `migrations.php` entfernt, der Absatz beschrieb daher ein Verhalten, das es im Code nicht mehr gibt.
+
+---
+
 ## [3.2.21] - 2026-07-30
 
 ### Entfernt

@@ -35,7 +35,6 @@
 - **Benutzerverwaltung** (`users.php`, nur Admin): Personen anlegen (Name + initiales Passwort + optionale E-Mail + optionales Admin-Flag), E-Mail-Adresse einer Person setzen/ändern, Passwort einer Person zurücksetzen (ohne deren altes Passwort zu kennen), Admin-Status umschalten — der letzte verbleibende Admin kann nicht entfernt werden (verhindert Aussperren)
 - **"Person wechseln"** (nur Admin, in der zentralen Navbar auf jeder Seite _(v3.0.0)_): Dropdown aller Personen, um vorübergehend als eine andere Person zu agieren (z.B. für Support). Übernimmt dabei **exakt deren Berechtigungen** — als Nicht-Admin-Person agieren verbirgt "Einstellungen"/"Benutzerverwaltung" und sperrt diese Seiten genauso wie für die echte Person. Einzige Ausnahme: **das Recht, die Person erneut zu wechseln bleibt erhalten**, damit man sich nicht selbst aussperrt — dafür merkt sich die Session getrennt, wer *wirklich* Admin ist (`real_is_admin`), unabhängig von den gerade angezeigten Berechtigungen (`is_admin`) _(v3.0.0)_
 - Jede Person hat **eigene Listen** und **eigenen Lernfortschritt** (Fortschritt ist nicht öffentlich)
-- **Migration von der alten Version**: bestehende Personen ohne Zugangsdaten bekommen einmalig automatisch das Passwort `123456` gesetzt (per DB-Migration, läuft beim ersten Request nach dem Update) — jede Person sollte es danach selbst ändern
 
 ---
 
