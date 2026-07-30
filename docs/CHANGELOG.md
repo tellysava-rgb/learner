@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.18] - 2026-07-30
+
+### Behoben
+- Statistik-Heatmap: Dark-Mode-Farbschema (`prefers-color-scheme: dark`) komplett entfernt, statt die Grautöne weiter anzupassen. Grund: der Rest der Anwendung hat kein Dark-Mode-Theme, ein Dark Mode nur für die Heatmap war inkonsistent und wirkte je nach Gerät/Browser (z.B. bei aktiviertem "Force Dark" ohne echten System-Dark-Mode) verwirrend. Die Heatmap zeigt jetzt immer die helle Farbpalette.
+
+---
+
 ## [3.2.17] - 2026-07-30
 
 ### Behoben

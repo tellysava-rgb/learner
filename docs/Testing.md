@@ -461,8 +461,7 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Tage nach heute (Rest der laufenden Kalenderwoche) werden leer dargestellt, ohne Tooltip. _(v3.0.3)_
 [ ] Heatmap ist auf schmalen Bildschirmen (Mobile) horizontal scrollbar, restliche Seite scrollt nicht mit. _(v3.0.3)_
 [ ] Auf breiten Bildschirmen (Desktop, genug Platz) ist die Heatmap horizontal zentriert dargestellt, nicht linksbündig. _(v3.1.1)_
-[ ] Bei aktiviertem dunklen Farbschema (Browser/OS) sind Heatmap-Farben und Beschriftungen weiterhin gut lesbar. _(v3.0.3)_
-[ ] Im Dark Mode ist die Leerzellen-Farbe (kein Tag gelernt) klar als Grau erkennbar und deutlich von der dunkelsten Grünstufe (`lvl-1`) unterscheidbar — nicht schwarz. _(v3.2.17)_
+[ ] Bei aktiviertem dunklen Farbschema (Browser/OS): Heatmap zeigt weiterhin die HELLE Farbpalette (kein eigenes Dark-Mode-Schema mehr) — konsistent damit, dass der Rest der App ebenfalls kein Dark-Mode-Theme hat. _(v3.2.18, vorher `prefers-color-scheme`-Anpassung v3.0.3–v3.2.17)_
 [ ] Person ohne jegliche Lernaktivität: Kennzahlen zeigen 0, Heatmap komplett leer/grau, keine Fehler. _(v3.0.3)_
 
 ---

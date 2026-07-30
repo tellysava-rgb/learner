@@ -477,7 +477,7 @@ Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler 
   - Mindestens eine Karte beantwortet (gewusst oder nicht gewusst) = Lerntag
   - Überspringen allein zählt nicht
   - Abgebrochene Session zählt wenn mindestens eine Karte beantwortet wurde
-- Heatmap der letzten 52 Kalenderwochen bis heute (GitHub-Contribution-Graph-Stil): Spalten = Kalenderwochen (links = älteste), Zeilen = Mo–So, 5-stufige Grün-Skala nach Anzahl beantworteter Karten am jeweiligen Tag relativ zum eigenen Maximum im sichtbaren Zeitraum (kein Tag = leer/grau), Monatsbeschriftung über den Spalten, Wochentag-Labels links (nur Mo/Mi/Fr), Tooltip beim Hover zeigt Datum (Format `TT.MM.JJJJ`, z.B. `29.07.2026`) _(Format korrigiert v3.2.10, vorher `YYYY-MM-DD`)_ + Anzahl gelernter Karten bzw. "nicht gelernt". Zukünftige Tage der laufenden Woche bleiben leer. Reine CSS-Grid/HTML-Lösung ohne externe Charting-Library, horizontal zentriert innerhalb der Karte (bleibt bei Überbreite horizontal scrollbar auf kleinen Screens) _(zentriert seit v3.1.1)_, hell/dunkel-kompatibel per `prefers-color-scheme` — Leerzellen-Grau im Dark Mode bewusst als mittleres Grau (`#484f58`) gewählt, nicht zu dunkel, damit es sich klar vom dunkelsten Grünton unterscheidet _(korrigiert v3.2.17, vorher zu nah an Schwarz)_.
+- Heatmap der letzten 52 Kalenderwochen bis heute (GitHub-Contribution-Graph-Stil): Spalten = Kalenderwochen (links = älteste), Zeilen = Mo–So, 5-stufige Grün-Skala nach Anzahl beantworteter Karten am jeweiligen Tag relativ zum eigenen Maximum im sichtbaren Zeitraum (kein Tag = leer/grau), Monatsbeschriftung über den Spalten, Wochentag-Labels links (nur Mo/Mi/Fr), Tooltip beim Hover zeigt Datum (Format `TT.MM.JJJJ`, z.B. `29.07.2026`) _(Format korrigiert v3.2.10, vorher `YYYY-MM-DD`)_ + Anzahl gelernter Karten bzw. "nicht gelernt". Zukünftige Tage der laufenden Woche bleiben leer. Reine CSS-Grid/HTML-Lösung ohne externe Charting-Library, horizontal zentriert innerhalb der Karte (bleibt bei Überbreite horizontal scrollbar auf kleinen Screens) _(zentriert seit v3.1.1)_. **Bewusst kein eigenes Dark-Mode-Farbschema** _(entfernt v3.2.18, vorher per `prefers-color-scheme` v3.0.3–v3.2.17)_ — die Heatmap zeigt immer die helle Farbpalette, da der Rest der Anwendung ebenfalls kein Dark-Mode-Theme hat; ein Dark Mode nur für die Heatmap wäre inkonsistent mit dem übrigen (durchgehend hellen) UI.
 
 **Leitner-Übersicht:**
 - Anzahl Karten pro Fach (Fach 1–5 + archiviert)
@@ -724,18 +724,10 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 
 ## Version 1 — bewusst weggelassen
 
-- Kein JSON-Import (nur CSV)
-- Kein Excel-Upload
-- Kein individuelles Login pro Person (globales Passwort + Personenwahl)
-- Keine E-Mail / Passwort-Reset Funktion
-- Keine Audio-Aussprache
 - Keine Gamification (Punkte, Badges)
 
 ---
 
 ## Offen / Später
 
-- Individuelle Logins pro Person (Datenstruktur ist bereits vorbereitet)
-- Addition, Subtraktion im Mathe-Generator
-- Audio-Aussprache via externe API
-- JSON-Import
+
