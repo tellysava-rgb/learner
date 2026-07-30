@@ -1,5 +1,10 @@
 <?php
-require_once __DIR__ . '/includes/config.php';
+// Erstinstallation. Bewusst ohne Login erreichbar, weil bei einer frischen Datenbank noch
+// niemand existiert, der sich einloggen könnte (gilt auch für die Ersteinrichtung auf Prod).
+// Abgesichert dadurch, dass ALLE Aktionen verweigert werden, sobald eine Person existiert:
+// auf jedem eingerichteten System ist die Seite damit funktionslos. Nach dem Setup muss sie
+// trotzdem gelöscht werden — index.php sperrt die App auf Prod, solange sie vorhanden ist.
+require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
 
 $message = '';
@@ -25,7 +30,17 @@ $person_exists = has_person($pdo);
 // POST: Tabellen erstellen + Passwort setzen
 // -------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_validate();
     $action = $_POST['action'] ?? '';
+
+    // Sobald eine Person existiert, ist die Installation abgeschlossen — dann führt diese Seite
+    // keine Aktion mehr aus (auch kein "Tabellen erneut prüfen"), damit ein unbefugter Aufruf
+    // auf einem laufenden System nichts mehr auslösen kann.
+    if ($person_exists) {
+        $error  = 'Die Installation ist bereits abgeschlossen — diese Seite führt keine Aktionen mehr aus. '
+                . 'Bitte install.php vom Server löschen.';
+        $action = '';
+    }
 
     if ($action === 'install') {
         // Tabellen anlegen (idempotent)
@@ -90,6 +105,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+                CREATE TABLE IF NOT EXISTS auth_attempts (
+                    id           INT         NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    scope        VARCHAR(20) NOT NULL,
+                    ip           VARCHAR(45) NOT NULL,
+                    attempted_at DATETIME    NOT NULL,
+                    INDEX idx_auth_attempts_lookup (scope, ip, attempted_at)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
                 CREATE TABLE IF NOT EXISTS learning_events (
                     id         INT         NOT NULL AUTO_INCREMENT PRIMARY KEY,
                     person_id  INT         NOT NULL,
@@ -137,13 +160,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Installation — <?= APP_NAME ?></title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
 <body class="bg-light">
 
 <div class="container mt-5" style="max-width:560px;">
     <h1 class="h3 mb-1"><?= APP_NAME ?> — Installation</h1>
-    <p class="text-muted small mb-4">Nur auf Localhost zugänglich. Diese Seite kann jederzeit erneut aufgerufen werden.</p>
+    <p class="text-muted small mb-4">Nur für die Ersteinrichtung: sobald eine Person existiert, führt diese Seite
+       keine Aktionen mehr aus. Bitte danach vom Server löschen.</p>
 
     <?php if ($message): ?>
     <div class="alert alert-success"><?= htmlspecialchars($message) ?></div>
@@ -169,8 +194,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p class="text-muted small mb-3">Erstellt alle benötigten Tabellen in der Datenbank.</p>
             <?php endif; ?>
             <form method="post">
+                <?= csrf_field() ?>
                 <input type="hidden" name="action" value="install">
-                <button class="btn btn-primary btn-sm">
+                <button class="btn btn-primary btn-sm" <?= $person_exists ? 'disabled' : '' ?>>
                     <?= $tables_exist ? 'Tabellen erneut prüfen' : 'Tabellen erstellen' ?>
                 </button>
             </form>
@@ -195,6 +221,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php else: ?>
             <p class="text-muted small mb-3">Legt die erste Person an — automatisch als Admin, damit du dich sofort einloggen und weitere Personen über <code>users.php</code> anlegen kannst.</p>
             <form method="post">
+                <?= csrf_field() ?>
                 <input type="hidden" name="action" value="create_admin">
                 <div class="mb-2">
                     <input type="text" name="name" class="form-control form-control-sm"

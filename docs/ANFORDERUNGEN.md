@@ -20,6 +20,19 @@
 - **Upload-Beschränkung:** max. 2MB, nur `.csv` Dateiendung erlaubt
 - **Fehlerbehandlung:** DB-Verbindungsfehler zeigt benutzerfreundliche Meldung — kein PHP-Stacktrace sichtbar
 
+### Härtung aus der Sicherheitsprüfung _(v3.2.23)_
+
+- **Basis-URL statt Host-Header** (`APP_BASE_URL`, Einstellungen → Allgemein): Links in ausgehenden E-Mails (Passwort-Reset) sowie die Absenderdomain werden ausschliesslich aus der konfigurierten Basis-URL gebaut, nie aus `$_SERVER['HTTP_HOST']`. Grund: der Host-Header kommt vom Client und ist fälschbar — ohne diese Trennung könnte jemand einen Reset für eine fremde Adresse anfordern und dem Opfer eine echte Mail mit Link auf eine Angreifer-Domain zustellen (Token-Diebstahl). Ist die Basis-URL nicht gesetzt, wird auf dem Server **keine** Reset-Mail verschickt (Vermerk im PHP-Error-Log); der Fallback auf die aktuelle Adresse greift nur für lokale Clients (`REMOTE_ADDR` = 127.0.0.1/::1), damit lokales Testen ohne Konfiguration funktioniert. Bewusst **nicht** an `APP_ENV` gekoppelt, da dieses in `db.php` selbst aus `HTTP_HOST` abgeleitet wird
+- **Rate-Limiting** (Tabelle `auth_attempts`): max. 10 Login-Fehlversuche pro IP in 15 Minuten, max. 5 „Passwort vergessen"-Anfragen pro IP in 60 Minuten. Bewusst **pro IP statt pro Konto** — eine Konto-Sperre liesse sich zum Aussperren fremder Personen missbrauchen. Ein erfolgreicher Login löscht die Fehlversuche der IP; alte Einträge werden gelegentlich aufgeräumt. Fehlt die Tabelle (z.B. direkt nach einem Deploy vor der Migration), wird nie blockiert
+- **`install.php` abgesichert:** CSRF-geschützt und verweigert **jede** Aktion (auch „Tabellen erneut prüfen"), sobald mindestens eine Person existiert — auf jedem eingerichteten System ist die Seite damit funktionslos. Bleibt ohne Login erreichbar, weil bei frischer Datenbank noch niemand existiert, der sich einloggen könnte (nötig für die Ersteinrichtung auf Prod). Einen Localhost-Guard gibt es bewusst nicht, er wäre damit unvereinbar
+- **Kein Direktzugriff auf Logdateien und `includes/`:** eigene `.htaccess` sperrt `*.log` im Web-Root (`mcp.log` enthält Kartentexte, `list_id` und `person_id`) sowie das ganze `includes/`-Verzeichnis (`Require all denied`) — dort lag der Schutz vorher allein darin, dass PHP die Dateien ausführt; bei ausgefallenem PHP-Handler wären `db-credentials.php`, `mcp-config.php` und `deploy-config.php` im Klartext ausgeliefert worden
+- **Sicherheits-Header** (`.htaccess`, via `mod_headers`): `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy: strict-origin-when-cross-origin`. Kein HSTS in der `.htaccess` — das gehört auf Hoster-/vHost-Ebene, sonst landet es auch auf der HTTP-Dev-Umgebung
+- **Subresource Integrity (SRI)** für alle CDN-Einbindungen (Bootstrap CSS/JS, Bootstrap Icons): jede Einbindung trägt `integrity` + `crossorigin="anonymous"`, damit ein manipuliertes CDN-Auslieferung keinen fremden Code ausführen kann
+- **E-Mail-Format serverseitig validiert** — auch im „Konto"-Modal (`change_own_email`), nicht nur in `users.php`: der Wert wird später als Empfänger an `mail()` übergeben
+- **Redirect-Ziele auf die eigene Anwendung begrenzt** (`safe_redirect_target()` in `auth.php`, genutzt für die Rücksprung-URL der Navbar-Aktionen) — absolute und protokoll-relative Ziele sowie CR/LF werden verworfen, gleiche Absicherung wie in `learn.php`/`drill.php`
+- **Kartenbesitz auch bei Fortschritts-Aktionen geprüft** (`edit.php`, Archivieren/Reaktivieren): die `card_id` muss zur geprüften Liste gehören, sonst liessen sich eigene `card_progress`-Einträge für fremde Karten anlegen
+- **`stats.php`** akzeptiert nur eigene `list_id` — eine fremde/unbekannte ID leitet auf die erste eigene Liste um (statt in einen „alle Listen"-Modus zu fallen, den es nicht gibt)
+
 ---
 
 ## Zugang / Benutzerverwaltung _(Login-Modell überarbeitet v3.0.0)_
@@ -400,6 +413,7 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 | Gruppe | Einstellung | Konstante | Beschreibung | Bereich |
 |---|---|---|---|---|
 | Allgemein | Seitentitel | `APP_NAME` | Anzeigename oben links in der Navbar | max. 50 Zeichen, keine Anführungszeichen (`'`) |
+| Allgemein | Basis-URL | `APP_BASE_URL` | Adresse der Installation für Links in E-Mails (Passwort-Reset) — ohne Slash am Ende _(v3.2.23)_ | muss mit `http://` oder `https://` beginnen; leer = auf dem Server werden keine Reset-Mails verschickt (Warnhinweis in den Einstellungen) |
 | Allgemein | Session-Timeout | `SESSION_TIMEOUT` | Inaktivitäts-Timeout in Minuten | 1–1440 _(bis 24 Std., v2.7.4)_ |
 | Leitner | Tägliches Karten-Limit | `DAILY_CARD_LIMIT` | Neue Karten pro Tag aus der Warteschlange | 1–100 |
 | Leitner | Default Kartenanzahl | `LEITNER_DEFAULT_CARDS` | Voreingestellte Anzahl Karten beim Session-Start | 1–200 |
@@ -583,6 +597,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 | `cards` | Karten (Sprache A/B, Beschreibung A/B, Liste, erstellt am) |
 | `card_progress` | Fortschritt pro Person/Karte (status, leitner_box, next_due_date, drill_mastery, drill_too_hard) |
 | `learning_events` | Einzelne Karten-Antworten — Person, Karte, Ergebnis, Datum (für Statistik und Streak-Berechnung) _(bis v3.2.19 zusätzlich über `learning_sessions`/`session_lists` gruppiert, seit v3.2.20 direkter Fremdschlüssel auf `persons`, da die Session-Gruppierung nie ausgewertet wurde)_ |
+| `auth_attempts` | Fehlversuche für das Rate-Limiting von Login und „Passwort vergessen" (Scope, IP, Zeitpunkt) — keine Personenzuordnung _(v3.2.23)_ |
 
 ### Lösch-Verhalten
 - Karte löschen → `card_progress` Einträge dieser Karte werden **physisch mitgelöscht** (kaskadierend)
@@ -706,7 +721,8 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 - Prepared Statements für alle DB-Zugriffe
 - Keine PHP-Stacktraces nach aussen (generische Fehlermeldungen)
 - Input-Validierung: Pflichtfelder, Typ, Längen, max. Karten-Anzahl
-- Logging: `mcp.log` (gitignored via `*.log`) — Zeitstempel, Umgebung, Methode, Tool, Argumente
+- Logging: `mcp.log` (gitignored via `*.log`) — Zeitstempel, Umgebung, Methode, Tool, Argumente. Kein Token im Log. Datei liegt im Web-Root, ist aber per `.htaccess` gegen Direktabruf gesperrt _(v3.2.23 — vorher öffentlich lesbar)_
+- **Der MCP-Token gewährt bewusst Vollzugriff auf alle Personen**: `list_persons`, `list_lists`, `add_cards` und `update_card` prüfen keine Personenzuordnung, da der Endpoint als Admin-/Agenten-Werkzeug gedacht ist. Der Token ist deshalb wie ein Admin-Passwort zu behandeln und ausschliesslich in `mcp-config.php` (gitignored) zu halten _(explizit dokumentiert v3.2.23)_
 
 ### Client-Einrichtung
 - `.mcp.json.example` für Claude Code / VS Code (HTTP-Transport, Token-Header, Dev + Prod)

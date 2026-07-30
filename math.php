@@ -40,7 +40,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'gener
 
         if ($existing && !($_POST['confirmed'] ?? false)) {
             $type_label = ($type === 'multiplication') ? 'Multiplikations' : 'Divisions';
-            $warning = 'Es existiert bereits eine ' . $type_label . 'liste: "' . htmlspecialchars($existing['name']) . '". Möchtest du trotzdem eine neue erstellen?';
+            // Klartext speichern — das Escaping passiert bei der Ausgabe (siehe unten),
+            // damit die Variable nicht halb-HTML ist und beim Erweitern zur XSS-Lücke wird.
+            $warning = 'Es existiert bereits eine ' . $type_label . 'liste: "' . $existing['name'] . '". Möchtest du trotzdem eine neue erstellen?';
         }
     }
 
@@ -102,8 +104,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'gener
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Mathe-Generator — <?= APP_NAME ?></title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          integrity="sha384-XGjxtQfXaH2tnPFa9x+ruJTuLE3Aa6LhHSWRr1XeTyhezb4abCG4ccI5AkVDxqC+" crossorigin="anonymous">
     <link rel="stylesheet" href="assets/style.css?v=<?= APP_VERSION ?>">
 </head>
 <body>
@@ -175,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'gener
 
                 <?php if ($warning): ?>
                 <div class="alert alert-warning mb-3">
-                    <?= $warning ?>
+                    <?= htmlspecialchars($warning) ?>
                     <div class="form-check mt-2">
                         <input class="form-check-input" type="checkbox" name="confirmed" id="confirmed" value="1" required>
                         <label class="form-check-label" for="confirmed">Ja, trotzdem neue Liste erstellen</label>
@@ -199,6 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'gener
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>

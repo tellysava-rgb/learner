@@ -5,10 +5,39 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.23] - 2026-07-30
+
+Behebt alle Punkte der Sicherheitsprüfung aus `Checkliste.md`. Alle Änderungen auf der lokalen Dev-Umgebung verifiziert (Migration, Login, beide Rate-Limits, Leitner-/Drill-Session, Einstellungen, Konto-Modal, Berechtigungsprüfungen, Host-Header-Fälschung).
+
+### Behoben
+- **`mcp.log` war über HTTP öffentlich lesbar** (Kartentexte, `list_id`, `person_id` im Klartext — Tokens waren nicht betroffen). Neue `.htaccess`-Regel sperrt alle `*.log`-Dateien im Web-Root.
+- **Host-Header-Poisoning beim Passwort-Reset**: Link und Absenderdomain wurden aus `$_SERVER['HTTP_HOST']` gebaut, das vom Client kommt und fälschbar ist — ein Angreifer konnte einen Reset für eine fremde Adresse anfordern und dem Opfer eine echte Mail mit Link auf seine eigene Domain zustellen (Token-Diebstahl). Beides kommt jetzt aus der neuen Einstellung **Basis-URL** (`APP_BASE_URL`); ohne Konfiguration verschickt der Server keine Reset-Mail (Hinweis im Error-Log), der Fallback auf die aktuelle Adresse greift nur für lokale Clients.
+- **`install.php` war ungeschützt**: kein CSRF-Token, und Aktionen liessen sich auf einem laufenden System auslösen. Jetzt CSRF-geschützt und komplett funktionslos, sobald eine Person existiert. Die Behauptung eines "Localhost-Guards" in `CLAUDE.md` war falsch und ist korrigiert — ein solcher Guard wäre mit der Ersteinrichtung auf Prod unvereinbar.
+- **E-Mail-Adresse im "Konto"-Modal wurde nicht auf Format geprüft** (`change_own_email`), obwohl `users.php` das tut — der Wert wird später als Empfänger an `mail()` übergeben. Jetzt `FILTER_VALIDATE_EMAIL` an beiden Stellen.
+- **`edit.php`**: Archivieren und Reaktivieren prüften nicht, ob die `card_id` zur geprüften Liste gehört — damit liessen sich eigene Fortschrittseinträge für fremde Karten anlegen (kein Zugriff auf fremde Daten, aber fehlende Bereichsprüfung).
+- **`math.php`** gab die Duplikat-Warnung unescaped aus (`<?= $warning ?>`); der Listenname wird jetzt erst bei der Ausgabe escaped, statt halb-HTML in der Variable zu halten.
+- **`stats.php`** akzeptierte eine beliebige `list_id` aus der URL — jetzt wird auf die erste eigene Liste umgeleitet.
+
+### Neu
+- **Rate-Limiting** für Login (10 Fehlversuche pro IP / 15 Min.) und "Passwort vergessen" (5 Anfragen pro IP / 60 Min.) über die neue Tabelle `auth_attempts`. Bewusst pro IP statt pro Konto, damit sich damit niemand fremde Personen aussperren kann; ein erfolgreicher Login löscht die Fehlversuche. Fehlt die Tabelle, wird nie blockiert.
+- **Einstellung "Basis-URL"** (Einstellungen → Allgemein): Adresse der Installation für Links in E-Mails. Zeigt bei leerer Konfiguration die aktuelle Adresse als Vorschlag und einen Warnhinweis.
+
+### Geändert
+- Eigene `.htaccess` für `includes/` (`Require all denied`): der Schutz von `db-credentials.php`, `mcp-config.php` und `deploy-config.php` hing vorher allein daran, dass PHP die Dateien ausführt — bei ausgefallenem PHP-Handler wären sie im Klartext ausgeliefert worden.
+- Sicherheits-Header in der `.htaccess`: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` (kein HSTS — das gehört auf vHost-Ebene).
+- Subresource Integrity (`integrity` + `crossorigin`) für alle 40 CDN-Einbindungen von Bootstrap und Bootstrap Icons.
+- Redirect-Ziele der Navbar-Aktionen laufen über die neue Funktion `safe_redirect_target()` (verwirft absolute, protokoll-relative sowie CR/LF-Ziele) — dieselbe Absicherung, die `learn.php`/`drill.php` schon hatten.
+- `install.php` und `migrations.php` (Migration 14) legen die Tabelle `auth_attempts` an.
+
+### Dokumentation
+- `ANFORDERUNGEN.md`: neuer Abschnitt "Härtung aus der Sicherheitsprüfung", Basis-URL in der Einstellungstabelle, `auth_attempts` im Datenbankmodell, und explizit dokumentiert, dass der MCP-Token bewusst Vollzugriff auf alle Personen gewährt und wie ein Admin-Passwort zu behandeln ist.
+
+---
+
 ## [3.2.22] - 2026-07-30
 
 ### Entfernt
-- `ANFORDERUNGEN.md`: veralteten Absatz zur alten Bootstrap-Passwort-Migration ("Migration von der alten Version" — Passwort `123456` für Personen ohne Zugangsdaten) entfernt. Der zugehörige Code (ehemals Migration 6) wurde bereits in v3.2.21 aus `migrations.php` entfernt, der Absatz beschrieb daher ein Verhalten, das es im Code nicht mehr gibt.
+- `ANFORDERUNGEN.md`: veralteten Absatz zur alten Bootstrap-Passwort-Migration ("Migration von der alten Version" — für Personen ohne Zugangsdaten) entfernt. Der zugehörige Code (ehemals Migration 6) wurde bereits in v3.2.21 aus `migrations.php` entfernt, der Absatz beschrieb daher ein Verhalten, das es im Code nicht mehr gibt.
 
 ---
 
@@ -17,7 +46,6 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 ### Entfernt
 - `includes/migrations.php`: historische Migrationen 1–13 (v3.0.0-Login-Modell bis zur `learning_sessions`/`session_lists`-Entfernung in v3.2.20) entfernt. Beide bekannten Installationen (Dev + Prod) sind bereits auf dem aktuellen Schema, und `install.php` bildet dieses Schema seit v3.2.20 vollständig von Grund auf ab — die alten Migrationen waren damit für jeden realistischen Fall reine No-Ops. Der Migrations-Mechanismus selbst bleibt bestehen (leere Liste, bereit für künftige Änderungen ab ID 14); die alten Schritte bleiben in der Git-Historie nachvollziehbar, falls je ein Backup von vor v3.2.20 wiederhergestellt werden muss.
 
-Auf Dev getestet: `db_version` bleibt bei 13, `run_pending_migrations()` läuft ohne Fehler und ohne Wirkung durch.
 
 ---
 

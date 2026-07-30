@@ -1,0 +1,5 @@
+# Reine Library-/Config-Dateien — nie direkt per URL aufgerufen.
+# Ohne diese Sperre schützt nur die Tatsache, dass PHP die Dateien ausführt (leere Antwort);
+# fällt der PHP-Handler aus oder ist falsch konfiguriert, würden db-credentials.php,
+# mcp-config.php und deploy-config.php im Klartext ausgeliefert.
+Require all denied

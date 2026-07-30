@@ -41,11 +41,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errs[] = "Seitentitel: Darf nicht leer sein, max. 50 Zeichen, keine Anführungszeichen.";
         }
 
+        // Basis-URL (String-Feld, darf leer bleiben — dann fällt der Mailversand auf Dev zurück,
+        // siehe app_base_url() in auth.php). Muss absolut sein, damit sie in Mails funktioniert.
+        $base_url = rtrim(trim($_POST['app_base_url'] ?? ''), '/');
+        if ($base_url !== '' && !preg_match('#^https?://[A-Za-z0-9.\-]+(:\d+)?(/[A-Za-z0-9._~\-/]*)?$#', $base_url)) {
+            $errs[] = "Basis-URL: Muss mit http:// oder https:// beginnen und eine gültige Adresse sein (z.B. https://example.com/learner).";
+        }
+
         if (empty($errs)) {
             $drill_sec   = $vals['drill_minutes'] * 60;
 
             $runtime = [
                 'APP_NAME'               => $app_name,
+                'APP_BASE_URL'           => $base_url,
                 'SESSION_TIMEOUT'        => $vals['session_timeout_min'],
                 'DAILY_CARD_LIMIT'       => $vals['daily_card_limit'],
                 'LEITNER_DEFAULT_CARDS'  => $vals['leitner_default_cards'],
@@ -84,7 +92,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $subject = mb_encode_mimeheader(APP_NAME . ': Test-E-Mail', 'UTF-8', 'B');
             $body    = "Dies ist eine Test-E-Mail von " . APP_NAME . ".\n\n"
                      . "Wenn du diese Nachricht erhältst, funktioniert der E-Mail-Versand (inkl. Umlaut-Kodierung) auf diesem Server korrekt.";
-            $from_address = 'no-reply@' . $_SERVER['HTTP_HOST'];
+            // Absenderdomain wie beim Passwort-Reset aus der konfigurierten Basis-URL ableiten,
+            // nicht aus dem Host-Header (siehe app_base_url() in auth.php).
+            $mail_host    = parse_url(app_base_url(), PHP_URL_HOST) ?: ($_SERVER['SERVER_NAME'] ?? 'localhost');
+            $from_address = 'no-reply@' . $mail_host;
             $headers = "From: " . APP_NAME . " <" . $from_address . ">\r\n"
                      . "Content-Type: text/plain; charset=utf-8";
 
@@ -103,6 +114,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Aktuelle Werte (frisch aus config, nach PRG-Redirect)
 $cur_app_name    = APP_NAME;
+// Noch nicht konfiguriert: aktuelle Adresse als Vorschlag anzeigen, damit ein einmaliges Speichern
+// den Wert festschreibt (danach unabhängig vom fälschbaren Host-Header der jeweiligen Anfrage).
+$cur_base_url    = APP_BASE_URL !== '' ? APP_BASE_URL : current_base_url();
 $cur_timeout_min = (int) SESSION_TIMEOUT;
 $cur_daily       = DAILY_CARD_LIMIT;
 $cur_default_cards = LEITNER_DEFAULT_CARDS;
@@ -117,8 +131,10 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Einstellungen — <?= APP_NAME ?></title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          integrity="sha384-XGjxtQfXaH2tnPFa9x+ruJTuLE3Aa6LhHSWRr1XeTyhezb4abCG4ccI5AkVDxqC+" crossorigin="anonymous">
     <link rel="stylesheet" href="assets/style.css?v=<?= APP_VERSION ?>">
 </head>
 <body>
@@ -171,6 +187,24 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                         <input type="text" class="form-control form-control-sm"
                                name="app_name" value="<?= htmlspecialchars($cur_app_name) ?>"
                                maxlength="50" style="width:160px;">
+                    </div>
+                </div>
+
+                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                    <div class="flex-grow-1">
+                        <span class="fw-medium">Basis-URL</span>
+                        <span class="text-muted small ms-2">Für Links in E-Mails (Passwort-Reset) — ohne Slash am Ende</span>
+                        <?php if (APP_BASE_URL === ''): ?>
+                        <div class="text-warning small mt-1">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Noch nicht gespeichert. Solange sie fehlt, verschickt „Passwort vergessen" auf dem Server keine Mail.
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <input type="text" class="form-control form-control-sm"
+                               name="app_base_url" value="<?= htmlspecialchars($cur_base_url) ?>"
+                               maxlength="200" style="width:260px;" placeholder="https://example.com/learner">
                     </div>
                 </div>
 
@@ -371,6 +405,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>

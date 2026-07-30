@@ -22,6 +22,18 @@ if (!$filter_list_id && $own_lists) {
     exit;
 }
 
+// Fremde/unbekannte list_id nicht übernehmen, sondern auf die erste eigene Liste umleiten.
+// Alle Auswertungen unten sind zusätzlich per person_id eingegrenzt, ein fremder Wert liefert
+// also ohnehin keine Daten — hier trotzdem sauber prüfen, damit die Seite wie alle anderen nur
+// eigene Listen akzeptiert (und nicht in einen "alle Listen"-Modus fällt, den es nicht gibt).
+if ($filter_list_id && !in_array($filter_list_id, array_map('intval', array_column($own_lists, 'id')), true)) {
+    if ($own_lists) {
+        header('Location: stats.php?list_id=' . $own_lists[0]['id']);
+        exit;
+    }
+    $filter_list_id = 0;
+}
+
 // -------------------------------------------------------
 // Leitner-Statistik
 // -------------------------------------------------------
@@ -248,8 +260,10 @@ $drill_pct   = $drill_total > 0 ? round($drill_stats['known'] / $drill_total * 1
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Statistik — <?= APP_NAME ?></title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          integrity="sha384-XGjxtQfXaH2tnPFa9x+ruJTuLE3Aa6LhHSWRr1XeTyhezb4abCG4ccI5AkVDxqC+" crossorigin="anonymous">
     <link rel="stylesheet" href="assets/style.css?v=<?= APP_VERSION ?>">
 </head>
 <body>
@@ -419,6 +433,7 @@ $drill_pct   = $drill_total > 0 ? round($drill_stats['known'] / $drill_total * 1
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>

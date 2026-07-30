@@ -14,8 +14,17 @@ function run_pending_migrations(PDO $pdo): void {
     // eine Neuinstallation ohnehin nie eine dieser Migrationen braucht. Nachzulesen in der
     // Git-Historie (includes/migrations.php vor v3.2.21), falls je ein sehr altes Backup
     // (vor v3.2.20) wiederhergestellt werden muss.
-    // Nächste neue Migration hier mit der ID 14 beginnen (bestehende db_version bleibt bei 13).
-    $migrations = [];
+    // Nächste neue Migration hier mit der ID 15 beginnen (bestehende db_version bleibt bei 14).
+    $migrations = [
+        // Rate-Limiting für Login und "Passwort vergessen" (v3.2.23).
+        14 => "CREATE TABLE IF NOT EXISTS auth_attempts (
+                   id           INT         NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                   scope        VARCHAR(20) NOT NULL,
+                   ip           VARCHAR(45) NOT NULL,
+                   attempted_at DATETIME    NOT NULL,
+                   INDEX idx_auth_attempts_lookup (scope, ip, attempted_at)
+               ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    ];
 
     // db_version aus settings lesen — falls Tabelle noch nicht existiert (vor install.php): abbrechen
     try {

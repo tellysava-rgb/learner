@@ -14,12 +14,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_validate();
     $email = trim($_POST['email'] ?? '');
 
-    if ($email !== '') {
+    // Bremse pro IP: verhindert, dass über dieses Formular beliebig viele Mails ausgelöst werden
+    // (Flooding beim Empfänger, Reputationsschaden der Absenderdomain).
+    $rate_limited = auth_limit_reached($pdo, 'forgot');
+    if ($rate_limited) {
+        error_log('forgot-password.php: Rate-Limit erreicht für IP ' . client_ip());
+    }
+
+    if ($email !== '' && !$rate_limited) {
+        auth_attempt_record($pdo, 'forgot');
         $stmt = $pdo->prepare("SELECT id, name FROM persons WHERE email = ?");
         $stmt->execute([$email]);
         $person = $stmt->fetch();
 
-        if ($person) {
+        // Basis-URL muss konfiguriert sein (Einstellungen → Basis-URL). Ohne sie wird bewusst
+        // keine Mail verschickt, statt einen Link aus dem fälschbaren Host-Header zu bauen.
+        $base_url = app_base_url();
+        if ($person && $base_url === '') {
+            error_log('forgot-password.php: APP_BASE_URL ist nicht konfiguriert — keine Reset-Mail verschickt.');
+        } elseif ($person) {
             $raw_token = bin2hex(random_bytes(32));
             $hash      = hash('sha256', $raw_token);
             $expires   = (new DateTimeImmutable('+60 minutes'))->format('Y-m-d H:i:s');
@@ -27,16 +40,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare("UPDATE persons SET reset_token_hash = ?, reset_token_expires = ? WHERE id = ?");
             $stmt->execute([$hash, $expires, $person['id']]);
 
-            $scheme   = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
-            $base_url = $scheme . $_SERVER['HTTP_HOST'] . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-            $link     = $base_url . '/reset-password.php?token=' . $raw_token;
+            $link = $base_url . '/reset-password.php?token=' . $raw_token;
 
             $subject = mb_encode_mimeheader(APP_NAME . ': Passwort zurücksetzen', 'UTF-8', 'B');
             $body    = "Hallo " . $person['name'] . ",\n\n"
                      . "Hier ist dein Link zum Zurücksetzen deines Passworts (gültig 60 Minuten):\n\n"
                      . $link . "\n\n"
                      . "Falls du das nicht angefordert hast, kannst du diese E-Mail ignorieren.";
-            $from_address = 'no-reply@' . $_SERVER['HTTP_HOST'];
+            // Absenderdomain aus der konfigurierten Basis-URL, nicht aus dem Host-Header —
+            // der Wert landet zusätzlich im -f-Parameter von mail() (Envelope-Sender).
+            $from_address = 'no-reply@' . (parse_url($base_url, PHP_URL_HOST) ?: 'localhost');
             $headers = "From: " . APP_NAME . " <" . $from_address . ">\r\n"
                      . "Content-Type: text/plain; charset=utf-8";
 
@@ -58,7 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= APP_NAME ?> — Passwort vergessen</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="assets/style.css?v=<?= APP_VERSION ?>">
 </head>
 <body class="bg-light">

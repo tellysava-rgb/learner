@@ -1,3 +1,17 @@
 CGIPassAuth On
 RewriteEngine On
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Logdateien (u.a. mcp.log) liegen im Web-Root und wären sonst per URL abrufbar —
+# mcp.log enthält alle MCP-Aufrufe inkl. Kartentexte, list_id und person_id.
+<FilesMatch "\.log$">
+    Require all denied
+</FilesMatch>
+
+# Sicherheits-Header. Kein HSTS hier: das gehört auf Hoster-/vHost-Ebene, damit es nicht
+# versehentlich auf der HTTP-Dev-Umgebung landet.
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

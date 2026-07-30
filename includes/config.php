@@ -1,5 +1,5 @@
 <?php
-define('APP_VERSION', '3.2.22');
+define('APP_VERSION', '3.2.23');
 define('TIMEZONE', 'Europe/Zurich');
 define('LEITNER_INTERVALS', [1 => 1, 2 => 2, 3 => 7, 4 => 14, 5 => 30]);
 date_default_timezone_set(TIMEZONE);
@@ -9,6 +9,12 @@ date_default_timezone_set(TIMEZONE);
 $_rt = [
     'APP_NAME'               => 'Learners',
     'SESSION_TIMEOUT'        => 60, // in Minuten
+
+    // Basis-URL der Installation, z.B. 'https://example.com/learner' (ohne Slash am Ende).
+    // Wird für Links in ausgehenden E-Mails (Passwort-Reset) verwendet. Muss gesetzt sein, weil
+    // $_SERVER['HTTP_HOST'] vom Client kommt und damit fälschbar ist: ein gefälschter Host-Header
+    // würde sonst einen Reset-Link auf eine fremde Domain in die Mail schreiben (Token-Diebstahl).
+    'APP_BASE_URL'           => '',
 
     'DAILY_CARD_LIMIT'       => 10,
     'LEITNER_DEFAULT_CARDS'  => 20,

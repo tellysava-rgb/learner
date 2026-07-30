@@ -27,6 +27,15 @@ $filter = $_GET['filter'] ?? 'all';
 $valid_filters = ['all', 'active', 'queued', 'archived', 'box1', 'box2', 'box3', 'box4', 'box5'];
 if (!in_array($filter, $valid_filters, true)) $filter = 'all';
 
+// Prüft, dass eine Karten-ID wirklich zur (oben als eigene verifizierten) Liste gehört.
+// Nötig bei allen Aktionen, die card_progress schreiben: dort kommt list_id sonst nicht vor,
+// wodurch sich ohne diese Prüfung Fortschrittseinträge für fremde Karten anlegen liessen.
+function card_belongs_to_list(PDO $pdo, int $card_id, int $list_id): bool {
+    $stmt = $pdo->prepare("SELECT 1 FROM cards WHERE id = ? AND list_id = ?");
+    $stmt->execute([$card_id, $list_id]);
+    return (bool) $stmt->fetchColumn();
+}
+
 // --- POST-Aktionen ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_validate();
@@ -113,13 +122,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Karte archivieren
     if ($action === 'archive') {
         $card_id = intval($_POST['card_id'] ?? 0);
-        $stmt = $pdo->prepare("
-            INSERT INTO card_progress (person_id, card_id, status)
-            VALUES (?, ?, 'archived')
-            ON DUPLICATE KEY UPDATE status = 'archived'
-        ");
-        $stmt->execute([$person_id, $card_id]);
-        $_SESSION['flash_success'] = 'Karte wurde archiviert.';
+        if (!card_belongs_to_list($pdo, $card_id, $list_id)) {
+            $_SESSION['flash_error'] = 'Karte nicht gefunden.';
+        } else {
+            $stmt = $pdo->prepare("
+                INSERT INTO card_progress (person_id, card_id, status)
+                VALUES (?, ?, 'archived')
+                ON DUPLICATE KEY UPDATE status = 'archived'
+            ");
+            $stmt->execute([$person_id, $card_id]);
+            $_SESSION['flash_success'] = 'Karte wurde archiviert.';
+        }
         header("Location: edit.php?list_id={$list_id}&filter={$filter}");
         exit;
     }
@@ -127,14 +140,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Karte reaktivieren (archiviert → aktiv)
     if ($action === 'reactivate') {
         $card_id = intval($_POST['card_id'] ?? 0);
-        $today   = today();
-        $stmt = $pdo->prepare("
-            INSERT INTO card_progress (person_id, card_id, status, leitner_box, next_due_date)
-            VALUES (?, ?, 'active', 1, ?)
-            ON DUPLICATE KEY UPDATE status = 'active', leitner_box = 1, next_due_date = ?
-        ");
-        $stmt->execute([$person_id, $card_id, $today, $today]);
-        $_SESSION['flash_success'] = 'Karte wurde reaktiviert.';
+        if (!card_belongs_to_list($pdo, $card_id, $list_id)) {
+            $_SESSION['flash_error'] = 'Karte nicht gefunden.';
+        } else {
+            $today = today();
+            $stmt = $pdo->prepare("
+                INSERT INTO card_progress (person_id, card_id, status, leitner_box, next_due_date)
+                VALUES (?, ?, 'active', 1, ?)
+                ON DUPLICATE KEY UPDATE status = 'active', leitner_box = 1, next_due_date = ?
+            ");
+            $stmt->execute([$person_id, $card_id, $today, $today]);
+            $_SESSION['flash_success'] = 'Karte wurde reaktiviert.';
+        }
         header("Location: edit.php?list_id={$list_id}&filter={$filter}");
         exit;
     }
@@ -186,8 +203,10 @@ if (str_starts_with($filter, 'box')) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= htmlspecialchars($list['name']) ?> — <?= APP_NAME ?></title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          integrity="sha384-XGjxtQfXaH2tnPFa9x+ruJTuLE3Aa6LhHSWRr1XeTyhezb4abCG4ccI5AkVDxqC+" crossorigin="anonymous">
     <link rel="stylesheet" href="assets/style.css?v=<?= APP_VERSION ?>">
 </head>
 <body>
@@ -462,7 +481,8 @@ if (str_starts_with($filter, 'box')) {
     <input type="hidden" name="card_id" id="delete-card-id">
 </form>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <script>
 document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
     new bootstrap.Tooltip(el, { trigger: 'hover' });

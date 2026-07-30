@@ -96,6 +96,95 @@ function today(): string {
     return (new DateTimeImmutable('now', new DateTimeZone(TIMEZONE)))->format('Y-m-d');
 }
 
+// Basis-URL aus der aktuellen Anfrage ableiten. NUR für Anzeige/Vorschlag in den Einstellungen
+// verwenden — nicht für Links in E-Mails, dafür app_base_url() nutzen (HTTP_HOST ist fälschbar).
+function current_base_url(): string {
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+    return $scheme . ($_SERVER['HTTP_HOST'] ?? 'localhost') . rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? '/'), '/');
+}
+
+// Vertrauenswürdige Basis-URL für Links in ausgehenden E-Mails.
+// Bewusst NICHT aus $_SERVER['HTTP_HOST'] abgeleitet: der Host-Header kommt vom Client und ist
+// fälschbar — sonst könnte ein Angreifer einen Passwort-Reset für eine fremde Adresse anfordern
+// und dem Opfer eine Mail mit Link auf seine eigene Domain zustellen (Token-Diebstahl).
+// Beim lokalen Entwickeln darf ersatzweise die aktuelle Adresse dienen, damit das Testen ohne
+// Konfiguration funktioniert. Der Fallback hängt dabei bewusst an REMOTE_ADDR (Client-IP, nicht
+// fälschbar) und NICHT an APP_ENV — APP_ENV wird in db.php ebenfalls aus HTTP_HOST abgeleitet und
+// wäre damit über einen gefälschten Host-Header manipulierbar.
+// Ohne konfigurierte APP_BASE_URL und ohne lokalen Client: '' (Aufrufer bricht ab).
+function app_base_url(): string {
+    if (APP_BASE_URL !== '') return rtrim(APP_BASE_URL, '/');
+    $client_is_local = in_array($_SERVER['REMOTE_ADDR'] ?? '', ['127.0.0.1', '::1'], true);
+    return $client_is_local ? current_base_url() : '';
+}
+
+// -------------------------------------------------------
+// Rate-Limiting (Login, Passwort-vergessen)
+// -------------------------------------------------------
+// Zählt Versuche pro Scope und Client-IP in der Tabelle auth_attempts. Bewusst schlicht: kein
+// Sperren von Konten (das liesse sich zum Aussperren fremder Personen missbrauchen), sondern nur
+// eine Bremse pro IP. Fehlt die Tabelle (z.B. direkt nach einem Deploy vor der Migration), darf
+// das den Login niemals blockieren — deshalb sind alle Zugriffe in try/catch gekapselt.
+
+const AUTH_LIMITS = [
+    'login'  => ['max' => 10, 'minutes' => 15],
+    'forgot' => ['max' => 5,  'minutes' => 60],
+];
+
+function client_ip(): string {
+    return substr((string)($_SERVER['REMOTE_ADDR'] ?? 'unknown'), 0, 45);
+}
+
+// true, wenn für diesen Scope/diese IP das Limit erreicht ist.
+function auth_limit_reached(PDO $pdo, string $scope): bool {
+    $limit = AUTH_LIMITS[$scope] ?? null;
+    if (!$limit) return false;
+    try {
+        $stmt = $pdo->prepare("
+            SELECT COUNT(*) FROM auth_attempts
+            WHERE scope = ? AND ip = ? AND attempted_at > (NOW() - INTERVAL ? MINUTE)
+        ");
+        $stmt->execute([$scope, client_ip(), $limit['minutes']]);
+        return (int) $stmt->fetchColumn() >= $limit['max'];
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
+// Fehlversuch protokollieren. Räumt gelegentlich alte Einträge weg, damit die Tabelle nicht wächst.
+function auth_attempt_record(PDO $pdo, string $scope): void {
+    try {
+        $pdo->prepare("INSERT INTO auth_attempts (scope, ip, attempted_at) VALUES (?, ?, NOW())")
+            ->execute([$scope, client_ip()]);
+        if (random_int(1, 20) === 1) {
+            $pdo->exec("DELETE FROM auth_attempts WHERE attempted_at < (NOW() - INTERVAL 1 DAY)");
+        }
+    } catch (PDOException $e) {
+        // Rate-Limiting darf den eigentlichen Ablauf nie verhindern.
+    }
+}
+
+// Nach erfolgreichem Login: eigene Fehlversuche zurücksetzen.
+function auth_attempts_clear(PDO $pdo, string $scope): void {
+    try {
+        $pdo->prepare("DELETE FROM auth_attempts WHERE scope = ? AND ip = ?")
+            ->execute([$scope, client_ip()]);
+    } catch (PDOException $e) {
+        // siehe oben
+    }
+}
+
+// Redirect-Ziel auf dieselbe Anwendung begrenzen (kein Open Redirect über absolute oder
+// protokoll-relative URLs). Gleiche Absicherung wie in learn.php/drill.php.
+function safe_redirect_target(?string $target, string $fallback = 'home.php'): string {
+    $target = trim((string) $target);
+    if ($target === '' || str_contains($target, '://') || str_starts_with($target, '//')
+        || str_contains($target, "\r") || str_contains($target, "\n")) {
+        return $fallback;
+    }
+    return $target;
+}
+
 // Streak-Badge für Navbar — liest aus Session-Cache, zeigt nichts wenn kein Person gewählt
 function streak_badge(): string {
     if (empty($_SESSION['person_id'])) return '';
@@ -121,7 +210,7 @@ function handle_navbar_actions(PDO $pdo): void {
     $action        = $_POST['action'] ?? '';
     $person_id     = (int) ($_SESSION['person_id'] ?? 0);
     $real_is_admin = !empty($_SESSION['real_is_admin']);
-    $back          = $_SERVER['REQUEST_URI'];
+    $back          = safe_redirect_target($_SERVER['REQUEST_URI'] ?? null);
 
     if ($action === 'logout') {
         logout();
@@ -180,6 +269,10 @@ function handle_navbar_actions(PDO $pdo): void {
             $stmt = $pdo->prepare("UPDATE persons SET email = NULL WHERE id = ?");
             $stmt->execute([$person_id]);
             $_SESSION['flash_success'] = 'E-Mail-Adresse entfernt.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            // Gleiche Prüfung wie in users.php — der Wert wird später als Empfänger an mail()
+            // übergeben (Passwort-Reset), darf also nichts Unvalidiertes enthalten.
+            $_SESSION['flash_error'] = 'Ungültige E-Mail-Adresse.';
         } else {
             try {
                 $stmt = $pdo->prepare("UPDATE persons SET email = ? WHERE id = ?");

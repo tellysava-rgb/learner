@@ -25,25 +25,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
 
     require_once __DIR__ . '/includes/db.php';
-    $stmt = $pdo->prepare("SELECT id, name, password_hash, is_admin FROM persons WHERE name = ?");
-    $stmt->execute([$name]);
-    $person = $stmt->fetch();
 
-    if ($person && $person['password_hash'] && password_verify($password, $person['password_hash'])) {
-        session_regenerate_id(true);
-        $_SESSION['authenticated'] = true;
-        $_SESSION['person_id']     = (int) $person['id'];
-        $_SESSION['person_name']   = $person['name'];
-        $_SESSION['is_admin']      = (bool) $person['is_admin'];
-        // real_is_admin bleibt beim "Person wechseln" unverändert (auch wenn is_admin sich dabei
-        // an die jeweils angezeigte Person anpasst) — steuert, ob überhaupt gewechselt werden darf.
-        $_SESSION['real_is_admin'] = (bool) $person['is_admin'];
-        $_SESSION['last_activity'] = time();
-        header('Location: home.php');
-        exit;
+    // Brute-Force-Bremse pro IP (siehe AUTH_LIMITS in auth.php) — bewusst keine Konto-Sperre,
+    // die liesse sich zum Aussperren fremder Personen missbrauchen.
+    if (auth_limit_reached($pdo, 'login')) {
+        $error = 'Zu viele fehlgeschlagene Login-Versuche. Bitte warte einige Minuten und versuche es erneut.';
+    } else {
+        $stmt = $pdo->prepare("SELECT id, name, password_hash, is_admin FROM persons WHERE name = ?");
+        $stmt->execute([$name]);
+        $person = $stmt->fetch();
+
+        if ($person && $person['password_hash'] && password_verify($password, $person['password_hash'])) {
+            auth_attempts_clear($pdo, 'login');
+            session_regenerate_id(true);
+            $_SESSION['authenticated'] = true;
+            $_SESSION['person_id']     = (int) $person['id'];
+            $_SESSION['person_name']   = $person['name'];
+            $_SESSION['is_admin']      = (bool) $person['is_admin'];
+            // real_is_admin bleibt beim "Person wechseln" unverändert (auch wenn is_admin sich dabei
+            // an die jeweils angezeigte Person anpasst) — steuert, ob überhaupt gewechselt werden darf.
+            $_SESSION['real_is_admin'] = (bool) $person['is_admin'];
+            $_SESSION['last_activity'] = time();
+            header('Location: home.php');
+            exit;
+        }
+
+        auth_attempt_record($pdo, 'login');
+        $error = 'Name oder Passwort falsch.';
     }
-
-    $error = 'Name oder Passwort falsch.';
 }
 ?>
 <!DOCTYPE html>
@@ -52,7 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= APP_NAME ?> — Login</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="assets/style.css?v=<?= APP_VERSION ?>">
 </head>
 <body class="bg-light">
