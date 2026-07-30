@@ -141,6 +141,7 @@ Auf `learn.php`/`drill.php` wird während einer aktiven Session weiterhin eine a
 - Button **"Kopieren"** → Liste wird als eigene unabhängige Kopie übernommen
 - `discover.php` ohne `list_id` → Weiterleitung zur Startseite (kein eigener Überblick)
 - Alle kopierten Karten erhalten `status = queued` — Tageslimit gilt wie bei CSV-Import
+- Pro Karte wird auch die Lautschrift (`phonetic_b`) mitkopiert, falls die Quellkarte eine hat
 - Nach dem Kopieren erscheint sie normal in der eigenen Listen-Übersicht
 - Änderungen des Besitzers an der Originalliste haben keinen Einfluss auf die Kopie
 - Eigene Kopie kann in beiden Modi genutzt werden (Leitner + Drill)
@@ -252,8 +253,7 @@ card_progress Tabelle:
 
 ### Ablauf Warteschlange
 - Beim Upload von 100 Karten → alle erhalten `status = queued`
-- Täglich werden 10 Karten aktiviert: `queued` → `active`, `leitner_box = 1`
-- Button "10 weitere aktivieren" aktiviert sofort 10 weitere
+- Täglich werden 10 Karten aktiviert: `queued` → `active`, `leitner_box = 1` — automatisch beim Start einer Leitner-Session, kein manueller Button
 
 ### Archiv-Regeln
 - Karten können manuell als `archived` markiert werden
@@ -293,7 +293,7 @@ card_progress Tabelle:
 
 ### Neue Karten / Tageslimit
 - **Standard: 10 neue Karten pro Tag** aus der Warteschlange
-- Button "10 weitere neue Karten hinzufügen" lädt sofort 10 mehr nach
+- Aktivierung läuft automatisch beim Start einer Leitner-Session (`activate_daily_cards()`) — kein manueller Button, Tageslimit wird dabei serverseitig berücksichtigt (bereits heute aktivierte Karten werden mitgezählt)
 - Warteschlange zeigt wie viele Karten noch warten
 - Beim Upload von 100 Karten → nur 10 sofort aktiv, 90 in Warteschlange
 
@@ -313,10 +313,10 @@ card_progress Tabelle:
 - **Letzte verwendete Liste** wird automatisch vorgeschlagen
 - Session-Ende: motivierende Zusammenfassung mit:
   - Anzahl gewusst
+  - Anzahl nicht gewusst
   - Anzahl Karten aufgestiegen
   - Aktueller Lernstreak (z.B. "5 Tage in Folge!")
   - Kurzer Motivationstext (z.B. "Super gemacht!")
-  - Anzahl Karten noch in Warteschlange
 - **Keine Karten fällig:** statt leerer 0/0/0-Zusammenfassung wird eine eigene Meldung angezeigt (✅) mit dem Datum, wann die nächsten Karten fällig werden
 
 
@@ -401,7 +401,7 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 ### Konfigurierbare Werte (Gruppen: Allgemein / Leitner / Drill)
 | Gruppe | Einstellung | Konstante | Beschreibung | Bereich |
 |---|---|---|---|---|
-| Allgemein | Seitentitel | `APP_NAME` | Anzeigename oben links in der Navbar | max. 50 Zeichen |
+| Allgemein | Seitentitel | `APP_NAME` | Anzeigename oben links in der Navbar | max. 50 Zeichen, keine Anführungszeichen (`'`) |
 | Allgemein | Session-Timeout | `SESSION_TIMEOUT` | Inaktivitäts-Timeout in Minuten | 1–1440 _(bis 24 Std., v2.7.4)_ |
 | Leitner | Tägliches Karten-Limit | `DAILY_CARD_LIMIT` | Neue Karten pro Tag aus der Warteschlange | 1–100 |
 | Leitner | Default Kartenanzahl | `LEITNER_DEFAULT_CARDS` | Voreingestellte Anzahl Karten beim Session-Start | 1–200 |
@@ -455,7 +455,7 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 ## Mathe-Generator
 
 - Erreichbar über **Meine Listen** (lists.php) — nicht mehr direkt von der Startseite
-- Einmaliger Generator für **Multiplikationstabellen** und **Divisionstabellen** (1×1 bis 10×10, konfigurierbar)
+- Einmaliger Generator für **Multiplikationstabellen** und **Divisionstabellen** — Bereich konfigurierbar, Standard 1×1 bis 10×10, maximal bis 20×20
 - **Duplikat-Prüfung (typ-basiert):** Existiert bereits eine Liste desselben Typs (Multiplikation oder Division), erscheint eine Warnung mit Checkbox-Bestätigung — erst mit Bestätigung wird ein zweites Deck erstellt. Listenname spielt dabei keine Rolle.
 - Multiplikation und Division werden als **separate Decks** generiert:
   - Deck Multiplikation: `7 × 8 = ?`
@@ -572,7 +572,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 - **Öffentliches GitHub-Repository** (public — ermöglicht ZIP-Download ohne Token)
 - **Semantic Versioning:** `MAJOR.MINOR.PATCH` (Start: `1.0.0`)
 - **CHANGELOG.md** mit Versionshistorie aller Änderungen
-- **`.gitignore`** schliesst aus: `db-credentials.php`, `config-runtime.php`, `deploy-config.php`, temporäre Dateien _(`deploy.php` seit v2.0.3 im Repo versioniert)_
+- **`.gitignore`** schliesst aus: `db-credentials.php`, `config-runtime.php`, `deploy-config.php`, `mcp-config.php`, `.mcp.json`, `*.log`, `Checkliste.md` (lokale Aufgabenliste, nie committet), temporäre Dateien _(`deploy.php` seit v2.0.3 im Repo versioniert)_
 
 ---
 
@@ -645,8 +645,9 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
     db-credentials.example.php ← Vorlage für db-credentials.php (committet)
     deploy-config.php          ← Deploy-Token + GitHub-Konfiguration (gitignored)
     mcp-config.php             ← MCP-Token (gitignored)
+    mcp-config.example.php     ← Vorlage für mcp-config.php (committet)
   /docs/                    ← Dokumentation ausser CLAUDE.md
-    ANFORDERUNGEN.md, CHANGELOG.md, Checkliste.md, Testing.md, mcp-einrichtung.md
+    ANFORDERUNGEN.md, CHANGELOG.md, Testing.md, mcp-einrichtung.md — Checkliste.md liegt ebenfalls hier, ist aber gitignored und nie committet, reine lokale Aufgabenliste
 ```
 
 ---
@@ -670,8 +671,9 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 **`list_persons`** — keine Parameter
 - Gibt alle Personen zurück: `[{ id, name }]`
 
-**`list_lists(person_id)`** — Pflichtfeld: `person_id` (integer)
-- Gibt alle Listen einer Person zurück: `{ person: { id, name }, lists: [{ id, name, language_a, language_b, speech_lang_b }] }` _(`speech_lang_b` seit v2.2.0)_
+**`list_lists(person_id, include_inactive?)`** — Pflichtfeld: `person_id` (integer), optional: `include_inactive` (boolean, Standard `false`)
+- Gibt alle Listen einer Person zurück: `{ person: { id, name }, lists: [{ id, name, language_a, language_b, speech_lang_b, is_active }] }` _(`speech_lang_b` seit v2.2.0, `include_inactive`/`is_active` seit v3.3.0)_
+- Standardmässig nur aktive Listen (`is_active = 1`) — mit `include_inactive = true` auch inaktive
 
 **`add_cards(list_id, cards[], force?)`**
 - Fügt eine oder mehrere Vokabelkarten in eine Liste ein

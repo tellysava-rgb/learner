@@ -47,11 +47,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([$source_list_id]);
                 $source_cards = $stmt->fetchAll();
 
-                $ins_card = $pdo->prepare("INSERT INTO cards (list_id, word_a, word_b, desc_a, desc_b) VALUES (?,?,?,?,?)");
+                $ins_card = $pdo->prepare("INSERT INTO cards (list_id, word_a, word_b, desc_a, desc_b, phonetic_b) VALUES (?,?,?,?,?,?)");
                 $ins_prog = $pdo->prepare("INSERT INTO card_progress (person_id, card_id, status) VALUES (?,?,'queued')");
 
                 foreach ($source_cards as $card) {
-                    $ins_card->execute([$new_list_id, $card['word_a'], $card['word_b'], $card['desc_a'], $card['desc_b']]);
+                    $ins_card->execute([$new_list_id, $card['word_a'], $card['word_b'], $card['desc_a'], $card['desc_b'], $card['phonetic_b']]);
                     $new_card_id = (int) $pdo->lastInsertId();
                     $ins_prog->execute([$person_id, $new_card_id]);
                 }

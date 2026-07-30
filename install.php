@@ -57,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     language_b  VARCHAR(50)  NOT NULL,
                     is_public   TINYINT(1)   NOT NULL DEFAULT 0,
                     is_active   TINYINT(1)   NOT NULL DEFAULT 1,
+                    speech_lang_b VARCHAR(10) NULL DEFAULT NULL,
                     created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     last_used_at TIMESTAMP   NULL     DEFAULT NULL,
                     FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE
@@ -69,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     word_b     TEXT      NOT NULL,
                     desc_a     TEXT,
                     desc_b     TEXT,
+                    phonetic_b VARCHAR(200) NULL DEFAULT NULL,
                     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (list_id) REFERENCES lists(id) ON DELETE CASCADE
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -15,15 +15,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     handle_navbar_actions($pdo);
     $action = $_POST['action'] ?? '';
 
-    // Täglich 10 Karten aktivieren (Button)
-    if ($action === 'activate_cards' && $person_id) {
-        $list_ids = array_map('intval', (array)($_POST['list_ids'] ?? []));
-        if ($list_ids) {
-            activate_queued_cards($pdo, $person_id, $list_ids, DAILY_CARD_LIMIT);
-            $success = '10 weitere Karten wurden aktiviert.';
-        }
-    }
-
     // Liste als aktiv/inaktiv markieren
     if ($action === 'toggle_list_active') {
         $list_id = intval($_POST['list_id'] ?? 0);
@@ -88,37 +79,6 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$person_id]);
 $public_lists = $stmt->fetchAll();
-
-function activate_queued_cards(PDO $pdo, int $person_id, array $list_ids, int $limit): void {
-    $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
-    $params = array_merge([$person_id], $list_ids);
-
-    // Karten aus den Listen holen die queued sind und dieser Person gehören
-    $stmt = $pdo->prepare("
-        SELECT cp.card_id
-        FROM card_progress cp
-        JOIN cards c ON c.id = cp.card_id
-        WHERE cp.person_id = ?
-          AND c.list_id IN ($placeholders)
-          AND cp.status = 'queued'
-        ORDER BY RAND()
-        LIMIT {$limit}
-    ");
-    $stmt->execute($params);
-    $card_ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-    if (!$card_ids) return;
-
-    $today = (new DateTimeImmutable('now', new DateTimeZone(TIMEZONE)))->format('Y-m-d');
-    $upd = $pdo->prepare("
-        UPDATE card_progress
-        SET status = 'active', leitner_box = 1, next_due_date = ?
-        WHERE person_id = ? AND card_id = ?
-    ");
-    foreach ($card_ids as $cid) {
-        $upd->execute([$today, $person_id, $cid]);
-    }
-}
 
 // Lernstreak berechnen (learn_date ist in Europe/Zurich, von PHP gesetzt)
 function get_streak(PDO $pdo, int $person_id): int {

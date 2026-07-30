@@ -5,6 +5,20 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.19] - 2026-07-30
+
+### Behoben
+- `discover.php`: Beim Kopieren einer öffentlichen Liste ging die Lautschrift (`phonetic_b`) der einzelnen Karten stillschweigend verloren, obwohl sie beim Original vorhanden war — jetzt wird sie korrekt mitkopiert.
+- `install.php`: `speech_lang_b` (Listen) und `phonetic_b` (Karten) fehlten in den `CREATE TABLE`-Definitionen und wurden erst über `migrations.php` nachgezogen — eine komplette Neuinstallation hatte dadurch entgegen der Doku-Aussage doch einen Migrationsschritt nötig. Beide Spalten sind jetzt direkt im Schema enthalten.
+
+### Entfernt
+- `home.php`: toter Code für einen "10 weitere Karten aktivieren"-Button (`action=activate_cards`, Funktion `activate_queued_cards()`) — es gab dafür im UI keinen Aufrufer mehr, die Aktivierung läuft seit Längerem automatisch beim Start einer Leitner-Session.
+
+### Dokumentation
+- `ANFORDERUNGEN.md` an mehreren Stellen an den tatsächlichen Code-Stand angeglichen (u.a. MCP-Tool `list_lists`, Leitner-Session-Zusammenfassung, Mathe-Generator-Obergrenze, `.gitignore`-Übersicht, Projektstruktur).
+
+---
+
 ## [3.2.18] - 2026-07-30
 
 ### Behoben

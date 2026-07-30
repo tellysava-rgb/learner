@@ -18,7 +18,7 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] Migration: Person "Beat" hat nach der Migration Admin-Status (sichtbar z.B. an "Einstellungen"-Link und "Person wechseln" in der Navbar). _(v3.0.0)_
 
 ### Neuinstallation ohne Migrationspfad (`install.php`) _(v3.2.1)_
-[ ] Frische, leere Datenbank: Schritt 1 ("Tabellen erstellen") legt alle Tabellen inkl. `password_hash`/`is_admin`/`email`/Reset-Token-Spalten in `persons` an, ohne dass danach noch Migrationen nötig sind. _(v3.2.1)_
+[ ] Frische, leere Datenbank: Schritt 1 ("Tabellen erstellen") legt alle Tabellen inkl. `password_hash`/`is_admin`/`email`/Reset-Token-Spalten in `persons`, `speech_lang_b` in `lists` und `phonetic_b` in `cards` an, ohne dass danach noch Migrationen nötig sind (geprüft: `run_pending_migrations()` führt keine `ALTER TABLE` mehr aus). _(v3.2.1, Spalten-Vollständigkeit nachgezogen v3.2.19)_
 [ ] Schritt 2 zeigt ein Formular "Ersten Admin anlegen" (Name + Passwort + Wiederholung), solange noch keine Person existiert. _(v3.2.1)_
 [ ] Schritt 2 mit gültigen Werten → Person wird in `persons` angelegt mit `is_admin = 1`, Erfolgsmeldung, Login mit diesem Namen/Passwort funktioniert sofort auf `index.php`. _(v3.2.1)_
 [ ] Schritt 2 mit Passwort unter 8 Zeichen oder abweichender Wiederholung → Fehlermeldung, keine Person angelegt. _(v3.2.1)_
@@ -249,6 +249,8 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 
 ### Entdecken 
 
+[ ] Öffentliche Liste mit Karten, die eine Lautschrift (`phonetic_b`) haben, kopieren → kopierte Karten behalten ihre Lautschrift (vorher stillschweigend verloren gegangen). _(v3.2.19)_
+
 
 ### Mathe-Generator 
 
@@ -310,6 +312,7 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 
 ### Abschluss 
 
+[ ] Session-Zusammenfassung zeigt vier Kacheln: Gewusst, Nicht gewusst, Aufgestiegen, Streak (Streak nur wenn > 0). _(v3.2.19, Doku nachgezogen)_
 
 ---
 
