@@ -194,6 +194,10 @@ function deploy_run(array &$log, bool &$success): void {
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <!-- Ohne dieses Tag layoutet mobiles Safari mit ~980px Breite und skaliert die Seite herunter —
+         auf dem iPhone war dadurch alles winzig. deploy.php hat als einzige Seite kein Bootstrap,
+         das Tag fehlte hier deshalb lange unbemerkt. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Deploy — Learner</title>
     <style>
         body { font-family: monospace; max-width: 700px; margin: 40px auto; padding: 20px; background: #111; color: #ccc; }
@@ -210,6 +214,16 @@ function deploy_run(array &$log, bool &$success): void {
         .meta { color: #555; font-size: 0.85em; margin-top: 16px; }
         button { font-family: monospace; font-size: 1em; background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 10px 20px; cursor: pointer; }
         button:hover { background: #1d4ed8; }
+
+        /* Handy: weniger Aussenabstand, Versionsblöcke dürfen umbrechen, Buttons gut treffbar */
+        @media (max-width: 575.98px) {
+            body { margin: 16px auto; padding: 14px; }
+            .versions { gap: 12px; }
+            .ver { flex: 1 1 40%; padding: 10px 14px; }
+            .arrow { font-size: 1.5em; }
+            button { width: 100%; padding: 14px 20px; }
+            pre { font-size: 0.85em; overflow-x: auto; }
+        }
     </style>
 </head>
 <body>

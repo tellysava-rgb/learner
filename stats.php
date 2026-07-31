@@ -153,11 +153,10 @@ if ($dates) {
 }
 
 // Heatmap: letzte 52 Wochen (Mo-So) bis heute.
-// Auf schmalen Screens werden davon nur die letzten $heatmap_weeks_mobile Wochen (~4 Monate)
-// angezeigt — sonst müsste man auf dem Handy erst seitlich scrollen, um den aktuellen Teil zu
-// sehen. Ausgeblendet wird per CSS (siehe unten), damit es nur eine Markup-Variante gibt.
-$heatmap_weeks        = 52;
-$heatmap_weeks_mobile = 18;
+// Serverseitig werden immer alle Wochen gerendert; wie viele davon sichtbar sind, entscheidet
+// erst der Browser anhand der tatsächlich verfügbaren Breite (siehe Skript am Seitenende).
+// So füllt die Heatmap auf jedem Gerät die Breite aus, statt auf feste Stufen angewiesen zu sein.
+$heatmap_weeks = 52;
 $this_monday   = $today->modify('monday this week');
 $heatmap_start = $this_monday->modify('-' . ($heatmap_weeks - 1) . ' weeks');
 
@@ -197,17 +196,6 @@ for ($w = 0; $w < $heatmap_weeks; $w++) {
             $level = $max_day_count > 0 ? (int) min(4, max(1, ceil($cnt / $max_day_count * 4))) : 1;
         }
         $heatmap_cells[] = ['date' => $date_str, 'date_display' => $date->format('d.m.Y'), 'cnt' => $cnt, 'level' => $level];
-    }
-}
-
-// Mobile-Variante: erste Wochen ausblenden. Die Zellenzahl ist ein Vielfaches von 7, dadurch
-// beginnt auch die gekürzte Ansicht wieder sauber mit einem Montag.
-$heatmap_mobile_offset = max(0, $heatmap_weeks - $heatmap_weeks_mobile);
-$heatmap_hidden_cells  = $heatmap_mobile_offset * 7;
-$month_labels_mobile   = [];
-foreach ($month_labels as $w => $label) {
-    if ($w >= $heatmap_mobile_offset) {
-        $month_labels_mobile[$w - $heatmap_mobile_offset] = $label;
     }
 }
 
@@ -280,13 +268,6 @@ $drill_pct   = $drill_total > 0 ? round($drill_stats['known'] / $drill_total * 1
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
           integrity="sha384-XGjxtQfXaH2tnPFa9x+ruJTuLE3Aa6LhHSWRr1XeTyhezb4abCG4ccI5AkVDxqC+" crossorigin="anonymous">
     <link rel="stylesheet" href="assets/style.css?v=<?= APP_VERSION ?>">
-    <style>
-        /* Auf schmalen Screens nur die letzten Wochen zeigen (siehe $heatmap_weeks_mobile).
-           Die Zahl kommt aus PHP, deshalb steht die Regel hier statt in style.css. */
-        @media (max-width: 575.98px) {
-            .heatmap-grid > *:nth-child(-n+<?= $heatmap_hidden_cells ?>) { display: none; }
-        }
-    </style>
 </head>
 <body>
 
@@ -317,25 +298,22 @@ $drill_pct   = $drill_total > 0 ? round($drill_stats['known'] / $drill_total * 1
                 </div>
             </div>
 
-            <div class="heatmap-wrap">
+            <!-- data-week/data-total-weeks: das Skript am Seitenende blendet so viele der ältesten
+                 Wochen aus, wie für die verfügbare Breite nötig ist, und rückt die Monatsbeschriftung
+                 entsprechend nach. Ohne JavaScript bleiben alle 52 Wochen sichtbar (dann seitlich
+                 scrollbar) — die Heatmap ist eine Zusatzinfo, keine Funktion die dadurch ausfällt. -->
+            <div class="heatmap-wrap" id="heatmap-wrap">
                 <div class="heatmap-inner">
-                    <!-- Monatsbeschriftung: zwei Varianten, weil die Spalten auf Mobile beschnitten
-                         werden und die Labels dann anders positioniert werden müssen -->
-                    <div class="heatmap-months d-none d-sm-block">
+                    <div class="heatmap-months" id="heatmap-months">
                         <?php foreach ($month_labels as $w => $label): ?>
-                        <span style="left:<?= $w * 14 ?>px;"><?= htmlspecialchars($label) ?></span>
-                        <?php endforeach; ?>
-                    </div>
-                    <div class="heatmap-months d-sm-none">
-                        <?php foreach ($month_labels_mobile as $w => $label): ?>
-                        <span style="left:<?= $w * 14 ?>px;"><?= htmlspecialchars($label) ?></span>
+                        <span data-week="<?= $w ?>" style="left:<?= $w * 14 ?>px;"><?= htmlspecialchars($label) ?></span>
                         <?php endforeach; ?>
                     </div>
                     <div class="heatmap-body">
                         <div class="heatmap-weekday-labels">
                             <span>Mo</span><span></span><span>Mi</span><span></span><span>Fr</span><span></span><span></span>
                         </div>
-                        <div class="heatmap-grid">
+                        <div class="heatmap-grid" id="heatmap-grid" data-total-weeks="<?= $heatmap_weeks ?>">
                             <?php foreach ($heatmap_cells as $cell): ?>
                                 <?php if ($cell === null): ?>
                                 <div class="heatmap-cell heatmap-cell-empty"></div>
@@ -464,5 +442,56 @@ $drill_pct   = $drill_total > 0 ? round($drill_stats['known'] / $drill_total * 1
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+<script>
+// Heatmap an die verfügbare Breite anpassen: es werden so viele der ältesten Wochen ausgeblendet,
+// dass der Rest genau in die Karte passt — auf dem Handy also ein kürzerer Zeitraum als auf dem
+// Desktop, ohne feste Stufen. Läuft auch beim Drehen des Geräts erneut.
+(function () {
+    var wrap   = document.getElementById('heatmap-wrap');
+    var grid   = document.getElementById('heatmap-grid');
+    var months = document.getElementById('heatmap-months');
+    if (!wrap || !grid || !months) return;
+
+    var CELL        = 14;  // 11px Zelle + 3px Abstand
+    var LABEL_WIDTH = 27;  // Wochentagsspalte links (24px + 3px Abstand)
+    var MIN_WEEKS   = 4;   // darunter wird die Grafik nichtssagend
+    var total       = parseInt(grid.dataset.totalWeeks, 10) || 0;
+    var cells       = Array.prototype.slice.call(grid.children);
+    var labels      = Array.prototype.slice.call(months.children);
+    var lastOffset  = null;
+
+    function fit() {
+        var available = wrap.clientWidth - LABEL_WIDTH;
+        if (available <= 0) return;
+
+        var visible = Math.floor(available / CELL);
+        visible = Math.max(MIN_WEEKS, Math.min(total, visible));
+
+        var offset = total - visible;          // so viele Wochen von links weglassen
+        if (offset === lastOffset) return;     // nichts zu tun (z.B. Scroll-Resize auf iOS)
+        lastOffset = offset;
+
+        var hiddenCells = offset * 7;
+        cells.forEach(function (cell, i) {
+            cell.style.display = i < hiddenCells ? 'none' : '';
+        });
+
+        labels.forEach(function (label) {
+            var week = parseInt(label.dataset.week, 10);
+            if (week < offset) {
+                label.style.display = 'none';
+            } else {
+                label.style.display = '';
+                label.style.left = ((week - offset) * CELL) + 'px';
+            }
+        });
+    }
+
+    fit();
+    window.addEventListener('resize', fit);
+    window.addEventListener('orientationchange', fit);
+})();
+</script>
 </body>
 </html>

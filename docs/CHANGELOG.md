@@ -5,6 +5,19 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.27] - 2026-07-31
+
+### Behoben
+- `deploy.php` war auf dem iPhone winzig dargestellt: der Seite fehlte als einziger im Projekt das `<meta name="viewport">`-Tag. Mobiles Safari layoutet ohne dieses Tag mit rund 980 px Breite und skaliert die ganze Seite herunter. Da `deploy.php` als einzige Seite ohne Bootstrap auskommt (eigenes, dunkles Standalone-Layout), war das lange nicht aufgefallen — auch bei der Responsive-Prüfung in v3.2.25 nicht, weil die Seite einen Token benötigt und deshalb nicht mitgeprüft wurde.
+
+### Verbessert
+- `deploy.php` zusätzlich für schmale Screens angepasst: kleinere Aussenabstände, umbrechende Versionsblöcke, Buttons über die volle Breite (besser treffbar), Log-Ausgabe mit kleinerer Schrift und eigenem horizontalem Scrollbereich.
+- **Statistik-Heatmap füllt jetzt die verfügbare Breite aus:** statt der festen 18 Wochen auf Mobilgeräten (v3.2.25) berechnet die Seite im Browser, wie viele Wochen tatsächlich hineinpassen, und blendet nur so viele der ältesten Wochen aus wie nötig. Dadurch zeigt jedes Gerät so viel Verlauf wie es darstellen kann — ein grosses Handy mehr als ein kleines, der Desktop weiterhin alle 52 Wochen. Passt sich beim Drehen des Geräts automatisch an. Ohne JavaScript bleiben alle Wochen sichtbar (dann horizontal scrollbar), die Heatmap ist eine Zusatzinfo und keine Funktion, die dadurch ausfällt.
+
+**Hinweis zum Ausrollen:** `deploy.php` steht in der eigenen Skip-Liste und wird deshalb nie per Deployment überschrieben — diese Änderung muss manuell per FTP auf den Produktiv-Server kopiert werden.
+
+---
+
 ## [3.2.26] - 2026-07-31
 
 ### Verbessert
