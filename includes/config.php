@@ -1,5 +1,5 @@
 <?php
-define('APP_VERSION', '3.2.23');
+define('APP_VERSION', '3.2.24');
 define('TIMEZONE', 'Europe/Zurich');
 define('LEITNER_INTERVALS', [1 => 1, 2 => 2, 3 => 7, 4 => 14, 5 => 30]);
 date_default_timezone_set(TIMEZONE);
@@ -15,6 +15,14 @@ $_rt = [
     // $_SERVER['HTTP_HOST'] vom Client kommt und damit fälschbar ist: ein gefälschter Host-Header
     // würde sonst einen Reset-Link auf eine fremde Domain in die Mail schreiben (Token-Diebstahl).
     'APP_BASE_URL'           => '',
+
+    // Absenderadresse für ausgehende E-Mails (Passwort-Reset, Test-Mail). Leer = 'no-reply@' plus
+    // Host aus APP_BASE_URL. Wichtig, wenn die App auf einer Subdomain läuft: SPF wird NICHT von
+    // der Hauptdomain vererbt, und eine DMARC-Policy der Hauptdomain gilt trotzdem auch für
+    // Subdomains. Ohne eigenen SPF-Record der Subdomain scheitert DMARC — die Mail wird beim
+    // Empfänger (z.B. Gmail) einsortiert oder verworfen, obwohl mail() Erfolg meldet. Deshalb hier
+    // eine Adresse der Domain eintragen, deren SPF den Mailserver des Hosters abdeckt.
+    'MAIL_FROM'              => '',
 
     'DAILY_CARD_LIMIT'       => 10,
     'LEITNER_DEFAULT_CARDS'  => 20,

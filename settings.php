@@ -48,12 +48,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errs[] = "Basis-URL: Muss mit http:// oder https:// beginnen und eine gültige Adresse sein (z.B. https://example.com/learner).";
         }
 
+        // Absenderadresse (String-Feld, darf leer bleiben — dann 'no-reply@' + Host der Basis-URL)
+        $mail_from = trim($_POST['mail_from'] ?? '');
+        if ($mail_from !== '' && !filter_var($mail_from, FILTER_VALIDATE_EMAIL)) {
+            $errs[] = "Absender-E-Mail: Keine gültige E-Mail-Adresse.";
+        }
+
         if (empty($errs)) {
             $drill_sec   = $vals['drill_minutes'] * 60;
 
             $runtime = [
                 'APP_NAME'               => $app_name,
                 'APP_BASE_URL'           => $base_url,
+                'MAIL_FROM'              => $mail_from,
                 'SESSION_TIMEOUT'        => $vals['session_timeout_min'],
                 'DAILY_CARD_LIMIT'       => $vals['daily_card_limit'],
                 'LEITNER_DEFAULT_CARDS'  => $vals['leitner_default_cards'],
@@ -92,10 +99,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $subject = mb_encode_mimeheader(APP_NAME . ': Test-E-Mail', 'UTF-8', 'B');
             $body    = "Dies ist eine Test-E-Mail von " . APP_NAME . ".\n\n"
                      . "Wenn du diese Nachricht erhältst, funktioniert der E-Mail-Versand (inkl. Umlaut-Kodierung) auf diesem Server korrekt.";
-            // Absenderdomain wie beim Passwort-Reset aus der konfigurierten Basis-URL ableiten,
-            // nicht aus dem Host-Header (siehe app_base_url() in auth.php).
-            $mail_host    = parse_url(app_base_url(), PHP_URL_HOST) ?: ($_SERVER['SERVER_NAME'] ?? 'localhost');
-            $from_address = 'no-reply@' . $mail_host;
+            // Gleiche Absenderadresse wie beim Passwort-Reset (siehe mail_from_address()).
+            $from_address = mail_from_address();
             $headers = "From: " . APP_NAME . " <" . $from_address . ">\r\n"
                      . "Content-Type: text/plain; charset=utf-8";
 
@@ -117,6 +122,13 @@ $cur_app_name    = APP_NAME;
 // Noch nicht konfiguriert: aktuelle Adresse als Vorschlag anzeigen, damit ein einmaliges Speichern
 // den Wert festschreibt (danach unabhängig vom fälschbaren Host-Header der jeweiligen Anfrage).
 $cur_base_url    = APP_BASE_URL !== '' ? APP_BASE_URL : current_base_url();
+$cur_mail_from   = MAIL_FROM;
+// Läuft die App auf einer Subdomain, ist die abgeleitete Absenderadresse ein häufiger Grund für
+// nicht zugestellte Mails (kein eigener SPF-Record, DMARC der Hauptdomain greift trotzdem).
+$mail_host       = parse_url(app_base_url(), PHP_URL_HOST) ?: '';
+$mail_host_parts = $mail_host !== '' ? explode('.', $mail_host) : [];
+$mail_is_subdomain = count($mail_host_parts) > 2;
+$mail_root_domain  = $mail_is_subdomain ? implode('.', array_slice($mail_host_parts, -2)) : $mail_host;
 $cur_timeout_min = (int) SESSION_TIMEOUT;
 $cur_daily       = DAILY_CARD_LIMIT;
 $cur_default_cards = LEITNER_DEFAULT_CARDS;
@@ -205,6 +217,28 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                         <input type="text" class="form-control form-control-sm"
                                name="app_base_url" value="<?= htmlspecialchars($cur_base_url) ?>"
                                maxlength="200" style="width:260px;" placeholder="https://example.com/learner">
+                    </div>
+                </div>
+
+                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                    <div class="flex-grow-1">
+                        <span class="fw-medium">Absender-E-Mail</span>
+                        <span class="text-muted small ms-2">Absender für Passwort-Reset und Test-Mail</span>
+                        <?php if (MAIL_FROM === '' && $mail_is_subdomain): ?>
+                        <div class="text-warning small mt-1">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Leer — es wird <code>no-reply@<?= htmlspecialchars($mail_host) ?></code> verwendet.
+                            Das ist eine Subdomain und hat in der Regel keinen eigenen SPF-Record, wodurch Mails
+                            trotz „erfolgreichem" Versand beim Empfänger aussortiert werden. Besser eine Adresse
+                            der Hauptdomain eintragen, z.B. <code>no-reply@<?= htmlspecialchars($mail_root_domain) ?></code>.
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <input type="text" class="form-control form-control-sm"
+                               name="mail_from" value="<?= htmlspecialchars($cur_mail_from) ?>"
+                               maxlength="200" style="width:260px;"
+                               placeholder="<?= $mail_root_domain !== '' ? 'no-reply@' . htmlspecialchars($mail_root_domain) : 'no-reply@example.com' ?>">
                     </div>
                 </div>
 

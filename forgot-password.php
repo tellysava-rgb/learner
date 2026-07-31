@@ -47,9 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                      . "Hier ist dein Link zum Zurücksetzen deines Passworts (gültig 60 Minuten):\n\n"
                      . $link . "\n\n"
                      . "Falls du das nicht angefordert hast, kannst du diese E-Mail ignorieren.";
-            // Absenderdomain aus der konfigurierten Basis-URL, nicht aus dem Host-Header —
-            // der Wert landet zusätzlich im -f-Parameter von mail() (Envelope-Sender).
-            $from_address = 'no-reply@' . (parse_url($base_url, PHP_URL_HOST) ?: 'localhost');
+            // Absenderadresse aus der Konfiguration (nie aus dem Host-Header) — landet zusätzlich
+            // im -f-Parameter von mail() als Envelope-Sender, der für SPF/DMARC ausgewertet wird.
+            $from_address = mail_from_address();
             $headers = "From: " . APP_NAME . " <" . $from_address . ">\r\n"
                      . "Content-Type: text/plain; charset=utf-8";
 

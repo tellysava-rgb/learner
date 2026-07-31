@@ -174,6 +174,16 @@ function auth_attempts_clear(PDO $pdo, string $scope): void {
     }
 }
 
+// Absenderadresse für ausgehende E-Mails. Konfigurierbar (Einstellungen → Absender-E-Mail), weil
+// die aus der Basis-URL abgeleitete Adresse bei einer Subdomain zu Zustellproblemen führt: SPF wird
+// nicht von der Hauptdomain vererbt, eine DMARC-Policy der Hauptdomain greift aber auch für
+// Subdomains — die Mail scheitert dann an DMARC, obwohl mail() Erfolg meldet.
+function mail_from_address(): string {
+    if (MAIL_FROM !== '') return MAIL_FROM;
+    $host = parse_url(app_base_url(), PHP_URL_HOST) ?: ($_SERVER['SERVER_NAME'] ?? 'localhost');
+    return 'no-reply@' . $host;
+}
+
 // Redirect-Ziel auf dieselbe Anwendung begrenzen (kein Open Redirect über absolute oder
 // protokoll-relative URLs). Gleiche Absicherung wie in learn.php/drill.php.
 function safe_redirect_target(?string $target, string $fallback = 'home.php'): string {

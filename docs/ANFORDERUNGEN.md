@@ -414,6 +414,7 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 |---|---|---|---|---|
 | Allgemein | Seitentitel | `APP_NAME` | Anzeigename oben links in der Navbar | max. 50 Zeichen, keine Anführungszeichen (`'`) |
 | Allgemein | Basis-URL | `APP_BASE_URL` | Adresse der Installation für Links in E-Mails (Passwort-Reset) — ohne Slash am Ende _(v3.2.23)_ | muss mit `http://` oder `https://` beginnen; leer = auf dem Server werden keine Reset-Mails verschickt (Warnhinweis in den Einstellungen) |
+| Allgemein | Absender-E-Mail | `MAIL_FROM` | Absenderadresse für Passwort-Reset und Test-Mail _(v3.2.24)_ | gültige E-Mail-Adresse; leer = `no-reply@` + Host der Basis-URL (Warnhinweis, falls das eine Subdomain ist — siehe unten) |
 | Allgemein | Session-Timeout | `SESSION_TIMEOUT` | Inaktivitäts-Timeout in Minuten | 1–1440 _(bis 24 Std., v2.7.4)_ |
 | Leitner | Tägliches Karten-Limit | `DAILY_CARD_LIMIT` | Neue Karten pro Tag aus der Warteschlange | 1–100 |
 | Leitner | Default Kartenanzahl | `LEITNER_DEFAULT_CARDS` | Voreingestellte Anzahl Karten beim Session-Start | 1–200 |
@@ -425,6 +426,13 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 ### Benutzerverwaltung _(v3.0.0)_
 - Kein eigener Passwort-Änderungs-Abschnitt mehr — das eigene Passwort ändert jede Person selbst über das "Konto"-Modal in der Navbar, siehe Abschnitt "Zugang / Benutzerverwaltung"
 - Kein Link auf `users.php` mehr innerhalb der Einstellungsseite — direkt über das Icon (`bi-person-gear`) in der zentralen Navbar erreichbar, siehe Abschnitt "Benutzerverwaltung"
+
+### Absenderadresse und Zustellbarkeit _(v3.2.24)_
+
+- Die Absenderadresse ausgehender Mails ist über die Einstellung **Absender-E-Mail** (`MAIL_FROM`) frei wählbar. Ohne Konfiguration wird `no-reply@` + Host der Basis-URL verwendet
+- **Hintergrund (echter Fehlerfall auf Produktion):** Die App lief unter der Subdomain `lernen.springpunkt.ch` und verschickte dadurch als `no-reply@lernen.springpunkt.ch`. Diese Subdomain hat **keinen eigenen SPF-Record** — SPF wird nicht von der Hauptdomain vererbt. Die DMARC-Policy der Hauptdomain (`p=quarantine`) gilt für Subdomains hingegen sehr wohl. Ergebnis: SPF-Prüfung ohne Ergebnis, kein DKIM, DMARC schlägt fehl → der Empfänger (Gmail) sortiert die Mail aus oder verwirft sie, **obwohl `mail()` Erfolg meldet** (der Hoster hat die Nachricht ja angenommen — verloren geht sie erst beim Empfänger). Genau deshalb war der Mailversand auf Prod nie erfolgreich, ohne dass die App einen Fehler anzeigte
+- **Regel:** Die Absenderadresse muss zu einer Domain gehören, deren SPF-Record den Mailserver des Hosters abdeckt — im Regelfall die Hauptdomain (hier: `no-reply@springpunkt.ch`, deren SPF `include:spf.hostfactory.ch` enthält). Alternativ könnte man der Subdomain einen eigenen SPF-Record geben; die Absenderadresse umzustellen ist aber der Weg ohne DNS-Änderung
+- Die Einstellungsseite warnt aktiv, wenn keine Absenderadresse gesetzt ist **und** die Basis-URL auf eine Subdomain zeigt, und schlägt die Hauptdomain-Variante vor
 
 ### E-Mail-Test _(v3.2.12)_
 - Eigene Karte auf der Einstellungsseite: E-Mail-Adresse eingeben, "Test-E-Mail senden" klicken → verschickt eine Test-Mail mit derselben Versandmethode wie "Passwort vergessen" (`mb_encode_mimeheader()` für den Subject, `-f`-Parameter, `Content-Type: text/plain; charset=utf-8`)

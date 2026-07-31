@@ -5,6 +5,20 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.24] - 2026-07-31
+
+### Behoben
+- **Mailversand auf Produktion kam nie beim Empfänger an**, obwohl `mail()` und der E-Mail-Test Erfolg meldeten. Ursache war nicht der Versand, sondern die Absenderadresse: die App läuft unter der Subdomain `lernen.springpunkt.ch` und verschickte dadurch als `no-reply@lernen.springpunkt.ch`. Diese Subdomain hat keinen eigenen SPF-Record (SPF wird nicht von der Hauptdomain vererbt), während die DMARC-Policy der Hauptdomain (`p=quarantine`) auch für Subdomains gilt — SPF ohne Ergebnis, kein DKIM, DMARC schlägt fehl, der Empfänger (Gmail) sortiert die Mail aus. Der Hoster hatte die Nachricht da längst angenommen, deshalb meldete die App Erfolg.
+
+### Neu
+- **Einstellung "Absender-E-Mail"** (`MAIL_FROM`, Einstellungen → Allgemein): Absenderadresse für Passwort-Reset und Test-Mail ist jetzt frei konfigurierbar und wird sowohl als `From:`-Header als auch als Envelope-Sender (`-f`) verwendet. Damit lässt sich als Hauptdomain senden, deren SPF den Mailserver des Hosters abdeckt. Leer = bisheriges Verhalten (`no-reply@` + Host der Basis-URL).
+- Die Einstellungsseite warnt, wenn keine Absenderadresse gesetzt ist und die Basis-URL auf eine Subdomain zeigt — inklusive konkretem Vorschlag für die Hauptdomain-Adresse.
+
+### Dokumentation
+- `ANFORDERUNGEN.md`: neuer Abschnitt "Absenderadresse und Zustellbarkeit" mit dem konkreten Fehlerbild (SPF/DMARC bei Subdomains) als Referenz für künftige Umzüge.
+
+---
+
 ## [3.2.23] - 2026-07-30
 
 Behebt alle Punkte der Sicherheitsprüfung aus `Checkliste.md`. Alle Änderungen auf der lokalen Dev-Umgebung verifiziert (Migration, Login, beide Rate-Limits, Leitner-/Drill-Session, Einstellungen, Konto-Modal, Berechtigungsprüfungen, Host-Header-Fälschung).
