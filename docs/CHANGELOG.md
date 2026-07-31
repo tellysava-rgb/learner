@@ -5,6 +5,15 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.28] - 2026-07-31
+
+### Behoben
+- **Modals in der Benutzerverwaltung waren auf dem iPhone nicht bedienbar** (E-Mail-Adresse setzen, Passwort zurücksetzen, Person löschen): Das Fenster öffnete sich zwar, liess sich aber weder ausfüllen noch schliessen. Ursache: die Modals standen im Markup zwischen den `<tr>`-Elementen der Personentabelle. Das ist ungültiges HTML — der Browser verschiebt die `<div>`s aus der Tabelle heraus, wodurch sie im umgebenden `.table-responsive`-Container mit `overflow-x: auto` landeten. Innerhalb eines Scroll-Containers verhält sich `position: fixed` auf iOS Safari anders als am Desktop, weshalb der Fehler dort nicht auftrat. Die Modals stehen jetzt ausserhalb von Tabelle und Scroll-Container.
+
+Geprüft: im ausgelieferten HTML liegt keines der 12 Modals mehr innerhalb der Tabelle oder des `.table-responsive`-Containers; E-Mail setzen, Passwort zurücksetzen und Person löschen funktionieren unverändert; Darstellung im 430-px-Viewport kontrolliert. Andere Seiten mit Modals (`edit.php`, `lists.php`, `learn.php`, `drill.php`, Navbar-Konto-Modal) waren nicht betroffen — dort lagen die Modals schon immer ausserhalb.
+
+---
+
 ## [3.2.27] - 2026-07-31
 
 ### Behoben

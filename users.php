@@ -246,97 +246,105 @@ $admin_count = (int) $pdo->query("SELECT COUNT(*) FROM persons WHERE is_admin = 
                             </div>
                         </td>
                     </tr>
-
-                    <!-- Modal: E-Mail-Adresse -->
-                    <div class="modal fade" id="emailModal<?= $p['id'] ?>" tabindex="-1" aria-hidden="true">
-                      <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                          <form method="post">
-                            <?= csrf_field() ?>
-                            <input type="hidden" name="action" value="set_email">
-                            <input type="hidden" name="person_id" value="<?= $p['id'] ?>">
-                            <div class="modal-header">
-                              <h5 class="modal-title">E-Mail-Adresse — <?= htmlspecialchars($p['name']) ?></h5>
-                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
-                            </div>
-                            <div class="modal-body">
-                              <label class="form-label fw-medium">E-Mail-Adresse</label>
-                              <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($p['email'] ?? '') ?>" placeholder="name@beispiel.ch">
-                              <div class="form-text">Optional — leer lassen, um sie zu entfernen. Wird für den eigenständigen Passwort-Reset benötigt.</div>
-                            </div>
-                            <div class="modal-footer">
-                              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                              <button type="submit" class="btn btn-primary">Speichern</button>
-                            </div>
-                          </form>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Modal: Passwort zurücksetzen -->
-                    <div class="modal fade" id="resetModal<?= $p['id'] ?>" tabindex="-1" aria-hidden="true">
-                      <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                          <form method="post">
-                            <?= csrf_field() ?>
-                            <input type="hidden" name="action" value="reset_password">
-                            <input type="hidden" name="person_id" value="<?= $p['id'] ?>">
-                            <div class="modal-header">
-                              <h5 class="modal-title">Passwort zurücksetzen — <?= htmlspecialchars($p['name']) ?></h5>
-                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
-                            </div>
-                            <div class="modal-body">
-                              <label class="form-label fw-medium">Neues Passwort</label>
-                              <input type="password" name="password" class="form-control mb-2" autocomplete="new-password" minlength="8" required>
-                              <label class="form-label fw-medium">Neues Passwort (Wiederholung)</label>
-                              <input type="password" name="password2" class="form-control" autocomplete="new-password" required>
-                              <div class="form-text">Min. 8 Zeichen</div>
-                            </div>
-                            <div class="modal-footer">
-                              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                              <button type="submit" class="btn btn-primary">Zurücksetzen</button>
-                            </div>
-                          </form>
-                        </div>
-                      </div>
-                    </div>
-
-                    <?php if ($p['id'] != $person_id): ?>
-                    <!-- Modal: Person löschen -->
-                    <div class="modal fade" id="deleteModal<?= $p['id'] ?>" tabindex="-1" aria-hidden="true">
-                      <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                          <form method="post">
-                            <?= csrf_field() ?>
-                            <input type="hidden" name="action" value="delete_person">
-                            <input type="hidden" name="person_id" value="<?= $p['id'] ?>">
-                            <div class="modal-header">
-                              <h5 class="modal-title text-danger">Person löschen — <?= htmlspecialchars($p['name']) ?></h5>
-                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
-                            </div>
-                            <div class="modal-body">
-                              <p>Dies löscht <strong><?= htmlspecialchars($p['name']) ?></strong> unwiderruflich — inklusive aller eigenen Listen, Karten, Lernfortschritt und Statistikdaten. Diese Aktion kann nicht rückgängig gemacht werden.</p>
-                              <div class="form-check">
-                                <input type="checkbox" name="confirm" value="1" class="form-check-input" id="confirmDelete<?= $p['id'] ?>" required>
-                                <label class="form-check-label" for="confirmDelete<?= $p['id'] ?>">
-                                    Ich bin mir sicher, dass <strong><?= htmlspecialchars($p['name']) ?></strong> unwiderruflich gelöscht werden soll.
-                                </label>
-                              </div>
-                            </div>
-                            <div class="modal-footer">
-                              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
-                              <button type="submit" class="btn btn-danger">Endgültig löschen</button>
-                            </div>
-                          </form>
-                        </div>
-                      </div>
-                    </div>
-                    <?php endif; ?>
                 <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
     </div>
+
+    <!-- Modals bewusst AUSSERHALB der Tabelle und des .table-responsive-Containers.
+         Vorher standen sie zwischen den <tr>-Elementen: das ist ungültiges HTML (der Parser
+         verschiebt die <div>s aus der Tabelle heraus) und sie landeten dadurch im Container mit
+         overflow-x:auto. Auf iOS Safari liess sich das Modal dann zwar öffnen, aber weder
+         ausfüllen noch schliessen, weil position:fixed innerhalb eines Scroll-Containers dort
+         nicht wie erwartet funktioniert. Am Desktop fiel das nicht auf. -->
+    <?php foreach ($persons as $p): ?>
+    <!-- Modal: E-Mail-Adresse -->
+    <div class="modal fade" id="emailModal<?= $p['id'] ?>" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <form method="post">
+            <?= csrf_field() ?>
+            <input type="hidden" name="action" value="set_email">
+            <input type="hidden" name="person_id" value="<?= $p['id'] ?>">
+            <div class="modal-header">
+              <h5 class="modal-title">E-Mail-Adresse — <?= htmlspecialchars($p['name']) ?></h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+            </div>
+            <div class="modal-body">
+              <label class="form-label fw-medium">E-Mail-Adresse</label>
+              <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($p['email'] ?? '') ?>" placeholder="name@beispiel.ch">
+              <div class="form-text">Optional — leer lassen, um sie zu entfernen. Wird für den eigenständigen Passwort-Reset benötigt.</div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+              <button type="submit" class="btn btn-primary">Speichern</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Passwort zurücksetzen -->
+    <div class="modal fade" id="resetModal<?= $p['id'] ?>" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <form method="post">
+            <?= csrf_field() ?>
+            <input type="hidden" name="action" value="reset_password">
+            <input type="hidden" name="person_id" value="<?= $p['id'] ?>">
+            <div class="modal-header">
+              <h5 class="modal-title">Passwort zurücksetzen — <?= htmlspecialchars($p['name']) ?></h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+            </div>
+            <div class="modal-body">
+              <label class="form-label fw-medium">Neues Passwort</label>
+              <input type="password" name="password" class="form-control mb-2" autocomplete="new-password" minlength="8" required>
+              <label class="form-label fw-medium">Neues Passwort (Wiederholung)</label>
+              <input type="password" name="password2" class="form-control" autocomplete="new-password" required>
+              <div class="form-text">Min. 8 Zeichen</div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+              <button type="submit" class="btn btn-primary">Zurücksetzen</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <?php if ($p['id'] != $person_id): ?>
+    <!-- Modal: Person löschen -->
+    <div class="modal fade" id="deleteModal<?= $p['id'] ?>" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <form method="post">
+            <?= csrf_field() ?>
+            <input type="hidden" name="action" value="delete_person">
+            <input type="hidden" name="person_id" value="<?= $p['id'] ?>">
+            <div class="modal-header">
+              <h5 class="modal-title text-danger">Person löschen — <?= htmlspecialchars($p['name']) ?></h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
+            </div>
+            <div class="modal-body">
+              <p>Dies löscht <strong><?= htmlspecialchars($p['name']) ?></strong> unwiderruflich — inklusive aller eigenen Listen, Karten, Lernfortschritt und Statistikdaten. Diese Aktion kann nicht rückgängig gemacht werden.</p>
+              <div class="form-check">
+                <input type="checkbox" name="confirm" value="1" class="form-check-input" id="confirmDelete<?= $p['id'] ?>" required>
+                <label class="form-check-label" for="confirmDelete<?= $p['id'] ?>">
+                    Ich bin mir sicher, dass <strong><?= htmlspecialchars($p['name']) ?></strong> unwiderruflich gelöscht werden soll.
+                </label>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Abbrechen</button>
+              <button type="submit" class="btn btn-danger">Endgültig löschen</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <?php endif; ?>
+    <?php endforeach; ?>
 
     <div class="card">
         <div class="card-header">Neue Person anlegen</div>
