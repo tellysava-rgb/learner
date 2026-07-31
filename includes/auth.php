@@ -321,6 +321,12 @@ function render_navbar(PDO $pdo, ?string $abort_url = null): void {
                  nebeneinander und schieben die ganze Seite breiter als den Viewport. Der
                  Personenname weicht dort zusätzlich, die Icons bleiben alle erreichbar. -->
             <div class="d-flex align-items-center gap-2 ms-auto flex-wrap justify-content-end">
+                <?php if ($abort_url): ?>
+                <!-- Während einer laufenden Session bewusst an erster Stelle: der Abbruch ist dann
+                     die wichtigste Aktion und soll nicht zwischen den übrigen Icons gesucht werden -->
+                <a href="<?= htmlspecialchars($abort_url) ?>" class="btn btn-sm btn-outline-light"
+                   title="Session abbrechen" aria-label="Session abbrechen"><i class="bi bi-x-lg"></i></a>
+                <?php endif; ?>
                 <?= streak_badge() ?>
                 <span class="text-white small d-none d-sm-inline"><?= htmlspecialchars($person_name) ?></span>
                 <button type="button" class="btn btn-sm btn-outline-light" title="Passwort ändern" aria-label="Passwort ändern"
@@ -349,9 +355,7 @@ function render_navbar(PDO $pdo, ?string $abort_url = null): void {
                 <a href="users.php" class="btn btn-sm btn-outline-light" title="Benutzerverwaltung" aria-label="Benutzerverwaltung"><i class="bi bi-person-gear"></i></a>
                 <a href="settings.php" class="btn btn-sm btn-outline-light" title="Einstellungen" aria-label="Einstellungen"><i class="bi bi-gear"></i></a>
                 <?php endif; ?>
-                <?php if ($abort_url): ?>
-                <a href="<?= htmlspecialchars($abort_url) ?>" class="btn btn-sm btn-outline-light">Session abbrechen</a>
-                <?php else: ?>
+                <?php if (!$abort_url): ?>
                 <form method="post" class="d-inline">
                     <?= csrf_field() ?>
                     <input type="hidden" name="action" value="logout">

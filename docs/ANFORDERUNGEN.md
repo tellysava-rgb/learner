@@ -82,6 +82,7 @@ Referenzgerät: iPhone 15 Pro Max (430 px Breite), gegengeprüft bei 375 px. Ans
 Die Navbar wird über eine einzige Funktion `render_navbar($pdo)` in `includes/auth.php` gerendert und auf jeder Seite mit Person-Kontext aufgerufen (`<?php render_navbar($pdo); ?>`) — Icons, Reihenfolge und Verhalten müssen dadurch nur an einer Stelle gepflegt werden, nicht auf jeder Seite einzeln. Zugehörige Aktionen (Logout, eigenes Konto, Person wechseln) laufen ebenfalls über eine gemeinsame Funktion `handle_navbar_actions($pdo)`, die jede Seite direkt nach `csrf_validate()` aufruft.
 
 Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
+0. **Session abbrechen** _(nur während einer laufenden Leitner-Session)_ — Icon `bi-x-lg`, bewusst an **erster Stelle**, weil der Abbruch dann die wichtigste Aktion ist und nicht zwischen den übrigen Icons gesucht werden soll. Ersetzt in diesem Zustand den Logout-Button _(Icon statt Text-Button, Position vorgezogen: v3.2.26)_
 1. **Streak-Badge** (🔥 N Tage)
 2. **Personenname**
 3. **Passwort ändern** — Icon `bi-key`, öffnet das "Konto"-Modal (eigenes Passwort + eigene E-Mail-Adresse)
@@ -91,7 +92,7 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 7. **Logout** — Icon `bi-box-arrow-right` (ersetzt den bisherigen Text-Button)
 8. **Hilfe** — Icon `bi-info-lg`, führt zu `help.php` _(v2.8.0, unverändert)_
 
-Auf `learn.php`/`drill.php` wird während einer aktiven Session weiterhin eine abweichende, seitenspezifische Navbar gerendert (z.B. Timer, "gemeistert"-Zähler, "Session abbrechen" statt Logout) — dieser Sonderfall bleibt bestehen und nutzt `render_navbar()` nicht.
+`learn.php` nutzt während einer Session dieselbe zentrale Navbar, nur mit gesetztem `$abort_url` (dadurch erscheint das Abbruch-Icon an erster Stelle statt des Logouts). `drill.php` rendert während einer laufenden Session weiterhin eine eigene, abweichende Navbar, weil dort zusätzlich Timer und "gemeistert"-Zähler angezeigt werden — das Abbruch-Icon steht dort aus Konsistenzgründen ebenfalls an erster Stelle, vor Timer und Zähler _(v3.2.26)_.
 
 ---
 

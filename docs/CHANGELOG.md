@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.26] - 2026-07-31
+
+### Verbessert
+- "Session abbrechen" ist jetzt ein Icon (`bi-x-lg`) statt eines Text-Buttons und steht während einer laufenden Session an **erster Stelle** in der Navbar — sowohl im Leitner-Modus (zentrale Navbar mit `$abort_url`) als auch im Drill-Modus (eigene Navbar, vor Timer und "gemeistert"-Zähler). Nebeneffekt auf dem Handy: die Drill-Navbar passt dadurch wieder in eine einzige Zeile, statt umzubrechen.
+
+---
+
 ## [3.2.25] - 2026-07-31
 
 ### Verbessert

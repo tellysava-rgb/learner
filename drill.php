@@ -333,11 +333,13 @@ if (!$state && !$done_data) {
 <nav class="navbar navbar-expand-sm navbar-dark bg-primary">
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="home.php"><?= APP_NAME ?></a>
-        <div class="ms-auto d-flex align-items-center gap-3">
+        <div class="ms-auto d-flex align-items-center gap-3 flex-wrap justify-content-end">
+            <!-- Abbruch an erster Stelle, gleiche Position wie in der zentralen Navbar (auth.php) -->
+            <a href="drill.php?action=abort" class="btn btn-sm btn-outline-light"
+               title="Session abbrechen" aria-label="Session abbrechen"><i class="bi bi-x-lg"></i></a>
             <span class="text-white small fw-semibold" id="drill-timer"></span>
             <span class="text-white small opacity-75">·</span>
             <span class="text-white small"><?= (int)($state['stats']['mastered'] ?? 0) ?> gemeistert</span>
-            <a href="drill.php?action=abort" class="btn btn-sm btn-outline-light">Session abbrechen</a>
             <a href="help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
         </div>
     </div>
