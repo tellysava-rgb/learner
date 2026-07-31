@@ -190,7 +190,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                     <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing:.05em;">Allgemein</span>
                 </div>
 
-                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                <div class="list-group-item settings-row d-flex align-items-center gap-3 py-2">
                     <div class="flex-grow-1">
                         <span class="fw-medium">Seitentitel</span>
                         <span class="text-muted small ms-2">Wird oben links in der Navbar angezeigt</span>
@@ -202,7 +202,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                     </div>
                 </div>
 
-                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                <div class="list-group-item settings-row d-flex align-items-center gap-3 py-2">
                     <div class="flex-grow-1">
                         <span class="fw-medium">Basis-URL</span>
                         <span class="text-muted small ms-2">Für Links in E-Mails (Passwort-Reset) — ohne Slash am Ende</span>
@@ -220,7 +220,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                     </div>
                 </div>
 
-                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                <div class="list-group-item settings-row d-flex align-items-center gap-3 py-2">
                     <div class="flex-grow-1">
                         <span class="fw-medium">Absender-E-Mail</span>
                         <span class="text-muted small ms-2">Absender für Passwort-Reset und Test-Mail</span>
@@ -242,7 +242,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                     </div>
                 </div>
 
-                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                <div class="list-group-item settings-row d-flex align-items-center gap-3 py-2">
                     <div class="flex-grow-1">
                         <span class="fw-medium">Session-Timeout</span>
                         <span class="text-muted small ms-2">Minuten Inaktivität bis zur automatischen Abmeldung</span>
@@ -259,7 +259,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                     <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing:.05em;">Leitner</span>
                 </div>
 
-                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                <div class="list-group-item settings-row d-flex align-items-center gap-3 py-2">
                     <div class="flex-grow-1">
                         <span class="fw-medium">Tägliches Karten-Limit</span>
                         <span class="text-muted small ms-2">Neue Karten pro Tag aus der Warteschlange</span>
@@ -272,7 +272,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                     </div>
                 </div>
 
-                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                <div class="list-group-item settings-row d-flex align-items-center gap-3 py-2">
                     <div class="flex-grow-1">
                         <span class="fw-medium">Default Kartenanzahl</span>
                         <span class="text-muted small ms-2">Voreingestellte Anzahl Karten beim Session-Start</span>
@@ -289,7 +289,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                     <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing:.05em;">Drill-Modus</span>
                 </div>
 
-                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                <div class="list-group-item settings-row d-flex align-items-center gap-3 py-2">
                     <div class="flex-grow-1">
                         <span class="fw-medium">Timer</span>
                         <span class="text-muted small ms-2">Dauer einer Drill-Session</span>
@@ -302,7 +302,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                     </div>
                 </div>
 
-                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                <div class="list-group-item settings-row d-flex align-items-center gap-3 py-2">
                     <div class="flex-grow-1">
                         <span class="fw-medium">«Musste nachdenken»-Limit</span>
                         <span class="text-muted small ms-2">Bewertungen bis Karte aus der Session entfernt wird</span>
@@ -315,7 +315,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                     </div>
                 </div>
 
-                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                <div class="list-group-item settings-row d-flex align-items-center gap-3 py-2">
                     <div class="flex-grow-1">
                         <span class="fw-medium">Mastery-Schwelle</span>
                         <span class="text-muted small ms-2">Aufeinanderfolgende Korrekt-Antworten für «gemeistert»</span>
@@ -328,7 +328,7 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                     </div>
                 </div>
 
-                <div class="list-group-item d-flex align-items-center gap-3 py-2">
+                <div class="list-group-item settings-row d-flex align-items-center gap-3 py-2">
                     <div class="flex-grow-1">
                         <span class="fw-medium">Bekannt/Neu-Verhältnis</span>
                         <span class="text-muted small ms-2">Bekannte Karten pro neuer Karte in der Rotation</span>

@@ -4,6 +4,16 @@
 
 - **PHP** + **MySQL**
 - **Bootstrap** für responsives Design (Desktop + iPhone)
+
+### Mobile Darstellung _(überprüft und optimiert v3.2.25)_
+
+Referenzgerät: iPhone 15 Pro Max (430 px Breite), gegengeprüft bei 375 px. Anspruch: **keine Seite darf horizontal scrollen** — geprüft über die tatsächliche `scrollWidth` im 430-px-Viewport, nicht nur nach Augenmass. Umgesetzte Anpassungen:
+
+- **Navbar:** Die Icon-Leiste darf umbrechen (`flex-wrap`), der Personenname wird unter 576 px ausgeblendet — sonst schoben Marke + Name + bis zu sechs Icons die gesamte Seite breiter als den Viewport
+- **Kartenübersicht (`edit.php`):** Die vier Aktions-Icons pro Zeile brechen auf schmalen Screens in zwei Reihen um, statt aus der Tabelle zu laufen. Die Status-Spalte bleibt erhalten
+- **Einstellungen:** Beschriftung steht auf schmalen Screens über dem Eingabefeld statt daneben (Klasse `settings-row`), Textfelder nutzen die volle Breite, Zahlenfelder bleiben schmal
+- **Import:** Das CSV-Beispiel scrollt innerhalb seines eigenen Rahmens, statt die Seite zu verbreitern
+- **Statistik:** siehe Heatmap-Abschnitt — auf dem Handy nur die letzten ~4 Monate
 - Läuft auf einem Webserver, Deployment via Datei-Upload
 - Kein Framework nötig
 - **Zeitzone:** Europe/Zurich — gilt für alle Datumsberechnungen (Leitner, Streak, Drill-Reset)
@@ -497,7 +507,7 @@ Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler 
   - Mindestens eine Karte beantwortet (gewusst oder nicht gewusst) = Lerntag
   - Überspringen allein zählt nicht
   - Abgebrochene Session zählt wenn mindestens eine Karte beantwortet wurde
-- Heatmap der letzten 52 Kalenderwochen bis heute (GitHub-Contribution-Graph-Stil): Spalten = Kalenderwochen (links = älteste), Zeilen = Mo–So, 5-stufige Grün-Skala nach Anzahl beantworteter Karten am jeweiligen Tag relativ zum eigenen Maximum im sichtbaren Zeitraum (kein Tag = leer/grau), Monatsbeschriftung über den Spalten, Wochentag-Labels links (nur Mo/Mi/Fr), Tooltip beim Hover zeigt Datum (Format `TT.MM.JJJJ`, z.B. `29.07.2026`) _(Format korrigiert v3.2.10, vorher `YYYY-MM-DD`)_ + Anzahl gelernter Karten bzw. "nicht gelernt". Zukünftige Tage der laufenden Woche bleiben leer. Reine CSS-Grid/HTML-Lösung ohne externe Charting-Library, horizontal zentriert innerhalb der Karte (bleibt bei Überbreite horizontal scrollbar auf kleinen Screens) _(zentriert seit v3.1.1)_. **Bewusst kein eigenes Dark-Mode-Farbschema** _(entfernt v3.2.18, vorher per `prefers-color-scheme` v3.0.3–v3.2.17)_ — die Heatmap zeigt immer die helle Farbpalette, da der Rest der Anwendung ebenfalls kein Dark-Mode-Theme hat; ein Dark Mode nur für die Heatmap wäre inkonsistent mit dem übrigen (durchgehend hellen) UI.
+- Heatmap der letzten 52 Kalenderwochen bis heute (GitHub-Contribution-Graph-Stil): Spalten = Kalenderwochen (links = älteste), Zeilen = Mo–So, 5-stufige Grün-Skala nach Anzahl beantworteter Karten am jeweiligen Tag relativ zum eigenen Maximum im sichtbaren Zeitraum (kein Tag = leer/grau), Monatsbeschriftung über den Spalten, Wochentag-Labels links (nur Mo/Mi/Fr), Tooltip beim Hover zeigt Datum (Format `TT.MM.JJJJ`, z.B. `29.07.2026`) _(Format korrigiert v3.2.10, vorher `YYYY-MM-DD`)_ + Anzahl gelernter Karten bzw. "nicht gelernt". Zukünftige Tage der laufenden Woche bleiben leer. Reine CSS-Grid/HTML-Lösung ohne externe Charting-Library, horizontal zentriert innerhalb der Karte _(zentriert seit v3.1.1)_. **Auf schmalen Screens (< 576 px, also Handy) werden nur die letzten 18 Wochen (~4 Monate) angezeigt** _(v3.2.25)_ — vorher musste man auf dem Handy erst seitlich scrollen, um überhaupt den aktuellen Zeitraum zu sehen. Umgesetzt über eine CSS-Media-Query, die die älteren Wochenspalten ausblendet (nur eine Markup-Variante); die Monatsbeschriftung existiert in zwei Varianten, weil die Beschriftungen bei gekürzter Ansicht anders positioniert werden müssen. **Bewusst kein eigenes Dark-Mode-Farbschema** _(entfernt v3.2.18, vorher per `prefers-color-scheme` v3.0.3–v3.2.17)_ — die Heatmap zeigt immer die helle Farbpalette, da der Rest der Anwendung ebenfalls kein Dark-Mode-Theme hat; ein Dark Mode nur für die Heatmap wäre inkonsistent mit dem übrigen (durchgehend hellen) UI.
 
 **Leitner-Übersicht:**
 - Anzahl Karten pro Fach (Fach 1–5 + archiviert)

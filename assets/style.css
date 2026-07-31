@@ -39,6 +39,26 @@ body {
     }
 }
 
+/* Einstellungen: auf schmalen Screens Beschriftung über das Eingabefeld stellen statt daneben —
+   nebeneinander bleibt für den Text nur eine schmale Spalte, die unschön mehrzeilig umbricht.
+   !important, weil die Feldbreiten in settings.php als inline-style gesetzt sind. */
+@media (max-width: 575.98px) {
+    .settings-row {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 0.5rem !important;
+    }
+
+    .settings-row input[type="text"] {
+        width: 100% !important;
+    }
+
+    /* Zahlenfelder bleiben schmal — volle Breite wirkt für einen zweistelligen Wert überdimensioniert */
+    .settings-row input[type="number"] {
+        width: 7rem !important;
+    }
+}
+
 /* Lernaktivität-Heatmap (Statistik) */
 .heatmap-wrap {
     overflow-x: auto;

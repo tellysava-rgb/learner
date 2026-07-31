@@ -152,8 +152,12 @@ if ($dates) {
     $best_week = max($week_counts);
 }
 
-// Heatmap: letzte 52 Wochen (Mo-So) bis heute
-$heatmap_weeks = 52;
+// Heatmap: letzte 52 Wochen (Mo-So) bis heute.
+// Auf schmalen Screens werden davon nur die letzten $heatmap_weeks_mobile Wochen (~4 Monate)
+// angezeigt — sonst müsste man auf dem Handy erst seitlich scrollen, um den aktuellen Teil zu
+// sehen. Ausgeblendet wird per CSS (siehe unten), damit es nur eine Markup-Variante gibt.
+$heatmap_weeks        = 52;
+$heatmap_weeks_mobile = 18;
 $this_monday   = $today->modify('monday this week');
 $heatmap_start = $this_monday->modify('-' . ($heatmap_weeks - 1) . ' weeks');
 
@@ -193,6 +197,17 @@ for ($w = 0; $w < $heatmap_weeks; $w++) {
             $level = $max_day_count > 0 ? (int) min(4, max(1, ceil($cnt / $max_day_count * 4))) : 1;
         }
         $heatmap_cells[] = ['date' => $date_str, 'date_display' => $date->format('d.m.Y'), 'cnt' => $cnt, 'level' => $level];
+    }
+}
+
+// Mobile-Variante: erste Wochen ausblenden. Die Zellenzahl ist ein Vielfaches von 7, dadurch
+// beginnt auch die gekürzte Ansicht wieder sauber mit einem Montag.
+$heatmap_mobile_offset = max(0, $heatmap_weeks - $heatmap_weeks_mobile);
+$heatmap_hidden_cells  = $heatmap_mobile_offset * 7;
+$month_labels_mobile   = [];
+foreach ($month_labels as $w => $label) {
+    if ($w >= $heatmap_mobile_offset) {
+        $month_labels_mobile[$w - $heatmap_mobile_offset] = $label;
     }
 }
 
@@ -265,6 +280,13 @@ $drill_pct   = $drill_total > 0 ? round($drill_stats['known'] / $drill_total * 1
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
           integrity="sha384-XGjxtQfXaH2tnPFa9x+ruJTuLE3Aa6LhHSWRr1XeTyhezb4abCG4ccI5AkVDxqC+" crossorigin="anonymous">
     <link rel="stylesheet" href="assets/style.css?v=<?= APP_VERSION ?>">
+    <style>
+        /* Auf schmalen Screens nur die letzten Wochen zeigen (siehe $heatmap_weeks_mobile).
+           Die Zahl kommt aus PHP, deshalb steht die Regel hier statt in style.css. */
+        @media (max-width: 575.98px) {
+            .heatmap-grid > *:nth-child(-n+<?= $heatmap_hidden_cells ?>) { display: none; }
+        }
+    </style>
 </head>
 <body>
 
@@ -297,8 +319,15 @@ $drill_pct   = $drill_total > 0 ? round($drill_stats['known'] / $drill_total * 1
 
             <div class="heatmap-wrap">
                 <div class="heatmap-inner">
-                    <div class="heatmap-months">
+                    <!-- Monatsbeschriftung: zwei Varianten, weil die Spalten auf Mobile beschnitten
+                         werden und die Labels dann anders positioniert werden müssen -->
+                    <div class="heatmap-months d-none d-sm-block">
                         <?php foreach ($month_labels as $w => $label): ?>
+                        <span style="left:<?= $w * 14 ?>px;"><?= htmlspecialchars($label) ?></span>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="heatmap-months d-sm-none">
+                        <?php foreach ($month_labels_mobile as $w => $label): ?>
                         <span style="left:<?= $w * 14 ?>px;"><?= htmlspecialchars($label) ?></span>
                         <?php endforeach; ?>
                     </div>

@@ -5,6 +5,20 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.25] - 2026-07-31
+
+### Verbessert
+- **Statistik-Heatmap auf dem Handy:** zeigt unter 576 px nur noch die letzten 18 Wochen (~4 Monate) statt 52. Vorher musste man auf dem Handy erst seitlich scrollen, um überhaupt den aktuellen Zeitraum zu sehen. Umgesetzt per CSS-Media-Query auf einer einzigen Markup-Variante; die Monatsbeschriftung gibt es in zwei Varianten, weil sie bei gekürzter Ansicht anders positioniert werden muss. Auf dem Desktop unverändert alle 52 Wochen.
+- **Responsive Design für iPhone überarbeitet** (Referenz iPhone 15 Pro Max, 430 px, gegengeprüft bei 375 px). Gemessen wurde die tatsächliche `scrollWidth` im Handy-Viewport — vorher schob die Navbar jede Seite breiter als das Display, sodass sich die gesamte App horizontal wegschieben liess:
+  - Navbar: Icon-Leiste darf umbrechen, Personenname wird unter 576 px ausgeblendet (auf dem Desktop weiterhin sichtbar)
+  - Kartenübersicht (`edit.php`): die vier Aktions-Icons brechen auf schmalen Screens in zwei Reihen um, statt aus der Tabelle zu laufen — die Status-Spalte bleibt erhalten
+  - Einstellungen: Beschriftung steht auf dem Handy über dem Eingabefeld statt daneben, Textfelder über die volle Breite, Zahlenfelder schmal
+  - Import: das CSV-Beispiel scrollt innerhalb seines eigenen Rahmens, statt die Seite zu verbreitern
+
+Verifiziert mit Screenshots und Overflow-Messung bei 430 px und 375 px: Startseite, Statistik, Meine Listen, Kartenübersicht, Import, Einstellungen, Benutzerverwaltung, Hilfe, Mathe, Leitner und Drill haben keinen horizontalen Überlauf mehr.
+
+---
+
 ## [3.2.24] - 2026-07-31
 
 ### Behoben

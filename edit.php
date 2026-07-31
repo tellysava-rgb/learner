@@ -382,7 +382,9 @@ if (str_starts_with($filter, 'box')) {
                         <?php endif; ?>
                     </td>
                     <td class="text-end">
-                        <div class="d-flex justify-content-end gap-1">
+                        <!-- flex-wrap: auf dem Handy passen die vier Icons nicht nebeneinander und
+                             würden sonst aus der Tabelle laufen; sie brechen dort in zwei Reihen um -->
+                        <div class="d-flex justify-content-end gap-1 flex-wrap">
                             <a href="edit.php?list_id=<?= $list_id ?>&highlight=<?= $card['id'] ?>&filter=<?= $filter ?>"
                                class="btn btn-sm btn-outline-secondary"
                                data-bs-toggle="tooltip" title="Karte ansehen"><i class="bi bi-eye"></i></a>

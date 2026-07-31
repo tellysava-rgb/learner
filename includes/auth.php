@@ -316,10 +316,13 @@ function render_navbar(PDO $pdo, ?string $abort_url = null): void {
     ?>
     <nav class="navbar navbar-expand-sm navbar-dark bg-primary">
         <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="home.php"><?= APP_NAME ?></a>
-            <div class="d-flex align-items-center gap-2 ms-auto">
+            <a class="navbar-brand fw-bold me-2" href="home.php"><?= APP_NAME ?></a>
+            <!-- flex-wrap: auf schmalen Screens (iPhone) passen Marke + Name + Icons sonst nicht
+                 nebeneinander und schieben die ganze Seite breiter als den Viewport. Der
+                 Personenname weicht dort zusätzlich, die Icons bleiben alle erreichbar. -->
+            <div class="d-flex align-items-center gap-2 ms-auto flex-wrap justify-content-end">
                 <?= streak_badge() ?>
-                <span class="text-white small"><?= htmlspecialchars($person_name) ?></span>
+                <span class="text-white small d-none d-sm-inline"><?= htmlspecialchars($person_name) ?></span>
                 <button type="button" class="btn btn-sm btn-outline-light" title="Passwort ändern" aria-label="Passwort ändern"
                         data-bs-toggle="modal" data-bs-target="#pwModal"><i class="bi bi-key"></i></button>
                 <?php if ($real_is_admin && count($persons) > 1): ?>

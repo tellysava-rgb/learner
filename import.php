@@ -514,7 +514,9 @@ PROMPT;
                     <p>Die erste Zeile ist die Kopfzeile (Spaltentitel, z.B. Sprachnamen) und wird übersprungen.</p>
                     <p>Felder mit Kommas oder Semikolons müssen in <strong>doppelte Anführungszeichen</strong> gesetzt werden.</p>
                     <p>5. Spalte <strong>Lautschrift</strong> (nur Sprache B) ist optional — sinnvoll nur bei Listen mit hinterlegtem Aussprache-Sprachcode.</p>
-                    <pre class="bg-white border rounded p-2 small"><code>Deutsch;Englisch;Beschreibung Deutsch;Beschreibung Englisch;Lautschrift
+                    <!-- overflow-auto: die Beispielzeilen sind länger als ein Handy-Display breit ist;
+                         sie sollen im Block scrollen statt die ganze Seite breiter zu machen -->
+                    <pre class="bg-white border rounded p-2 small overflow-auto"><code>Deutsch;Englisch;Beschreibung Deutsch;Beschreibung Englisch;Lautschrift
 Diagnose;diagnosis;medizinisch;"A conclusion";dy-ug-NOH-sis
 Behandlung;treatment;;;</code></pre>
 
