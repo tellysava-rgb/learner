@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.29] - 2026-08-01
+
+### Verbessert
+- **MCP-Server: Lautschrift (phonetik_b) berücksichtigt jetzt explizit die Muttersprache der lernenden Person.** Bisher gingen die Anleitung und Feldbeschreibungen für `phonetik_b` stillschweigend von einer deutschsprachigen lernenden Person aus. Die Instruktionen in `initialize`, `add_cards` und `update_card` verlangen jetzt: ist zu Beginn eines Gesprächs nicht klar, in welcher Sprache bzw. mit welchen Lesekonventionen die Lautschrift geschrieben werden soll, muss dies explizit beim User erfragt werden, bevor `phonetik_b` befüllt wird.
+
+---
+
 ## [3.2.28] - 2026-07-31
 
 ### Behoben
