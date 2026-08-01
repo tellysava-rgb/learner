@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.33] - 2026-08-01
+
+### Verbessert
+- **Pin-Symbol für vorgemerkte Karten vereinheitlicht:** In `drill.php` und `learn.php` war das Symbol oben links auf der Karte bisher ein eckiger Badge, während die Kartenansicht in `edit.php` einen runden Button zeigt. Beide Stellen nutzen jetzt denselben runden Look (`btn btn-sm btn-primary rounded-circle`) — in `drill.php`/`learn.php` weiterhin nicht klickbar, da sich die Vormerkung während einer laufenden Session nicht umschalten lässt.
+
+---
+
 ## [3.2.32] - 2026-08-01
 
 ### Neu

@@ -487,7 +487,7 @@ if (!$state && !$done_data) {
 
 <div class="learn-card mx-auto mb-4 position-relative" id="flip-card" style="max-width:540px; cursor:pointer;" onclick="flipCard()">
     <?php if ($card_data['drill_pinned_correct'] !== null): ?>
-    <span class="position-absolute badge bg-primary" style="top:8px; left:8px; z-index:2;"
+    <span class="position-absolute btn btn-sm btn-primary rounded-circle" style="top:8px; left:8px; z-index:2;"
           title="Für Drill vorgemerkt"><i class="bi bi-pin-angle-fill"></i></span>
     <?php endif; ?>
     <div class="text-center p-5" style="min-height:280px;">
