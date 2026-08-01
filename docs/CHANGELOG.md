@@ -5,6 +5,17 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.37] - 2026-08-01
+
+### Neu
+- `help.php`: neue Einleitung direkt unter dem Titel mit den Grundfunktionen der App (Wortlisten lernen/erstellen/kopieren, Leitner/Drill, 1×1, Audioaussprache).
+
+### Verbessert
+- `help.php`, Abschnitt "Leitner-Modus": Hinweis ergänzt, was das ausgefüllte Pin-Symbol auf einer Karte bedeutet (inkl. sichtbarem Icon in der Erklärung). Abschnitt "Drill-Modus": veralteten Verweis auf "in der Aktionsleiste" entfernt (dieser Button wurde in v3.2.31 wieder entfernt).
+- **MCP-Server, Lautschrift-Regeln überarbeitet:** Deutsche Rechtschreibung ist jetzt explizit auf de-CH ausgerichtet (nie "ß", immer "ss"). Ausserdem: Muttersprache der lernenden Person wird standardmässig als Sprache A der jeweiligen Liste angenommen, statt bei jeder Liste pauschal nachzufragen — nur bei erkennbarer Unstimmigkeit (z.B. beide Sprachen sind für den User fremd) oder Widerspruch des Users fragt der Agent noch explizit nach. Zusätzlich klargestellt, dass die detaillierten Lautschrift-Regeln (rhotisch/nicht-rhotisch etc.) nur für Englisch als Sprache B ausformuliert sind — bei anderen Zielsprachen soll der Agent sinngemäss vereinfachen. Betrifft `initialize`-Instruktionen sowie die Tool-/Feld-Beschreibungen von `add_cards` und `update_card`.
+
+---
+
 ## [3.2.36] - 2026-08-01
 
 ### Verbessert

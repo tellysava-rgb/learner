@@ -130,4 +130,13 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Debug-Modus deaktiviert: kein Panel sichtbar, auch nicht für Admins. _(v3.2.34)_
 [ ] `math.php` bleibt vom Debug-Modus unberührt (kein Panel dort). _(v3.2.34)_
 
+## 11. help.php-Ergänzungen und MCP-Server-Regeln _(v3.2.37)_
+
+[ ] `help.php`: neue Einleitung direkt unter dem Titel listet die Grundfunktionen der App auf (Wortlisten lernen/erstellen/kopieren, Leitner/Drill, 1×1, Audioaussprache). _(v3.2.37)_
+[ ] `help.php`, Abschnitt "Leitner-Modus": neuer Hinweis zum ausgefüllten Pin-Symbol, inkl. sichtbarem Icon in der Erklärung selbst. _(v3.2.37)_
+[ ] `help.php`, Abschnitt "Drill-Modus": Hinweis auf "in der Aktionsleiste" entfernt (Button existiert seit v3.2.31 nicht mehr), stattdessen korrekt auf die Kartenansicht verwiesen. _(v3.2.37)_
+[ ] MCP-Server: Karte mit deutschem Begriff, der ein "ß" enthalten würde (z.B. "Straße") → Agent schreibt stattdessen "Strasse" (de-CH). _(v3.2.37)_
+[ ] MCP-Server: Liste mit Sprache A = Deutsch, Sprache B = Fremdsprache, `speech_lang_b` gesetzt → Agent fragt NICHT explizit nach der Muttersprache, sondern nimmt Sprache A als gegeben an. _(v3.2.37)_
+[ ] MCP-Server: Liste bei der beide Sprachen für den User erkennbar fremd sind (z.B. im Gespräch erwähnt) → Agent fragt in diesem Fall doch explizit nach der Muttersprache, bevor `phonetik_b` befüllt wird. _(v3.2.37)_
+
 ---

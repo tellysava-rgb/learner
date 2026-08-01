@@ -41,7 +41,16 @@ $pin_ratio        = DRILL_PIN_RATIO;
 <div class="container mt-2 mb-5" style="max-width:860px;">
 
     <h1 class="h4 mb-1">Hilfe & Handbuch</h1>
-    <p class="text-muted small mb-4">Kurzanleitung zu <?= htmlspecialchars(APP_NAME) ?> — was die Funktionen tun und wie das Lernen dahinter funktioniert.</p>
+    <p class="text-muted small mb-3">Kurzanleitung zu <?= htmlspecialchars(APP_NAME) ?> — was die Funktionen tun und wie das Lernen dahinter funktioniert.</p>
+
+    <p class="mb-1"><?= htmlspecialchars(APP_NAME) ?> ist ein Vokabeltrainer mit diesen Grundfunktionen:</p>
+    <ul class="mb-4">
+        <li>Eigene Wortlisten erstellen und pflegen</li>
+        <li>Öffentliche Wortlisten anderer Personen kopieren</li>
+        <li>Wortlisten lernen — wahlweise mit dem Leitner-System (Karteikarten) oder im Drill-Modus</li>
+        <li>Das kleine 1×1 der Mathematik lernen (Multiplikation und Division)</li>
+        <li>Wortlisten werden durch Audioaussprache unterstützt, sofern für die jeweilige Liste ein Aussprache-Dialekt konfiguriert ist</li>
+    </ul>
 
     <div class="accordion" id="helpAccordion">
 
@@ -111,6 +120,7 @@ $pin_ratio        = DRILL_PIN_RATIO;
                         <li><strong>Warteschlange:</strong> Neue Karten werden nicht alle auf einmal aktiv — aktuell werden pro Tag <?= $daily_limit ?> Karten aus der Warteschlange in Fach 1 aufgenommen (in den Einstellungen anpassbar).</li>
                         <li><strong>Session:</strong> Eine Lernrunde zeigt standardmässig bis zu <?= $default_cards ?> fällige Karten (beim Start der Session anpassbar), aus einer oder mehreren ausgewählten Listen gemischt; Sprachrichtung ist wählbar (A→B, B→A oder gemischt).</li>
                         <li><strong>Fach 5:</strong> gilt als "gut gelernt", wird aber weiterhin alle <?= $li[5] ?> Tage zur Auffrischung gezeigt.</li>
+                        <li>Erscheint auf einer Karte ein ausgefülltes Pin-Symbol (<i class="bi bi-pin-angle-fill"></i>) oben links: diese Karte ist zusätzlich "für Drill vorgemerkt" — betrifft nur den Drill-Modus, der Leitner-Ablauf hier läuft davon völlig unberührt normal weiter (siehe Abschnitt "Drill-Modus").</li>
                     </ul>
                     <p class="mb-0">Geeignet für <strong>längerfristiges</strong> Lernen mit wenigen Karten pro Tag, dafür über lange Zeit verteilt.</p>
                 </div>
@@ -132,7 +142,7 @@ $pin_ratio        = DRILL_PIN_RATIO;
                         <li>Wird eine Karte <?= $drill_too_hard ?>× als "musste nachdenken" bewertet, wird sie für den Rest dieser Session pausiert und taucht erst am nächsten Tag wieder auf.</li>
                         <li>Bei einer <strong>neuen Liste</strong> mit lauter neuen Karten kann es am Anfang vorkommen, dass dieselbe Karte mehrmals kurz hintereinander gezeigt wird, bevor eine zweite dazukommt (bis zu <?= $drill_ratio ?>× — entsprechend dem Bekannt/Neu-Verhältnis). Das ist <strong>kein Fehler, sondern beabsichtigt</strong> und hilft, sich die Karte einzuprägen. Je mehr Karten im Umlauf sind, desto mehr vermischen sie sich.</li>
                         <li>Es gibt <strong>keine Leitner-Fach-Obergrenze</strong> für den Drill-Modus — auch Karten, die bereits in einem höheren Leitner-Fach sind, können weiterhin im Drill auftauchen, solange sie nicht archiviert sind.</li>
-                        <li><strong>Für Drill vormerken:</strong> Auf der Kartenübersicht lässt sich jede Karte einzeln über das Pin-Icon (<i class="bi bi-pin-angle"></i>, in der Aktionsleiste oder oben links auf der Karte in der Kartenansicht) "für Drill vormerken". Vorgemerkte Karten werden im Drill <?= $pin_mode === 'absolute' ? 'immer zuerst gezeigt, solange mindestens eine vorgemerkte Karte übrig ist' : "bevorzugt eingeschoben (aktuell etwa jede {$pin_ratio}. Karte)" ?> — Priorität in den Einstellungen anpassbar. Erkennbar an einem ausgefüllten Pin-Symbol oben links auf der Karte. Das Leitner-System läuft für diese Karte währenddessen völlig unverändert weiter (kein Einfrieren, kein Fach-Sprung). Bei <?= $drill_mastery ?>× richtiger Antwort in Folge seit dem Vormerken wird die Vormerkung automatisch entfernt, kann aber auch jederzeit manuell wieder entfernt werden.</li>
+                        <li><strong>Für Drill vormerken:</strong> Auf der Kartenübersicht lässt sich jede Karte einzeln über das Pin-Icon (<i class="bi bi-pin-angle"></i>, oben links auf der Karte in der Kartenansicht — Augen-Icon "Karte ansehen") "für Drill vormerken". Vorgemerkte Karten werden im Drill <?= $pin_mode === 'absolute' ? 'immer zuerst gezeigt, solange mindestens eine vorgemerkte Karte übrig ist' : "bevorzugt eingeschoben (aktuell etwa jede {$pin_ratio}. Karte)" ?> — Priorität in den Einstellungen anpassbar. Erkennbar an einem ausgefüllten Pin-Symbol (<i class="bi bi-pin-angle-fill"></i>) oben links auf der Karte sowie am Badge "Für Drill vorgemerkt" in der Kartenübersicht. Das Leitner-System läuft für diese Karte währenddessen völlig unverändert weiter (kein Einfrieren, kein Fach-Sprung). Bei <?= $drill_mastery ?>× richtiger Antwort in Folge seit dem Vormerken wird die Vormerkung automatisch entfernt, kann aber auch jederzeit manuell wieder entfernt werden.</li>
                     </ul>
                     <p class="mb-0">Geeignet für <strong>intensives Kurzzeit-Pauken</strong>, z.B. vor einem Test — als Ergänzung zum Leitner-System, nicht als Ersatz.</p>
                 </div>
