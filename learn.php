@@ -160,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
         $stmt->execute([$person_id, $card_id, 'skipped', $today]);
         array_shift($state['queue']);
         if ($debug_enabled) {
-            $_SESSION['debug_last_answer'] = debug_card_label($pdo, $card_id) . ' — übersprungen, nichts geändert.';
+            $_SESSION['debug_last_answer'] = [debug_card_label($pdo, $card_id), 'übersprungen', 'nichts geändert'];
         }
         header('Location: learn.php');
         exit;
@@ -204,9 +204,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
 
         if ($debug_enabled) {
             $versuch = $is_retry ? '2. Versuch' : '1. Versuch';
-            $_SESSION['debug_last_answer'] = debug_card_label($pdo, $card_id)
-                . " — richtig ({$versuch}): Fach {$current_box}→{$new_box}, fällig "
-                . debug_format_date($due_before) . '→' . debug_format_date($due);
+            $_SESSION['debug_last_answer'] = [
+                debug_card_label($pdo, $card_id),
+                "richtig ({$versuch})",
+                "Fach {$current_box}→{$new_box}, fällig " . debug_format_date($due_before) . '→' . debug_format_date($due),
+            ];
         }
 
     } else {
@@ -223,15 +225,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
             $state['queue'][] = $card_id;
 
             if ($debug_enabled) {
-                $_SESSION['debug_last_answer'] = debug_card_label($pdo, $card_id)
-                    . " — falsch (1. Versuch): Fach {$current_box}→1, fällig "
-                    . debug_format_date($due_before) . '→' . debug_format_date($due) . ', kommt nochmal dran.';
+                $_SESSION['debug_last_answer'] = [
+                    debug_card_label($pdo, $card_id),
+                    'falsch (1. Versuch)',
+                    "Fach {$current_box}→1, fällig " . debug_format_date($due_before) . '→' . debug_format_date($due) . ', kommt nochmal dran',
+                ];
             }
         } else {
             // Zweiter Fehler → kein weiterer Versuch, Karte bleibt in Fach 1
             if ($debug_enabled) {
-                $_SESSION['debug_last_answer'] = debug_card_label($pdo, $card_id)
-                    . ' — falsch (2. Versuch): bleibt Fach 1, kein weiterer Versuch in dieser Session.';
+                $_SESSION['debug_last_answer'] = [
+                    debug_card_label($pdo, $card_id),
+                    'falsch (2. Versuch)',
+                    'bleibt Fach 1, kein weiterer Versuch in dieser Session',
+                ];
             }
         }
 

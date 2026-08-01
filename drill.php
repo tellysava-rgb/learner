@@ -139,32 +139,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
 // Debug-Modus: baut die Vorher/Nachher-Meldung aus den beiden Snapshots. Erkennt besondere
 // Ereignisse (gemeistert, zu schwer markiert, Vormerkung erreicht) an der jeweiligen Feldänderung,
 // statt sie separat nachzuverfolgen — robust gegenüber Änderungen an master_card()/mark_too_hard_card().
-function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_pinned, array $before, array $after, int $session_counter): string {
+// Rückgabe: 3 Zeilen [Karte, Antwort (Kontext), Detail] — siehe debug_panel() in includes/auth.php.
+function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_pinned, array $before, array $after, int $session_counter): array {
     $label   = debug_card_label($pdo, $card_id);
     $antwort = $result === 'known' ? 'gewusst' : 'musste nachdenken';
 
     if ($was_pinned) {
-        $box_note = $after['leitner_box'] !== null ? "Fach bleibt unverändert (Fach {$after['leitner_box']})" : 'noch nicht in Leitner aktiv (Warteschlange), auch daran ändert das Vormerken nichts';
+        $box_note = $after['leitner_box'] !== null ? "Fach unverändert (Fach {$after['leitner_box']})" : 'noch nicht in Leitner aktiv (Warteschlange)';
 
         if ($before['drill_pinned_correct'] !== null && $after['drill_pinned_correct'] === null) {
-            return "{$label} — {$antwort}. Für Drill vorgemerkt: Vormerkungs-Schwelle erreicht, Vormerkung entfernt, {$box_note}.";
+            $detail = "Vormerkung entfernt, {$box_note}";
+        } else {
+            $detail = 'Vormerkungszähler ' . ($before['drill_pinned_correct'] ?? 0) . '→' . ($after['drill_pinned_correct'] ?? 0);
         }
-        return "{$label} — {$antwort}. Für Drill vorgemerkt: Vormerkungs-Zähler (richtige Antworten seit dem Vormerken) "
-            . ($before['drill_pinned_correct'] ?? 0) . '→' . ($after['drill_pinned_correct'] ?? 0)
-            . ", {$box_note}.";
+        return [$label, "{$antwort} (vorgemerkt)", $detail];
     }
 
     if ((int)$before['drill_mastery'] !== (int)$after['drill_mastery']) {
-        return "{$label} — {$antwort}: gemeistert ({$after['drill_mastery']}×), Fach {$before['leitner_box']}→{$after['leitner_box']}, fällig "
+        $detail = "gemeistert ({$after['drill_mastery']}×): Fach {$before['leitner_box']}→{$after['leitner_box']}, fällig "
             . debug_format_date($before['next_due_date']) . '→' . debug_format_date($after['next_due_date']);
+        return [$label, $antwort, $detail];
     }
 
     if ((int)$before['drill_too_hard'] !== (int)$after['drill_too_hard']) {
-        return "{$label} — {$antwort}: als zu schwer markiert, bis morgen pausiert.";
+        return [$label, $antwort, 'als zu schwer markiert, bis morgen pausiert'];
     }
 
     $limit = $result === 'known' ? DRILL_MASTERY_THRESHOLD : DRILL_TOO_HARD_LIMIT;
-    return "{$label} — {$antwort}: Zähler {$session_counter}/{$limit}, keine Statusänderung.";
+    return [$label, $antwort, "Zähler {$session_counter}/{$limit}"];
 }
 
 function start_drill_session(PDO $pdo, int $person_id, array $list_ids): void {

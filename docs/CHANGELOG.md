@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.36] - 2026-08-01
+
+### Verbessert
+- **Debug-Panel auf 3 Zeilen aufgeteilt** statt eines langen Fliesstext-Satzes: Karte / Antwort (Kontext) / Detail (Fach- bzw. Zähler-Änderung) — besser überflogen. Bei mehreren Infos in einer Zeile (z.B. Drill "gemeistert") bleiben Ereignis und Detail kombiniert.
+
+---
+
 ## [3.2.35] - 2026-08-01
 
 ### Verbessert

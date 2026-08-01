@@ -465,11 +465,14 @@ function debug_format_date(?string $date): string {
     return date('d.m.', strtotime($date));
 }
 
+// $_SESSION['debug_last_answer'] ist ein Array aus 3 Zeilen: [Karte, Antwort (Kontext), Detail].
+// Wird dreizeilig dargestellt statt als ein langer Fliesstext-Satz — besser überflogen.
 function debug_panel(): string {
-    $msg = $_SESSION['debug_last_answer'] ?? null;
+    $lines = $_SESSION['debug_last_answer'] ?? null;
     unset($_SESSION['debug_last_answer']);
-    if (!$msg) return '';
-    // $msg wird beim Erzeugen bereits kontrolliert zusammengesetzt (debug_card_label escaped den
-    // einzigen freien Textteil), daher hier kein zusätzliches htmlspecialchars auf das Gesamtergebnis.
-    return '<div class="alert alert-info py-2 px-3 small mb-3"><i class="bi bi-bug me-1"></i>Debug: ' . $msg . '</div>';
+    if (!$lines) return '';
+    // Zeilen werden beim Erzeugen bereits kontrolliert zusammengesetzt (debug_card_label escaped
+    // den einzigen freien Textteil), daher hier kein zusätzliches htmlspecialchars.
+    $lines[0] = 'Debug: ' . $lines[0];
+    return '<div class="alert alert-info py-2 px-3 small mb-3"><i class="bi bi-bug me-1"></i>' . implode('<br>', $lines) . '</div>';
 }
