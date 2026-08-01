@@ -494,8 +494,11 @@ PROMPT;
                         </p>
 
                         <div class="mb-4">
-                            <label class="form-label fw-semibold">CSV-Datei <span class="text-danger">*</span></label>
-                            <input type="file" name="csv_file" class="form-control" accept=".csv" required>
+                            <label class="form-label fw-semibold" for="csv_file">CSV-Datei <span class="text-danger">*</span></label>
+                            <!-- accept nur mit Datei-Endung (".csv" allein) öffnet den nativen Datei-Dialog
+                                 auf manchen iOS-Safari-Versionen gar nicht — zusätzlich MIME-Types angeben. -->
+                            <input type="file" id="csv_file" name="csv_file" class="form-control"
+                                   accept=".csv,text/csv,text/comma-separated-values,application/vnd.ms-excel" required>
                             <div class="form-text">Max. 2MB · nur .csv · Encoding: UTF-8</div>
                         </div>
                         <button type="submit" class="btn btn-primary">Hochladen & prüfen</button>

@@ -567,6 +567,7 @@ Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler 
 - Hinweis auf erlaubte Trennzeichen (Komma oder Semikolon)
 - Downloadbare CSV-Vorlage (Vokabeln)
 - Duplikat-Warnung vor dem Import mit Entscheidungsmöglichkeit
+- **Datei-Auswahl-Feld** _(v3.2.40)_: `accept` gibt neben der Endung `.csv` zusätzlich die MIME-Types (`text/csv`, `text/comma-separated-values`, `application/vnd.ms-excel`) an — reine Endungs-Filter ohne MIME-Type können auf manchen iOS-Safari-Versionen dazu führen, dass sich der native Datei-Dialog beim Antippen gar nicht öffnet
 
 ---
 

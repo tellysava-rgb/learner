@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.40] - 2026-08-01
+
+### Behoben
+- **CSV-Import auf dem iPhone: "Datei auswählen"-Button reagierte nicht.** Das Datei-Feld hatte `accept=".csv"` — nur eine Datei-Endung ohne zugehörigen MIME-Type. Auf manchen iOS-Safari-Versionen öffnet sich der native Datei-Dialog dadurch beim Antippen gar nicht. `accept` enthält jetzt zusätzlich die MIME-Types `text/csv`, `text/comma-separated-values` und `application/vnd.ms-excel`. Nicht an einem echten iPhone verifiziert (kein Testgerät vorhanden) — bitte nach dem Deploy gegenprüfen.
+
+---
+
 ## [3.2.39] - 2026-08-01
 
 ### Verbessert
