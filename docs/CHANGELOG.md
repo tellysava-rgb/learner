@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.34] - 2026-08-01
+
+### Neu
+- **Debug-Modus:** neuer Schalter unter Einstellungen → Debug (unterhalb Deployment), nur für Admins. Zeigt bei Aktivierung in Leitner und Drill nach jeder beantworteten Karte ein Info-Panel mit dem genauen Vorher/Nachher-Status — Fach und Fälligkeit in Leitner, Zähler-Stand bzw. besondere Ereignisse (gemeistert, als zu schwer markiert, Vormerkung erreicht) in Drill. Erscheint einmalig wie eine Flash-Message, auch auf der jeweiligen Session-Zusammenfassung, falls die beantwortete Karte die letzte war. Der Schalter selbst ist global (`config-runtime.php`), das Panel wird aber ausschliesslich für Admin-Sessions gerendert, damit andere Personen im selben Haushalt keine internen Begriffe zu sehen bekommen.
+
+---
+
 ## [3.2.33] - 2026-08-01
 
 ### Verbessert

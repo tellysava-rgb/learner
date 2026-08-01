@@ -187,6 +187,7 @@ $pin_ratio        = DRILL_PIN_RATIO;
                         <li><strong>Einstellungen:</strong> Seitentitel, Session-Timeout, tägliches Karten-Limit sowie Timer und Schwellenwerte für den Drill-Modus.</li>
                         <li><strong>Benutzerverwaltung:</strong> von den Einstellungen aus erreichbar — neue Personen anlegen, Passwörter zurücksetzen, E-Mail-Adressen einer Person setzen, Admin-Status vergeben oder entziehen (der letzte verbleibende Admin kann nicht entfernt werden).</li>
                         <li><strong>Person wechseln:</strong> ein Admin kann vorübergehend als eine andere Person agieren (z.B. für Support), ohne sich neu einzuloggen — der eigene Admin-Status bleibt dabei erhalten.</li>
+                        <li><strong>Debug-Modus:</strong> eigener Schalter unter Einstellungen → Debug. Zeigt danach in Leitner und Drill nach jeder beantworteten Karte ein Info-Panel mit dem genauen Vorher/Nachher-Status (Fach, Fälligkeit, Zähler) — nützlich zum Nachvollziehen der Leitner-/Drill-Logik. Der Schalter ist zwar global, das Panel selbst sehen aber weiterhin nur Admins.</li>
                     </ul>
                     <p class="mb-0">Alle Personen — auch ohne Admin-Status — können ihr eigenes Passwort und ihre eigene E-Mail-Adresse selbst über das 🔑-Icon verwalten (siehe "Einstieg: Login & Person").</p>
                 </div>

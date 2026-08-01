@@ -150,7 +150,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
         exit;
     }
 
-    $intervals = LEITNER_INTERVALS;
+    $intervals     = LEITNER_INTERVALS;
+    $debug_enabled = DEBUG_MODE && !empty($_SESSION['is_admin']);
 
     if ($result === 'skip') {
         // Übersprungen → ans Ende der Queue, next_due_date unverändert
@@ -158,6 +159,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
         $stmt = $pdo->prepare("INSERT INTO learning_events (person_id, card_id, result, learn_date) VALUES (?,?,?,?)");
         $stmt->execute([$person_id, $card_id, 'skipped', $today]);
         array_shift($state['queue']);
+        if ($debug_enabled) {
+            $_SESSION['debug_last_answer'] = debug_card_label($pdo, $card_id) . ' — übersprungen, nichts geändert.';
+        }
         header('Location: learn.php');
         exit;
     }
@@ -166,18 +170,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
     $is_retry = isset($state['answered'][$card_id]);
     $state['answered'][$card_id] = ($state['answered'][$card_id] ?? 0) + 1;
 
-    // Aktuellen Leitner-Stand laden
-    $stmt = $pdo->prepare("SELECT leitner_box FROM card_progress WHERE person_id = ? AND card_id = ?");
+    // Aktuellen Leitner-Stand laden (next_due_date nur für die Vorher/Nachher-Anzeige im Debug-Modus nötig)
+    $stmt = $pdo->prepare("SELECT leitner_box, next_due_date FROM card_progress WHERE person_id = ? AND card_id = ?");
     $stmt->execute([$person_id, $card_id]);
     $cp = $stmt->fetch();
-    $current_box = (int) ($cp['leitner_box'] ?? 1);
+    $current_box  = (int) ($cp['leitner_box'] ?? 1);
+    $due_before   = $cp['next_due_date'] ?? null;
 
     if ($result === 'correct') {
         $state['stats']['correct']++;
 
         if ($is_retry) {
             // Zweiter Versuch richtig → bleibt in Fach 1, due = morgen
-            $due = date('Y-m-d', strtotime($today . ' +1 day'));
+            $due     = date('Y-m-d', strtotime($today . ' +1 day'));
+            $new_box = 1;
             $stmt = $pdo->prepare("UPDATE card_progress SET leitner_box=1, next_due_date=? WHERE person_id=? AND card_id=?");
             $stmt->execute([$due, $person_id, $card_id]);
         } else {
@@ -196,6 +202,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
 
         $db_result = 'correct';
 
+        if ($debug_enabled) {
+            $versuch = $is_retry ? '2. Versuch' : '1. Versuch';
+            $_SESSION['debug_last_answer'] = debug_card_label($pdo, $card_id)
+                . " — richtig ({$versuch}): Fach {$current_box}→{$new_box}, fällig "
+                . debug_format_date($due_before) . '→' . debug_format_date($due);
+        }
+
     } else {
         // Falsch
         $state['stats']['incorrect']++;
@@ -208,8 +221,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
 
             // Ans Ende der Queue für zweiten Versuch
             $state['queue'][] = $card_id;
+
+            if ($debug_enabled) {
+                $_SESSION['debug_last_answer'] = debug_card_label($pdo, $card_id)
+                    . " — falsch (1. Versuch): Fach {$current_box}→1, fällig "
+                    . debug_format_date($due_before) . '→' . debug_format_date($due) . ', kommt nochmal dran.';
+            }
+        } else {
+            // Zweiter Fehler → kein weiterer Versuch, Karte bleibt in Fach 1
+            if ($debug_enabled) {
+                $_SESSION['debug_last_answer'] = debug_card_label($pdo, $card_id)
+                    . ' — falsch (2. Versuch): bleibt Fach 1, kein weiterer Versuch in dieser Session.';
+            }
         }
-        // Zweiter Fehler → kein weiterer Versuch, Karte bleibt in Fach 1
 
         $db_result = 'incorrect';
     }
@@ -422,6 +446,7 @@ render_setup:
 $total_answered = ($done_data['stats']['correct'] ?? 0) + ($done_data['stats']['incorrect'] ?? 0);
 $no_cards_due   = ($total_answered === 0);
 ?>
+<?= debug_panel() ?>
 <div class="text-center">
     <?php if ($no_cards_due): ?>
     <div class="display-6 mb-2">✅</div>
@@ -493,6 +518,7 @@ $remaining = count($state['queue']);
 $total     = $remaining + $state['stats']['correct'] + $state['stats']['incorrect'];
 $is_retry  = isset($state['answered'][$current['id']]);
 ?>
+<?= debug_panel() ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <small class="text-muted">

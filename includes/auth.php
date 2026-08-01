@@ -449,3 +449,27 @@ function breadcrumb(array $items): string {
     $html .= '</ol></nav>';
     return $html;
 }
+
+// Debug-Modus (Einstellungen → Debug, nur für Admins): Hilfsfunktionen für die Vorher/Nachher-
+// Anzeige in learn.php/drill.php. Bewusst nur bei DEBUG_MODE + Admin aufgerufen — siehe
+// docs/ANFORDERUNGEN.md, Abschnitt "Debug-Modus".
+function debug_card_label(PDO $pdo, int $card_id): string {
+    $stmt = $pdo->prepare("SELECT word_a FROM cards WHERE id = ?");
+    $stmt->execute([$card_id]);
+    $word = $stmt->fetchColumn();
+    return '„' . htmlspecialchars($word ?: ('Karte #' . $card_id)) . '"';
+}
+
+function debug_format_date(?string $date): string {
+    if (!$date) return '–';
+    return date('d.m.', strtotime($date));
+}
+
+function debug_panel(): string {
+    $msg = $_SESSION['debug_last_answer'] ?? null;
+    unset($_SESSION['debug_last_answer']);
+    if (!$msg) return '';
+    // $msg wird beim Erzeugen bereits kontrolliert zusammengesetzt (debug_card_label escaped den
+    // einzigen freien Textteil), daher hier kein zusätzliches htmlspecialchars auf das Gesamtergebnis.
+    return '<div class="alert alert-info py-2 px-3 small mb-3"><i class="bi bi-bug me-1"></i>Debug: ' . $msg . '</div>';
+}

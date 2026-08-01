@@ -480,6 +480,15 @@ sowie oben links auf der Karte in der Kartenansicht (Direktlink `edit.php?...&hi
 - Erfolgsmeldung ("Test-E-Mail an ... wurde übergeben.") oder Fehlermeldung, je nach Rückgabewert von `mail()` — Fehlschläge zusätzlich im PHP-Error-Log
 - Zweck: Mailversand auf einem Server (v.a. nach Umzug/Hosterwechsel) unabhängig vom Passwort-Reset-Ablauf prüfen können
 
+### Debug-Modus _(v3.2.34)_
+- Eigene Karte auf der Einstellungsseite, unterhalb "Deployment": Ein/Aus-Schalter "Debug-Modus aktiv" → Konstante `DEBUG_MODE`, eigenes kleines Formular (`action=save_debug`), unabhängig vom grossen Einstellungs-Formular
+- **Global, aber nur für Admins sichtbar:** Der Schalter selbst gilt serverweit (in `config-runtime.php`), das Debug-Panel wird aber nur gerendert, wenn die eingeloggte Person zusätzlich Admin ist (`$_SESSION['is_admin']`) — andere Personen sehen bei aktivem Debug-Modus keinerlei Unterschied. Bleibt auch bei "Person wechseln" korrekt, da der Admin-Status dabei erhalten bleibt (siehe Abschnitt "Zugang / Benutzerverwaltung")
+- **Wirkung:** In `learn.php` und `drill.php` erscheint nach jeder beantworteten Karte ein `alert alert-info`-Panel (einmalig, wie eine Flash-Message) mit dem Vorher/Nachher-Status der gerade beantworteten Karte:
+  - Leitner: Fach vorher→nachher, Fälligkeit vorher→nachher; bei Übersprungen "nichts geändert"; bei 2. Versuch entsprechend vermerkt
+  - Drill: bei besonderen Ereignissen (gemeistert, als zu schwer markiert, Vormerkung erreicht) eine hervorgehobene Zeile mit Fach-/Zähler-Änderung; sonst der aktuelle Session-Zähler-Stand (z.B. "Zähler 2/3")
+  - Erscheint auch auf der jeweiligen Abschluss-/Zusammenfassungsseite, wenn die beantwortete Karte die letzte der Session war
+- Betrifft nur `learn.php`/`drill.php`, nicht `math.php`
+
 ---
 
 ## Benutzerverwaltung (`users.php`) _(v3.0.0)_

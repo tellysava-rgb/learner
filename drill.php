@@ -57,6 +57,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
     $stmt = $pdo->prepare("INSERT INTO learning_events (person_id, card_id, result, learn_date) VALUES (?,?,?,?)");
     $stmt->execute([$person_id, $card_id, $result, $state['today']]);
 
+    // Debug-Modus (Einstellungen → Debug, nur Admins): Vorher-Snapshot vor allen Änderungen —
+    // Nachher-Snapshot folgt unten, unverändert an der bestehenden Logik dazwischen.
+    $debug_enabled = DEBUG_MODE && !empty($_SESSION['is_admin']);
+    $debug_snapshot_sql = "SELECT leitner_box, next_due_date, drill_mastery, drill_too_hard, drill_pinned_correct FROM card_progress WHERE person_id=? AND card_id=?";
+    $debug_before = null;
+    if ($debug_enabled) {
+        $stmt = $pdo->prepare($debug_snapshot_sql);
+        $stmt->execute([$person_id, $card_id]);
+        $debug_before = $stmt->fetch();
+    }
+
     // Vorgemerkte Karten laufen über einen eigenen Zähler (drill_pinned_correct), komplett getrennt
     // von session_correct/drill_mastery — master_card()/mark_too_hard_card() dürfen hier NIE greifen,
     // sonst würde eine längst weit im Leitner-System fortgeschrittene Karte auf ein niedrigeres
@@ -88,6 +99,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
         }
     }
 
+    if ($debug_enabled) {
+        $stmt = $pdo->prepare($debug_snapshot_sql);
+        $stmt->execute([$person_id, $card_id]);
+        $debug_after = $stmt->fetch();
+        $session_counter = $result === 'known'
+            ? ($state['session_correct'][$card_id] ?? 0)
+            : ($state['session_unknown'][$card_id] ?? 0);
+        $_SESSION['debug_last_answer'] = debug_drill_message($pdo, $card_id, $result, $is_pinned, $debug_before, $debug_after, $session_counter);
+    }
+
     // Session-Ende: Timer abgelaufen oder keine Karten mehr
     $elapsed  = time() - $state['started_at'];
     $no_cards = empty($state['pool_known']) && empty($state['pool_new']) && empty($state['pool_pinned']);
@@ -114,6 +135,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
 // -------------------------------------------------------
 // Hilfsfunktionen
 // -------------------------------------------------------
+
+// Debug-Modus: baut die Vorher/Nachher-Meldung aus den beiden Snapshots. Erkennt besondere
+// Ereignisse (gemeistert, zu schwer markiert, Vormerkung erreicht) an der jeweiligen Feldänderung,
+// statt sie separat nachzuverfolgen — robust gegenüber Änderungen an master_card()/mark_too_hard_card().
+function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_pinned, array $before, array $after, int $session_counter): string {
+    $label   = debug_card_label($pdo, $card_id);
+    $antwort = $result === 'known' ? 'gewusst' : 'musste nachdenken';
+
+    if ($was_pinned) {
+        if ($before['drill_pinned_correct'] !== null && $after['drill_pinned_correct'] === null) {
+            return "{$label} — {$antwort} (vorgemerkt): Schwelle erreicht, Vormerkung entfernt. Fach unverändert (Fach {$after['leitner_box']}).";
+        }
+        return "{$label} — {$antwort} (vorgemerkt): Zähler " . ($before['drill_pinned_correct'] ?? 0) . '→' . ($after['drill_pinned_correct'] ?? 0) . '.';
+    }
+
+    if ((int)$before['drill_mastery'] !== (int)$after['drill_mastery']) {
+        return "{$label} — {$antwort}: gemeistert ({$after['drill_mastery']}×), Fach {$before['leitner_box']}→{$after['leitner_box']}, fällig "
+            . debug_format_date($before['next_due_date']) . '→' . debug_format_date($after['next_due_date']);
+    }
+
+    if ((int)$before['drill_too_hard'] !== (int)$after['drill_too_hard']) {
+        return "{$label} — {$antwort}: als zu schwer markiert, bis morgen pausiert.";
+    }
+
+    $limit = $result === 'known' ? DRILL_MASTERY_THRESHOLD : DRILL_TOO_HARD_LIMIT;
+    return "{$label} — {$antwort}: Zähler {$session_counter}/{$limit}, keine Statusänderung.";
+}
 
 function start_drill_session(PDO $pdo, int $person_id, array $list_ids): void {
     $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
@@ -426,6 +474,7 @@ if (!$state && !$done_data) {
 
 <?php if ($done_data !== null): ?>
 <!-- ==================== ABSCHLUSS ==================== -->
+<?= debug_panel() ?>
 <div class="text-center">
     <div class="display-6 mb-2">
         <?= ($done_data['stats']['mastered'] ?? 0) > 0 ? '🎉' : '💪' ?>
@@ -484,6 +533,7 @@ if (!$state && !$done_data) {
 
 <?php elseif ($state && $card_data): ?>
 <!-- ==================== KARTE ==================== -->
+<?= debug_panel() ?>
 
 <div class="learn-card mx-auto mb-4 position-relative" id="flip-card" style="max-width:540px; cursor:pointer;" onclick="flipCard()">
     <?php if ($card_data['drill_pinned_correct'] !== null): ?>

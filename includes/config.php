@@ -1,5 +1,5 @@
 <?php
-define('APP_VERSION', '3.2.33');
+define('APP_VERSION', '3.2.34');
 define('TIMEZONE', 'Europe/Zurich');
 define('LEITNER_INTERVALS', [1 => 1, 2 => 2, 3 => 7, 4 => 14, 5 => 30]);
 date_default_timezone_set(TIMEZONE);
@@ -36,6 +36,10 @@ $_rt = [
     // einschieben, normale known/new-Rotation läuft parallel weiter.
     'DRILL_PIN_MODE'         => 'weighted',
     'DRILL_PIN_RATIO'        => 5,
+
+    // Debug-Modus (Einstellungen → Debug): zeigt Admins nach jeder Antwort in Leitner/Drill ein
+    // Panel mit Vorher/Nachher-Status der Karte (Fach, Fälligkeit, Zähler etc.).
+    'DEBUG_MODE'             => false,
 ];
 if (file_exists(__DIR__ . '/config-runtime.php')) {
     $_rt = array_merge($_rt, require __DIR__ . '/config-runtime.php');

@@ -78,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'DRILL_KNOWN_RATIO'      => $vals['drill_known_ratio'],
                 'DRILL_PIN_MODE'         => $pin_mode,
                 'DRILL_PIN_RATIO'        => $vals['drill_pin_ratio'],
+                'DEBUG_MODE'             => DEBUG_MODE,
             ];
 
             $lines = "<?php return [\n";
@@ -125,6 +126,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: settings.php');
         exit;
     }
+
+    if (($_POST['action'] ?? '') === 'save_debug') {
+        // Eigenes kleines Formular statt Teil des grossen Einstellungs-Formulars — Checkbox
+        // schickt bei "aus" gar kein Feld mit. Andere Runtime-Werte bleiben unverändert, da sie
+        // aus den aktuell geladenen Konstanten übernommen werden (nicht aus $_POST).
+        $debug_mode = isset($_POST['debug_mode']);
+
+        $runtime = [
+            'APP_NAME'               => APP_NAME,
+            'APP_BASE_URL'           => APP_BASE_URL,
+            'MAIL_FROM'              => MAIL_FROM,
+            'SESSION_TIMEOUT'        => SESSION_TIMEOUT,
+            'DAILY_CARD_LIMIT'       => DAILY_CARD_LIMIT,
+            'LEITNER_DEFAULT_CARDS'  => LEITNER_DEFAULT_CARDS,
+            'DRILL_SESSION_SECONDS'  => DRILL_SESSION_SECONDS,
+            'DRILL_TOO_HARD_LIMIT'   => DRILL_TOO_HARD_LIMIT,
+            'DRILL_MASTERY_THRESHOLD'=> DRILL_MASTERY_THRESHOLD,
+            'DRILL_KNOWN_RATIO'      => DRILL_KNOWN_RATIO,
+            'DRILL_PIN_MODE'         => DRILL_PIN_MODE,
+            'DRILL_PIN_RATIO'        => DRILL_PIN_RATIO,
+            'DEBUG_MODE'             => $debug_mode,
+        ];
+
+        $lines = "<?php return [\n";
+        foreach ($runtime as $k => $v) {
+            $lines .= is_int($v)
+                ? "    '{$k}' => {$v},\n"
+                : "    '{$k}' => " . var_export($v, true) . ",\n";
+        }
+        $lines .= "];\n";
+
+        if (file_put_contents($runtime_path, $lines) !== false) {
+            $_SESSION['flash_success'] = $debug_mode ? 'Debug-Modus aktiviert.' : 'Debug-Modus deaktiviert.';
+        } else {
+            $_SESSION['flash_errors'] = ['Fehler beim Schreiben von config-runtime.php. Prüfe die Dateirechte.'];
+        }
+        header('Location: settings.php');
+        exit;
+    }
 }
 
 // Aktuelle Werte (frisch aus config, nach PRG-Redirect)
@@ -148,6 +188,7 @@ $cur_mastery     = DRILL_MASTERY_THRESHOLD;
 $cur_known_ratio = DRILL_KNOWN_RATIO;
 $cur_pin_mode    = DRILL_PIN_MODE;
 $cur_pin_ratio   = DRILL_PIN_RATIO;
+$cur_debug_mode  = DEBUG_MODE;
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -477,6 +518,28 @@ $cur_pin_ratio   = DRILL_PIN_RATIO;
         </div>
     </div>
     <?php endif; ?>
+
+    <div class="mt-4">
+        <div class="card">
+            <div class="list-group list-group-flush">
+                <div class="list-group-item bg-light py-2">
+                    <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing:.05em;">Debug</span>
+                </div>
+                <div class="list-group-item py-3">
+                    <p class="text-muted small mb-2">Zeigt nach jeder Antwort in Leitner und Drill ein Panel mit dem Vorher/Nachher-Status der Karte (Fach, Fälligkeit, Zähler) — nur für Admins sichtbar.</p>
+                    <form method="post" class="d-flex align-items-center gap-2">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="action" value="save_debug">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" role="switch" name="debug_mode" id="debug_mode" <?= $cur_debug_mode ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="debug_mode">Debug-Modus aktiv</label>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-outline-primary ms-auto">Speichern</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     </div>
     </div>
