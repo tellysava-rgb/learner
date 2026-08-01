@@ -316,7 +316,7 @@ if (str_starts_with($filter, 'box')) {
             if ($c['status'] === 'active' && $c['leitner_box']) $counts['box' . $c['leitner_box']]++;
             if ($c['drill_pinned_correct'] !== null) $counts['pinned']++;
         }
-        $filters = ['all' => 'Alle', 'active' => 'Aktiv', 'queued' => 'Warteschlange', 'archived' => 'Archiviert', 'pinned' => 'Vorgemerkt'];
+        $filters = ['all' => 'Alle', 'active' => 'Aktiv', 'queued' => 'Warteschlange', 'archived' => 'Archiviert', 'pinned' => 'Für Drill vorgemerkt'];
         foreach ($filters as $key => $label):
         ?>
         <a href="edit.php?list_id=<?= $list_id ?>&filter=<?= $key ?>"
@@ -418,7 +418,7 @@ if (str_starts_with($filter, 'box')) {
                             <span class="badge bg-secondary">Archiviert</span>
                         <?php endif; ?>
                         <?php if ($card['drill_pinned_correct'] !== null): ?>
-                        <span class="badge bg-primary" title="Für Drill vorgemerkt"><i class="bi bi-pin-angle-fill"></i> Vorgemerkt</span>
+                        <span class="badge bg-primary" title="Für Drill vorgemerkt"><i class="bi bi-pin-angle-fill"></i> Für Drill vorgemerkt</span>
                         <?php endif; ?>
                     </td>
                     <td class="text-end" style="min-width:170px;">

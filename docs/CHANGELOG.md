@@ -5,6 +5,14 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.35] - 2026-08-01
+
+### Verbessert
+- **Debug-Panel für vorgemerkte Karten war missverständlich:** Die Meldung zeigte nur "Zähler 0→0" ohne Kontext, sodass leicht der Eindruck entstehen konnte, es handle sich um das Leitner-Fach statt um den Vormerkungs-Zähler. Text jetzt explizit ("Vormerkungs-Zähler (richtige Antworten seit dem Vormerken)"), inkl. Hinweis, dass das Fach unverändert bleibt bzw. bei noch nicht in Leitner aktiven Karten (Warteschlange) gar nicht erst betroffen ist — vorher stand dort "(Fach )" ohne Wert.
+- **"Vorgemerkt" vereinheitlicht zu "Für Drill vorgemerkt"**: Filter-Tab und Status-Badge in der Kartenübersicht (`edit.php`) verwendeten bisher nur das kontextlose Wort "Vorgemerkt" — jetzt konsistent mit den Tooltips und den Drill-Debug-Meldungen.
+
+---
+
 ## [3.2.34] - 2026-08-01
 
 ### Neu

@@ -144,10 +144,14 @@ function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_p
     $antwort = $result === 'known' ? 'gewusst' : 'musste nachdenken';
 
     if ($was_pinned) {
+        $box_note = $after['leitner_box'] !== null ? "Fach bleibt unverändert (Fach {$after['leitner_box']})" : 'noch nicht in Leitner aktiv (Warteschlange), auch daran ändert das Vormerken nichts';
+
         if ($before['drill_pinned_correct'] !== null && $after['drill_pinned_correct'] === null) {
-            return "{$label} — {$antwort} (vorgemerkt): Schwelle erreicht, Vormerkung entfernt. Fach unverändert (Fach {$after['leitner_box']}).";
+            return "{$label} — {$antwort}. Für Drill vorgemerkt: Vormerkungs-Schwelle erreicht, Vormerkung entfernt, {$box_note}.";
         }
-        return "{$label} — {$antwort} (vorgemerkt): Zähler " . ($before['drill_pinned_correct'] ?? 0) . '→' . ($after['drill_pinned_correct'] ?? 0) . '.';
+        return "{$label} — {$antwort}. Für Drill vorgemerkt: Vormerkungs-Zähler (richtige Antworten seit dem Vormerken) "
+            . ($before['drill_pinned_correct'] ?? 0) . '→' . ($after['drill_pinned_correct'] ?? 0)
+            . ", {$box_note}.";
     }
 
     if ((int)$before['drill_mastery'] !== (int)$after['drill_mastery']) {
