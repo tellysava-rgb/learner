@@ -100,6 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     drill_mastery   TINYINT      NOT NULL DEFAULT 0,
                     drill_too_hard  TINYINT(1)   NOT NULL DEFAULT 0,
                     last_drill_shown DATE        NULL DEFAULT NULL,
+                    drill_pinned_correct TINYINT NULL DEFAULT NULL,
                     UNIQUE KEY unique_person_card (person_id, card_id),
                     FOREIGN KEY (card_id)   REFERENCES cards(id)   ON DELETE CASCADE,
                     FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE

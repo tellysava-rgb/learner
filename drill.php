@@ -57,7 +57,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
     $stmt = $pdo->prepare("INSERT INTO learning_events (person_id, card_id, result, learn_date) VALUES (?,?,?,?)");
     $stmt->execute([$person_id, $card_id, $result, $state['today']]);
 
-    if ($result === 'known') {
+    // Vorgemerkte Karten laufen über einen eigenen Zähler (drill_pinned_correct), komplett getrennt
+    // von session_correct/drill_mastery — master_card()/mark_too_hard_card() dürfen hier NIE greifen,
+    // sonst würde eine längst weit im Leitner-System fortgeschrittene Karte auf ein niedrigeres
+    // Fach zurückgestuft (siehe docs/ANFORDERUNGEN.md, Abschnitt "Manuelle Vormerkung für Drill").
+    $is_pinned = in_array($card_id, $state['pool_pinned'] ?? [], true);
+
+    if ($is_pinned) {
+        if ($result === 'known') {
+            $state['stats']['known']++;
+            pin_progress_correct($pdo, $state, $person_id, $card_id);
+        } else {
+            $state['stats']['unknown']++;
+            pin_progress_reset($pdo, $person_id, $card_id);
+        }
+    } elseif ($result === 'known') {
         $state['stats']['known']++;
         $state['session_correct'][$card_id] = ($state['session_correct'][$card_id] ?? 0) + 1;
 
@@ -76,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
 
     // Session-Ende: Timer abgelaufen oder keine Karten mehr
     $elapsed  = time() - $state['started_at'];
-    $no_cards = empty($state['pool_known']) && empty($state['pool_new']);
+    $no_cards = empty($state['pool_known']) && empty($state['pool_new']) && empty($state['pool_pinned']);
 
     if ($elapsed >= DRILL_SESSION_SECONDS || $no_cards) {
         finish_drill_session($pdo, $state, $person_id);
@@ -114,9 +128,9 @@ function start_drill_session(PDO $pdo, int $person_id, array $list_ids): void {
     }
 
     $today = today();
-    ['known' => $pool_known, 'new' => $pool_new] = load_drill_pool($pdo, $person_id, $valid_ids, $today);
+    ['known' => $pool_known, 'new' => $pool_new, 'pinned' => $pool_pinned] = load_drill_pool($pdo, $person_id, $valid_ids, $today);
 
-    if (!$pool_known && !$pool_new) {
+    if (!$pool_known && !$pool_new && !$pool_pinned) {
         $_SESSION['flash_error'] = 'Keine geeigneten Karten für Drill in dieser Liste.';
         header('Location: home.php');
         exit;
@@ -131,7 +145,9 @@ function start_drill_session(PDO $pdo, int $person_id, array $list_ids): void {
         'list_ids'        => $valid_ids,
         'pool_known'      => $pool_known,
         'pool_new'        => $pool_new,
+        'pool_pinned'     => $pool_pinned,
         'cycle_pos'       => 0,
+        'pin_cycle_pos'   => 0,
         'current_card_id' => null,
         'session_correct' => [],
         'session_unknown' => [],
@@ -161,59 +177,109 @@ function load_drill_pool(PDO $pdo, int $person_id, array $list_ids, string $toda
     $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
     $params = array_merge([$person_id], $list_ids, [$today]);
 
+    // Vorgemerkte Karten (drill_pinned_correct IS NOT NULL) sind von der drill_too_hard-Tagessperre
+    // ausgenommen — sie sollen trotz wiederholtem "Musste nachdenken" im Pool bleiben.
     $stmt = $pdo->prepare("
-        SELECT cp.card_id, cp.drill_mastery
+        SELECT cp.card_id, cp.drill_mastery, cp.drill_pinned_correct
         FROM card_progress cp
         JOIN cards c ON c.id = cp.card_id
         WHERE cp.person_id = ?
           AND c.list_id IN ($placeholders)
           AND cp.status != 'archived'
-          AND (cp.drill_too_hard = 0
+          AND (cp.drill_pinned_correct IS NOT NULL
+               OR cp.drill_too_hard = 0
                OR (cp.drill_too_hard = 1 AND (cp.last_drill_shown IS NULL OR cp.last_drill_shown < ?)))
         ORDER BY RAND()
     ");
     $stmt->execute($params);
 
-    $known = [];
-    $new   = [];
+    // Eine Karte landet ausschliesslich in einem der drei Pools — pinned hat Vorrang vor
+    // known/new, damit der Antwort-Handler eindeutig weiss, welcher Zweig zuständig ist.
+    $known  = [];
+    $new    = [];
+    $pinned = [];
     foreach ($stmt->fetchAll() as $row) {
-        if ((int)$row['drill_mastery'] >= 1) {
+        if ($row['drill_pinned_correct'] !== null) {
+            $pinned[] = (int)$row['card_id'];
+        } elseif ((int)$row['drill_mastery'] >= 1) {
             $known[] = (int)$row['card_id'];
         } else {
             $new[] = (int)$row['card_id'];
         }
     }
-    return ['known' => $known, 'new' => $new];
+    return ['known' => $known, 'new' => $new, 'pinned' => $pinned];
 }
 
-// Wählt die nächste Karte nach dem 9:1-Prinzip:
-// 9 Karten aus dem Known-Pool (rotierend), dann 1 aus dem New-Pool.
-// Neu eingeführte Karten wandern in den Known-Pool und rotieren mit.
+// Wählt die nächste Karte. Vorgemerkte Karten (pool_pinned) werden priorisiert eingeschoben:
+// Modus 'absolute' = immer zuerst, solange welche vorgemerkt sind; Modus 'weighted' = alle
+// DRILL_PIN_RATIO Karten eine vorgemerkte einschieben, das bekannte 9:1-Prinzip (Known-Pool
+// rotierend, jede 9. Karte neu) läuft für die übrigen Karten unverändert parallel weiter.
 function next_drill_card(array &$state): ?int {
-    $ratio = DRILL_KNOWN_RATIO;
+    $has_pinned = !empty($state['pool_pinned']);
+    $has_known  = !empty($state['pool_known']);
+    $has_new    = !empty($state['pool_new']);
 
-    $has_known = !empty($state['pool_known']);
-    $has_new   = !empty($state['pool_new']);
+    if (!$has_pinned && !$has_known && !$has_new) return null;
 
-    if (!$has_known && !$has_new) return null;
+    $pin_due = $has_pinned && (
+        DRILL_PIN_MODE === 'absolute'
+        || $state['pin_cycle_pos'] >= DRILL_PIN_RATIO
+        || (!$has_known && !$has_new)
+    );
 
+    if ($pin_due) {
+        $state['pin_cycle_pos'] = 0;
+        $id = array_shift($state['pool_pinned']);
+        $state['pool_pinned'][] = $id;
+        return $id;
+    }
+
+    $ratio    = DRILL_KNOWN_RATIO;
     $pick_new = ($state['cycle_pos'] >= $ratio) || !$has_known;
 
     if ($pick_new && $has_new) {
         $state['cycle_pos'] = 0;
         $id = array_shift($state['pool_new']);
         $state['pool_known'][] = $id;
-        return $id;
-    }
-
-    if ($has_known) {
+    } else {
         $state['cycle_pos']++;
         $id = array_shift($state['pool_known']);
         $state['pool_known'][] = $id;
-        return $id;
     }
+    if ($has_pinned) $state['pin_cycle_pos']++;
+    return $id;
+}
 
-    return null;
+// Richtige Antwort auf eine vorgemerkte Karte: eigener Zähler, rührt leitner_box/status/
+// drill_mastery nie an. Das UPDATE ist bedingt auf "noch vorgemerkt" — wurde die Vormerkung
+// zwischenzeitlich manuell entfernt (z.B. zweiter Tab während laufender Session), wird dieses
+// Increment zum No-Op statt die Vormerkung ungewollt wiederzubeleben.
+function pin_progress_correct(PDO $pdo, array &$state, int $person_id, int $card_id): void {
+    $stmt = $pdo->prepare("
+        UPDATE card_progress SET drill_pinned_correct = drill_pinned_correct + 1
+        WHERE person_id = ? AND card_id = ? AND drill_pinned_correct IS NOT NULL
+    ");
+    $stmt->execute([$person_id, $card_id]);
+
+    $stmt = $pdo->prepare("SELECT drill_pinned_correct FROM card_progress WHERE person_id = ? AND card_id = ?");
+    $stmt->execute([$person_id, $card_id]);
+    $value = $stmt->fetchColumn();
+
+    if ($value !== false && $value !== null && (int)$value >= DRILL_MASTERY_THRESHOLD) {
+        $stmt = $pdo->prepare("UPDATE card_progress SET drill_pinned_correct = NULL WHERE person_id = ? AND card_id = ?");
+        $stmt->execute([$person_id, $card_id]);
+        $state['pool_pinned'] = array_values(array_filter($state['pool_pinned'], fn($id) => $id !== $card_id));
+    }
+}
+
+// Falsche Antwort auf eine vorgemerkte Karte: Zähler zurück auf 0 (wie session_correct bei
+// known/new), aber keine drill_too_hard-Sperre — Karte bleibt im pool_pinned.
+function pin_progress_reset(PDO $pdo, int $person_id, int $card_id): void {
+    $stmt = $pdo->prepare("
+        UPDATE card_progress SET drill_pinned_correct = 0
+        WHERE person_id = ? AND card_id = ? AND drill_pinned_correct IS NOT NULL
+    ");
+    $stmt->execute([$person_id, $card_id]);
 }
 
 function master_card(PDO $pdo, array &$state, int $person_id, int $card_id, string $today): void {
@@ -294,8 +360,14 @@ $state     = $_SESSION['drill'] ?? null;
 $card_data = null;
 
 if ($state && $state['current_card_id']) {
-    $stmt = $pdo->prepare("SELECT c.*, l.language_a, l.language_b, l.speech_lang_b FROM cards c JOIN lists l ON l.id = c.list_id WHERE c.id = ?");
-    $stmt->execute([$state['current_card_id']]);
+    $stmt = $pdo->prepare("
+        SELECT c.*, l.language_a, l.language_b, l.speech_lang_b, cp.drill_pinned_correct
+        FROM cards c
+        JOIN lists l ON l.id = c.list_id
+        LEFT JOIN card_progress cp ON cp.card_id = c.id AND cp.person_id = ?
+        WHERE c.id = ?
+    ");
+    $stmt->execute([$person_id, $state['current_card_id']]);
     $card_data = $stmt->fetch() ?: null;
 }
 
@@ -413,7 +485,11 @@ if (!$state && !$done_data) {
 <?php elseif ($state && $card_data): ?>
 <!-- ==================== KARTE ==================== -->
 
-<div class="learn-card mx-auto mb-4" id="flip-card" style="max-width:540px; cursor:pointer;" onclick="flipCard()">
+<div class="learn-card mx-auto mb-4 position-relative" id="flip-card" style="max-width:540px; cursor:pointer;" onclick="flipCard()">
+    <?php if ($card_data['drill_pinned_correct'] !== null): ?>
+    <span class="position-absolute badge bg-primary" style="top:8px; left:8px; z-index:2;"
+          title="Für Drill vorgemerkt"><i class="bi bi-pin-angle-fill"></i></span>
+    <?php endif; ?>
     <div class="text-center p-5" style="min-height:280px;">
         <p class="text-muted small mb-2"><?= htmlspecialchars($card_data['language_a']) ?></p>
         <div class="fw-bold fs-2 mb-1"><?= htmlspecialchars($card_data['word_a']) ?></div>

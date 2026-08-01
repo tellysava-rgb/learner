@@ -348,7 +348,7 @@ if ($state) {
     $card_id = $state['queue'][0] ?? null;
     if ($card_id) {
         $stmt = $pdo->prepare("
-            SELECT c.*, cp.leitner_box,
+            SELECT c.*, cp.leitner_box, cp.drill_pinned_correct,
                    l.language_a, l.language_b, l.speech_lang_b
             FROM cards c
             JOIN card_progress cp ON cp.card_id = c.id AND cp.person_id = ?
@@ -508,8 +508,12 @@ $is_retry  = isset($state['answered'][$current['id']]);
 </div>
 
 <!-- Karte (klicken zum Aufdecken) -->
-<div class="learn-card mx-auto mb-4"
+<div class="learn-card mx-auto mb-4 position-relative"
      id="learn-card" style="max-width:540px; cursor:pointer;" onclick="flipCard()">
+    <?php if ($current['drill_pinned_correct'] !== null): ?>
+    <span class="position-absolute badge bg-primary" style="top:8px; left:8px; z-index:2;"
+          title="Für Drill vorgemerkt"><i class="bi bi-pin-angle-fill"></i></span>
+    <?php endif; ?>
     <div class="text-center p-5" style="min-height:280px;">
         <p class="text-muted small mb-2"><?= htmlspecialchars($qa['q_lang']) ?></p>
         <div class="fw-bold fs-2 mb-1">

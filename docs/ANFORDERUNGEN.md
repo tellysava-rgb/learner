@@ -271,6 +271,9 @@ card_progress Tabelle:
 - drill_mastery     → 0-3 (Anzahl gemeisterter Drill-Sessions)
 - drill_too_hard    → boolean, wird auf true gesetzt nach 5× "Noch nicht gewusst" in einer Session
                       wird zurückgesetzt zu false beim ersten Zugriff eines neuen Kalendertags (Zeitzone: Europe/Zurich)
+- drill_pinned_correct → NULL = nicht "für Drill vorgemerkt", 0..N-1 = korrekte Antworten seit dem
+                      Vormerken. Eigenständig von drill_mastery, siehe Abschnitt
+                      "Manuelle Vormerkung für Drill" _(v3.3.0)_
 ```
 
 ### Ablauf Warteschlange
@@ -404,6 +407,33 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 
 - Drill-Fortschritt (`drill_mastery`) wird **separat** gespeichert
 - Leitner-Fächer werden nur durch den obigen Übergang beeinflusst, nie durch Drill-Fehler
+
+### Manuelle Vormerkung für Drill _(v3.3.0)_
+Zusätzlich zur automatischen Karten-Auswahl kann jede Karte einzeln manuell "für Drill vormerken"
+werden — Kartenübersicht `edit.php`: Pin-Icon (<i class="bi bi-pin-angle"></i>) in der Aktionsleiste
+sowie oben links auf der Karte in der Kartenansicht (Direktlink `edit.php?...&highlight=<id>`).
+
+- Eigenes Feld `drill_pinned_correct` — **unabhängig von `drill_mastery`**. Grund: `drill_mastery`
+  steuert über eine feste Fach-Zuordnung (`master_card()`) den Einstieg ins Leitner-System (siehe
+  Tabelle oben). Würde Vormerken denselben Zähler nutzen, könnte eine Karte, die über normales
+  Leitner-Lernen bereits in einem hohen Fach steht, beim Vormerken/Drillen auf ein niedrigeres Fach
+  zurückgestuft werden.
+- Vorgemerkte Karten erscheinen im Drill-Modus **priorisiert**, Modus in den Einstellungen
+  konfigurierbar:
+  - **Absolut:** werden immer zuerst gezeigt, solange mindestens eine vorgemerkte Karte übrig ist
+  - **Gewichtet:** alle `DRILL_PIN_RATIO` Karten wird eine vorgemerkte Karte eingeschoben, die
+    normale 9:1-Rotation (known/new) läuft für die übrigen Karten parallel unverändert weiter
+- Bei `DRILL_MASTERY_THRESHOLD`× richtiger Antwort **in Folge seit dem Vormerken** wird die
+  Vormerkung automatisch entfernt (`drill_pinned_correct = NULL`) — **ohne** jeden Einfluss auf
+  `leitner_box`, `status` oder `drill_mastery`. Das Leitner-System läuft während der gesamten
+  Vormerkzeit unverändert normal weiter, die Karte wird nicht "eingefroren".
+- Falsche Antwort auf eine vorgemerkte Karte setzt den Zähler auf 0 zurück (wie beim normalen
+  Session-Zähler), aber **ohne** die `drill_too_hard`-Tagessperre — die Karte bleibt trotz
+  wiederholtem "Musste nachdenken" im aktiven Drill-Pool.
+- Vormerkung kann jederzeit auch manuell wieder entfernt werden (gleiches Icon).
+- Archivierte Karten können nicht vorgemerkt werden.
+- Listen-Scoping gilt wie gewohnt: eine vorgemerkte Karte erscheint im Drill nur, wenn ihre Liste
+  für die Session ausgewählt wurde.
 
 ### Gilt für
 - Mathe-Listen (Multiplikation, Division)

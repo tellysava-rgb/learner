@@ -14,7 +14,7 @@ function run_pending_migrations(PDO $pdo): void {
     // eine Neuinstallation ohnehin nie eine dieser Migrationen braucht. Nachzulesen in der
     // Git-Historie (includes/migrations.php vor v3.2.21), falls je ein sehr altes Backup
     // (vor v3.2.20) wiederhergestellt werden muss.
-    // Nächste neue Migration hier mit der ID 15 beginnen (bestehende db_version bleibt bei 14).
+    // Nächste neue Migration hier mit der ID 16 beginnen (bestehende db_version bleibt bei 15).
     $migrations = [
         // Rate-Limiting für Login und "Passwort vergessen" (v3.2.23).
         14 => "CREATE TABLE IF NOT EXISTS auth_attempts (
@@ -24,6 +24,10 @@ function run_pending_migrations(PDO $pdo): void {
                    attempted_at DATETIME    NOT NULL,
                    INDEX idx_auth_attempts_lookup (scope, ip, attempted_at)
                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+
+        // "Für Drill vormerken" (v3.3.0): NULL = nicht vorgemerkt, 0..N-1 = korrekte Antworten
+        // seit dem Vormerken — eigenständig von drill_mastery, siehe docs/ANFORDERUNGEN.md.
+        15 => "ALTER TABLE card_progress ADD COLUMN drill_pinned_correct TINYINT NULL DEFAULT NULL",
     ];
 
     // db_version aus settings lesen — falls Tabelle noch nicht existiert (vor install.php): abbrechen

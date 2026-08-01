@@ -52,6 +52,7 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 ## 4. Berechtigungen / Parameter _(v3.2.23)_
 [ ] `edit.php`: Archivieren mit einer `card_id`, die zu einer FREMDEN Liste gehört (manueller POST) → "Karte nicht gefunden.", kein `card_progress`-Eintrag entsteht. _(v3.2.23)_
 [ ] `edit.php`: Reaktivieren mit fremder `card_id` (manueller POST) → ebenfalls abgelehnt. _(v3.2.23)_
+[ ] `edit.php`: Vormerken/Entfernen (`toggle_pin`) mit fremder `card_id` (manueller POST) → ebenfalls abgelehnt, kein `card_progress`-Eintrag entsteht. _(v3.3.0)_
 [ ] `edit.php`: Archivieren/Reaktivieren eigener Karten funktioniert unverändert. _(v3.2.23)_
 [ ] `stats.php?list_id=<fremde ID>` → Redirect auf die erste eigene Liste, keine fremden Daten, kein "alle Listen"-Modus. _(v3.2.23)_
 [ ] `math.php`: Liste mit `<b>`/`"` im Namen anlegen und Duplikat-Warnung auslösen → Name erscheint als Text, kein HTML wird interpretiert. _(v3.2.23)_
@@ -88,5 +89,23 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] "Person löschen" auf dem iPhone: Checkbox antippbar, "Endgültig löschen" erst danach absendbar. _(v3.2.28)_
 [ ] Am Desktop funktionieren alle drei Modals unverändert. _(v3.2.28)_
 [ ] Auch bei vielen Personen (Tabelle breiter als das Display, seitlich scrollbar) bleiben die Modals bedienbar. _(v3.2.28)_
+
+## 8. Für Drill vormerken _(v3.3.0)_
+
+[ ] `edit.php`: Pin-Icon in der Aktionsleiste toggelt die Vormerkung; Status wechselt sofort sichtbar (gefülltes vs. leeres Pin-Symbol, Badge "Vorgemerkt" in der Status-Spalte). _(v3.3.0)_
+[ ] `edit.php`: Kartenansicht (Direktlink `highlight=<id>`) zeigt das Pin-Icon oben links auf der Karte, klickbar ohne dass die Karte dabei umdreht. _(v3.3.0)_
+[ ] Archivierte Karte: Vormerken ist nicht möglich (Icon ausgeblendet/deaktiviert bzw. Aktion liefert Fehlermeldung). _(v3.3.0)_
+[ ] Neu importierte Karte, für die noch nie eine Leitner-Session gestartet wurde: Vormerken funktioniert trotzdem (kein stiller Fehlschlag durch fehlende `card_progress`-Zeile). _(v3.3.0)_
+[ ] Filter-Tab "Vorgemerkt" zeigt genau die vorgemerkten Karten dieser Liste, Zähler stimmt. _(v3.3.0)_
+[ ] Eine Karte in Leitner-Fach 4 vormerken → Fach bleibt unverändert Fach 4, `next_due_date` bleibt unverändert, solange sie im Drill geübt wird. _(v3.3.0)_
+[ ] Vorgemerkte Karte im Drill: erscheint deutlich häufiger als unvorgemerkte Karten; ausgefülltes Pin-Symbol oben links auf der Drill-Karte sichtbar; dasselbe Symbol erscheint auf der Leitner-Karte, falls die Karte zufällig auch dort fällig ist. _(v3.3.0)_
+[ ] Modus "Absolut" (Einstellungen): solange eine Karte vorgemerkt ist, erscheinen keine anderen (bekannten/neuen) Karten im Drill. _(v3.3.0)_
+[ ] Modus "Gewichtet" mit z.B. N=3: etwa jede 3. Karte im Drill ist die vorgemerkte, dazwischen läuft die normale 9:1-Rotation weiter. _(v3.3.0)_
+[ ] Konfigurierte Mastery-Schwelle an richtigen Antworten in Folge im Drill erreicht → Vormerkung wird automatisch entfernt, Leitner-Fach bleibt dabei unverändert (siehe Testfall oben). _(v3.3.0)_
+[ ] Falsche Antwort auf eine vorgemerkte Karte im Drill → Zähler setzt sich zurück auf 0, Karte bleibt trotzdem im Pool (keine `drill_too_hard`-Sperre, taucht nicht erst am nächsten Tag wieder auf). _(v3.3.0)_
+[ ] Vormerkung während laufender Drill-Session in einem zweiten Tab über `edit.php` entfernen → die laufende Session "wiederbelebt" die Vormerkung nicht, auch wenn die Karte danach im Drill richtig beantwortet wird. _(v3.3.0)_
+[ ] Einstellungen → Drill-Modus: "Vormerkungs-Priorität" (Absolut/Gewichtet) und "Vormerkungs-Häufigkeit" sind änderbar und wirken sich unmittelbar auf die nächste Drill-Session aus. _(v3.3.0)_
+[ ] Neuinstallation über `install.php`: Spalte `drill_pinned_correct` ist in der Tabellendefinition von `card_progress` vorhanden. _(v3.3.0)_
+[ ] Bestehende Installation: Migration 15 legt `drill_pinned_correct` beim ersten Seitenaufruf nach dem Deploy an, `db_version` steht danach auf 15. _(v3.3.0)_
 
 ---

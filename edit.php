@@ -24,7 +24,7 @@ if (!$list) {
 }
 
 $filter = $_GET['filter'] ?? 'all';
-$valid_filters = ['all', 'active', 'queued', 'archived', 'box1', 'box2', 'box3', 'box4', 'box5'];
+$valid_filters = ['all', 'active', 'queued', 'archived', 'pinned', 'box1', 'box2', 'box3', 'box4', 'box5'];
 if (!in_array($filter, $valid_filters, true)) $filter = 'all';
 
 // Prüft, dass eine Karten-ID wirklich zur (oben als eigene verifizierten) Liste gehört.
@@ -155,13 +155,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: edit.php?list_id={$list_id}&filter={$filter}");
         exit;
     }
+
+    // "Für Drill vormerken" umschalten. Eigenes Feld drill_pinned_correct statt drill_mastery:
+    // NULL = nicht vorgemerkt, 0..N-1 = korrekte Antworten seit dem Vormerken. Siehe
+    // docs/ANFORDERUNGEN.md, Abschnitt "Manuelle Vormerkung für Drill" für den Hintergrund.
+    if ($action === 'toggle_pin') {
+        $card_id = intval($_POST['card_id'] ?? 0);
+        if (!card_belongs_to_list($pdo, $card_id, $list_id)) {
+            $_SESSION['flash_error'] = 'Karte nicht gefunden.';
+        } else {
+            // Zeile könnte noch nicht existieren (z.B. Karte frisch importiert, noch nie eine
+            // Leitner-Session für diese Liste gestartet) — vorher sicherstellen, dass sie da ist.
+            $pdo->prepare("
+                INSERT INTO card_progress (person_id, card_id, status)
+                VALUES (?, ?, 'queued')
+                ON DUPLICATE KEY UPDATE status = status
+            ")->execute([$person_id, $card_id]);
+
+            $stmt = $pdo->prepare("SELECT status, drill_pinned_correct FROM card_progress WHERE person_id = ? AND card_id = ?");
+            $stmt->execute([$person_id, $card_id]);
+            $cp = $stmt->fetch();
+            $is_pinned = $cp && $cp['drill_pinned_correct'] !== null;
+
+            if (!$is_pinned && $cp['status'] === 'archived') {
+                $_SESSION['flash_error'] = 'Archivierte Karten können nicht für Drill vorgemerkt werden.';
+            } else {
+                $new_value = $is_pinned ? null : 0;
+                $stmt = $pdo->prepare("UPDATE card_progress SET drill_pinned_correct = ? WHERE person_id = ? AND card_id = ?");
+                $stmt->execute([$new_value, $person_id, $card_id]);
+                $_SESSION['flash_success'] = $is_pinned ? 'Vormerkung entfernt.' : 'Karte für Drill vorgemerkt.';
+            }
+        }
+        header("Location: edit.php?list_id={$list_id}&filter={$filter}");
+        exit;
+    }
 }
 
 // Karten laden mit Fortschritt dieser Person
 $stmt = $pdo->prepare("
     SELECT c.id, c.word_a, c.word_b, c.desc_a, c.desc_b, c.phonetic_b,
            COALESCE(cp.status, 'queued') AS status,
-           cp.leitner_box, cp.drill_mastery
+           cp.leitner_box, cp.drill_mastery, cp.drill_pinned_correct
     FROM cards c
     LEFT JOIN card_progress cp ON cp.card_id = c.id AND cp.person_id = ?
     WHERE c.list_id = ?
@@ -188,6 +222,8 @@ if ($highlight_id) {
 if (str_starts_with($filter, 'box')) {
     $box_num = intval(substr($filter, 3));
     $filtered_cards = array_filter($cards, fn($c) => $c['status'] === 'active' && (int) $c['leitner_box'] === $box_num);
+} elseif ($filter === 'pinned') {
+    $filtered_cards = array_filter($cards, fn($c) => $c['drill_pinned_correct'] !== null);
 } else {
     $filtered_cards = match($filter) {
         'active'   => array_filter($cards, fn($c) => $c['status'] === 'active'),
@@ -273,13 +309,14 @@ if (str_starts_with($filter, 'box')) {
     <!-- Filter -->
     <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
         <?php
-        $counts = ['all' => count($cards), 'active' => 0, 'queued' => 0, 'archived' => 0,
+        $counts = ['all' => count($cards), 'active' => 0, 'queued' => 0, 'archived' => 0, 'pinned' => 0,
                    'box1' => 0, 'box2' => 0, 'box3' => 0, 'box4' => 0, 'box5' => 0];
         foreach ($cards as $c) {
             $counts[$c['status']]++;
             if ($c['status'] === 'active' && $c['leitner_box']) $counts['box' . $c['leitner_box']]++;
+            if ($c['drill_pinned_correct'] !== null) $counts['pinned']++;
         }
-        $filters = ['all' => 'Alle', 'active' => 'Aktiv', 'queued' => 'Warteschlange', 'archived' => 'Archiviert'];
+        $filters = ['all' => 'Alle', 'active' => 'Aktiv', 'queued' => 'Warteschlange', 'archived' => 'Archiviert', 'pinned' => 'Vorgemerkt'];
         foreach ($filters as $key => $label):
         ?>
         <a href="edit.php?list_id=<?= $list_id ?>&filter=<?= $key ?>"
@@ -380,6 +417,9 @@ if (str_starts_with($filter, 'box')) {
                         <?php else: ?>
                             <span class="badge bg-secondary">Archiviert</span>
                         <?php endif; ?>
+                        <?php if ($card['drill_pinned_correct'] !== null): ?>
+                        <span class="badge bg-primary" title="Für Drill vorgemerkt"><i class="bi bi-pin-angle-fill"></i> Vorgemerkt</span>
+                        <?php endif; ?>
                     </td>
                     <td class="text-end">
                         <!-- flex-wrap: auf dem Handy passen die vier Icons nicht nebeneinander und
@@ -393,6 +433,26 @@ if (str_starts_with($filter, 'box')) {
                                class="btn btn-sm btn-outline-primary"
                                onclick="sessionStorage.setItem('edit_scroll_<?= $list_id ?>', window.scrollY)"
                                data-bs-toggle="tooltip" title="Bearbeiten"><i class="bi bi-pencil"></i></a>
+
+                            <?php if ($card['drill_pinned_correct'] !== null): ?>
+                            <form method="post" class="d-inline">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="action" value="toggle_pin">
+                                <input type="hidden" name="list_id" value="<?= $list_id ?>">
+                                <input type="hidden" name="card_id" value="<?= $card['id'] ?>">
+                                <button type="submit" class="btn btn-sm btn-primary"
+                                        data-bs-toggle="tooltip" title="Vormerkung entfernen"><i class="bi bi-pin-angle-fill"></i></button>
+                            </form>
+                            <?php elseif ($card['status'] !== 'archived'): ?>
+                            <form method="post" class="d-inline">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="action" value="toggle_pin">
+                                <input type="hidden" name="list_id" value="<?= $list_id ?>">
+                                <input type="hidden" name="card_id" value="<?= $card['id'] ?>">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                        data-bs-toggle="tooltip" title="Für Drill vormerken"><i class="bi bi-pin-angle"></i></button>
+                            </form>
+                            <?php endif; ?>
 
                             <?php if ($card['status'] !== 'archived'): ?>
                             <form method="post" class="d-inline">
@@ -439,7 +499,20 @@ if (str_starts_with($filter, 'box')) {
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
       </div>
       <div class="modal-body">
-        <div class="learn-card mx-auto" id="view-card" style="max-width:480px; cursor:pointer;" onclick="flipViewCard()">
+        <div class="learn-card mx-auto position-relative" id="view-card" style="max-width:480px; cursor:pointer;" onclick="flipViewCard()">
+          <?php $hc_pinned = $highlight_card['drill_pinned_correct'] !== null; ?>
+          <form method="post" class="position-absolute" style="top:8px; left:8px; z-index:2;">
+              <?= csrf_field() ?>
+              <input type="hidden" name="action" value="toggle_pin">
+              <input type="hidden" name="list_id" value="<?= $list_id ?>">
+              <input type="hidden" name="card_id" value="<?= $highlight_card['id'] ?>">
+              <button type="submit" class="btn btn-sm <?= $hc_pinned ? 'btn-primary' : 'btn-outline-secondary' ?> rounded-circle"
+                      onclick="event.stopPropagation();"
+                      data-bs-toggle="tooltip" title="<?= $hc_pinned ? 'Vormerkung entfernen' : 'Für Drill vormerken' ?>"
+                      <?= (!$hc_pinned && $highlight_card['status'] === 'archived') ? 'disabled' : '' ?>>
+                  <i class="bi <?= $hc_pinned ? 'bi-pin-angle-fill' : 'bi-pin-angle' ?>"></i>
+              </button>
+          </form>
           <div class="text-center p-4" style="min-height:220px;">
             <p class="text-muted small mb-2"><?= htmlspecialchars($list['language_a']) ?></p>
             <div class="fw-bold fs-3 mb-1"><?= htmlspecialchars($highlight_card['word_a']) ?></div>

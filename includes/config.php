@@ -1,5 +1,5 @@
 <?php
-define('APP_VERSION', '3.2.29');
+define('APP_VERSION', '3.3.0');
 define('TIMEZONE', 'Europe/Zurich');
 define('LEITNER_INTERVALS', [1 => 1, 2 => 2, 3 => 7, 4 => 14, 5 => 30]);
 date_default_timezone_set(TIMEZONE);
@@ -30,6 +30,12 @@ $_rt = [
     'DRILL_TOO_HARD_LIMIT'   => 5,
     'DRILL_MASTERY_THRESHOLD'=> 3,
     'DRILL_KNOWN_RATIO'      => 9,
+
+    // Priorität "Für Drill vormerken": 'absolute' = vorgemerkte Karte immer zuerst (solange
+    // welche vorgemerkt sind), 'weighted' = alle DRILL_PIN_RATIO Karten eine vorgemerkte
+    // einschieben, normale known/new-Rotation läuft parallel weiter.
+    'DRILL_PIN_MODE'         => 'weighted',
+    'DRILL_PIN_RATIO'        => 5,
 ];
 if (file_exists(__DIR__ . '/config-runtime.php')) {
     $_rt = array_merge($_rt, require __DIR__ . '/config-runtime.php');

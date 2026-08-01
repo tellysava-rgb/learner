@@ -23,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'drill_too_hard'       => ['min' => 1,  'max' => 20,  'label' => '«Musste nachdenken»-Limit'],
             'drill_mastery'        => ['min' => 1,  'max' => 10,  'label' => 'Mastery-Schwelle'],
             'drill_known_ratio'    => ['min' => 1,  'max' => 30,  'label' => 'Bekannt/Neu-Verhältnis'],
+            'drill_pin_ratio'      => ['min' => 2,  'max' => 50,  'label' => 'Vormerkungs-Häufigkeit'],
         ];
 
         $vals   = [];
@@ -54,6 +55,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errs[] = "Absender-E-Mail: Keine gültige E-Mail-Adresse.";
         }
 
+        // Vormerkungs-Priorität (Radio, manueller POST mit ungültigem Wert fällt auf den
+        // sichereren Default 'weighted' zurück statt einen Fehler zu zeigen)
+        $pin_mode = $_POST['drill_pin_mode'] ?? 'weighted';
+        if (!in_array($pin_mode, ['absolute', 'weighted'], true)) {
+            $pin_mode = 'weighted';
+        }
+
         if (empty($errs)) {
             $drill_sec   = $vals['drill_minutes'] * 60;
 
@@ -68,6 +76,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'DRILL_TOO_HARD_LIMIT'   => $vals['drill_too_hard'],
                 'DRILL_MASTERY_THRESHOLD'=> $vals['drill_mastery'],
                 'DRILL_KNOWN_RATIO'      => $vals['drill_known_ratio'],
+                'DRILL_PIN_MODE'         => $pin_mode,
+                'DRILL_PIN_RATIO'        => $vals['drill_pin_ratio'],
             ];
 
             $lines = "<?php return [\n";
@@ -136,6 +146,8 @@ $cur_drill_min   = (int) round(DRILL_SESSION_SECONDS / 60);
 $cur_too_hard    = DRILL_TOO_HARD_LIMIT;
 $cur_mastery     = DRILL_MASTERY_THRESHOLD;
 $cur_known_ratio = DRILL_KNOWN_RATIO;
+$cur_pin_mode    = DRILL_PIN_MODE;
+$cur_pin_ratio   = DRILL_PIN_RATIO;
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -337,6 +349,38 @@ $cur_known_ratio = DRILL_KNOWN_RATIO;
                         <input type="number" class="form-control form-control-sm text-end"
                                name="drill_known_ratio" value="<?= $cur_known_ratio ?>"
                                min="1" max="30" style="width:68px;">
+                        <span class="text-muted small">Karten</span>
+                    </div>
+                </div>
+
+                <div class="list-group-item settings-row d-flex align-items-center gap-3 py-2">
+                    <div class="flex-grow-1">
+                        <span class="fw-medium">Vormerkungs-Priorität</span>
+                        <span class="text-muted small ms-2">Wie stark "für Drill vorgemerkte" Karten im Drill bevorzugt werden</span>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <div class="form-check form-check-inline mb-0">
+                            <input class="form-check-input" type="radio" name="drill_pin_mode" id="pin_weighted"
+                                   value="weighted" <?= $cur_pin_mode !== 'absolute' ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="pin_weighted">Gewichtet</label>
+                        </div>
+                        <div class="form-check form-check-inline mb-0">
+                            <input class="form-check-input" type="radio" name="drill_pin_mode" id="pin_absolute"
+                                   value="absolute" <?= $cur_pin_mode === 'absolute' ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="pin_absolute">Absolut</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="list-group-item settings-row d-flex align-items-center gap-3 py-2">
+                    <div class="flex-grow-1">
+                        <span class="fw-medium">Vormerkungs-Häufigkeit</span>
+                        <span class="text-muted small ms-2">Bei "Gewichtet": vorgemerkte Karte alle N Karten einschieben (bei "Absolut" ohne Wirkung)</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                        <input type="number" class="form-control form-control-sm text-end"
+                               name="drill_pin_ratio" value="<?= $cur_pin_ratio ?>"
+                               min="2" max="50" style="width:68px;">
                         <span class="text-muted small">Karten</span>
                     </div>
                 </div>

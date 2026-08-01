@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.0] - 2026-08-01
+
+### Neu
+- **"Für Drill vormerken":** Jede Karte lässt sich auf der Kartenübersicht (`edit.php`) einzeln manuell für den Drill-Modus vormerken (Pin-Icon in der Aktionsleiste sowie oben links auf der Karte in der Kartenansicht). Vorgemerkte Karten werden im Drill priorisiert gezeigt — Priorität konfigurierbar in den Einstellungen: "Absolut" (immer zuerst, solange welche vorgemerkt sind) oder "Gewichtet" (alle N Karten eine vorgemerkte einschieben, N konfigurierbar), während die normale 9:1-Rotation für die übrigen Karten parallel weiterläuft. Bei der konfigurierten Anzahl korrekter Antworten in Folge seit dem Vormerken wird die Vormerkung automatisch entfernt — ohne jeden Einfluss auf Leitner-Fach, Status oder den regulären Drill-Fortschritt (`drill_mastery`): das Leitner-System läuft für diese Karte während der gesamten Vormerkzeit unverändert normal weiter. Vorgemerkte Karten sind zudem von der `drill_too_hard`-Tagessperre ausgenommen. Neues Feld `card_progress.drill_pinned_correct`, bewusst getrennt von `drill_mastery` — sonst könnte eine bereits weit im Leitner-System fortgeschrittene Karte beim Vormerken/Drillen auf ein niedrigeres Fach zurückgestuft werden (siehe `docs/ANFORDERUNGEN.md`, Abschnitt "Manuelle Vormerkung für Drill").
+
+---
+
 ## [3.2.29] - 2026-08-01
 
 ### Verbessert

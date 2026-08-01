@@ -17,6 +17,8 @@ $drill_minutes    = (int) round(DRILL_SESSION_SECONDS / 60);
 $drill_mastery    = DRILL_MASTERY_THRESHOLD;
 $drill_too_hard   = DRILL_TOO_HARD_LIMIT;
 $drill_ratio      = DRILL_KNOWN_RATIO;
+$pin_mode         = DRILL_PIN_MODE;
+$pin_ratio        = DRILL_PIN_RATIO;
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -130,6 +132,7 @@ $drill_ratio      = DRILL_KNOWN_RATIO;
                         <li>Wird eine Karte <?= $drill_too_hard ?>× als "musste nachdenken" bewertet, wird sie für den Rest dieser Session pausiert und taucht erst am nächsten Tag wieder auf.</li>
                         <li>Bei einer <strong>neuen Liste</strong> mit lauter neuen Karten kann es am Anfang vorkommen, dass dieselbe Karte mehrmals kurz hintereinander gezeigt wird, bevor eine zweite dazukommt (bis zu <?= $drill_ratio ?>× — entsprechend dem Bekannt/Neu-Verhältnis). Das ist <strong>kein Fehler, sondern beabsichtigt</strong> und hilft, sich die Karte einzuprägen. Je mehr Karten im Umlauf sind, desto mehr vermischen sie sich.</li>
                         <li>Es gibt <strong>keine Leitner-Fach-Obergrenze</strong> für den Drill-Modus — auch Karten, die bereits in einem höheren Leitner-Fach sind, können weiterhin im Drill auftauchen, solange sie nicht archiviert sind.</li>
+                        <li><strong>Für Drill vormerken:</strong> Auf der Kartenübersicht lässt sich jede Karte einzeln über das Pin-Icon (<i class="bi bi-pin-angle"></i>, in der Aktionsleiste oder oben links auf der Karte in der Kartenansicht) "für Drill vormerken". Vorgemerkte Karten werden im Drill <?= $pin_mode === 'absolute' ? 'immer zuerst gezeigt, solange mindestens eine vorgemerkte Karte übrig ist' : "bevorzugt eingeschoben (aktuell etwa jede {$pin_ratio}. Karte)" ?> — Priorität in den Einstellungen anpassbar. Erkennbar an einem ausgefüllten Pin-Symbol oben links auf der Karte. Das Leitner-System läuft für diese Karte währenddessen völlig unverändert weiter (kein Einfrieren, kein Fach-Sprung). Bei <?= $drill_mastery ?>× richtiger Antwort in Folge seit dem Vormerken wird die Vormerkung automatisch entfernt, kann aber auch jederzeit manuell wieder entfernt werden.</li>
                     </ul>
                     <p class="mb-0">Geeignet für <strong>intensives Kurzzeit-Pauken</strong>, z.B. vor einem Test — als Ergänzung zum Leitner-System, nicht als Ersatz.</p>
                 </div>
