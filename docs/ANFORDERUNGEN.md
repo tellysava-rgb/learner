@@ -273,7 +273,7 @@ card_progress Tabelle:
                       wird zurückgesetzt zu false beim ersten Zugriff eines neuen Kalendertags (Zeitzone: Europe/Zurich)
 - drill_pinned_correct → NULL = nicht "für Drill vorgemerkt", 0..N-1 = korrekte Antworten seit dem
                       Vormerken. Eigenständig von drill_mastery, siehe Abschnitt
-                      "Manuelle Vormerkung für Drill" _(v3.3.0)_
+                      "Manuelle Vormerkung für Drill" _(v3.2.30)_
 ```
 
 ### Ablauf Warteschlange
@@ -408,7 +408,7 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 - Drill-Fortschritt (`drill_mastery`) wird **separat** gespeichert
 - Leitner-Fächer werden nur durch den obigen Übergang beeinflusst, nie durch Drill-Fehler
 
-### Manuelle Vormerkung für Drill _(v3.3.0)_
+### Manuelle Vormerkung für Drill _(v3.2.30)_
 Zusätzlich zur automatischen Karten-Auswahl kann jede Karte einzeln manuell "für Drill vormerken"
 werden — Kartenübersicht `edit.php`: Pin-Icon (<i class="bi bi-pin-angle"></i>) in der Aktionsleiste
 sowie oben links auf der Karte in der Kartenansicht (Direktlink `edit.php?...&highlight=<id>`).

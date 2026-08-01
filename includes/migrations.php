@@ -25,7 +25,7 @@ function run_pending_migrations(PDO $pdo): void {
                    INDEX idx_auth_attempts_lookup (scope, ip, attempted_at)
                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 
-        // "Für Drill vormerken" (v3.3.0): NULL = nicht vorgemerkt, 0..N-1 = korrekte Antworten
+        // "Für Drill vormerken" (v3.2.30): NULL = nicht vorgemerkt, 0..N-1 = korrekte Antworten
         // seit dem Vormerken — eigenständig von drill_mastery, siehe docs/ANFORDERUNGEN.md.
         15 => "ALTER TABLE card_progress ADD COLUMN drill_pinned_correct TINYINT NULL DEFAULT NULL",
     ];
