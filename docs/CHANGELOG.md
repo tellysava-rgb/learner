@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.32] - 2026-08-01
+
+### Neu
+- **`deploy.php` zeigt jetzt eine Changelog-Vorschau** zwischen dem Versionsvergleich und dem "Deploy starten"-Button: eine Zeile `[X.Y.Z] - Titel` je Änderungspunkt aus `docs/CHANGELOG.md`, von der aktuell installierten Version (exklusive) bis zur GitHub-Version (inklusive) — so ist vor dem Deployen auf einen Blick sichtbar, was sich ändern würde, ohne extra in `CHANGELOG.md` nachschauen zu müssen.
+
+---
+
 ## [3.2.31] - 2026-08-01
 
 ### Behoben

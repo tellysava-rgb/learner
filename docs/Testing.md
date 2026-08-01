@@ -92,8 +92,7 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 
 ## 8. Für Drill vormerken _(v3.2.30)_
 
-[ ] `edit.php`: Pin-Icon in der Aktionsleiste toggelt die Vormerkung; Status wechselt sofort sichtbar (gefülltes vs. leeres Pin-Symbol, Badge "Vorgemerkt" in der Status-Spalte). _(v3.2.30)_
-[ ] `edit.php`: Kartenansicht (Direktlink `highlight=<id>`) zeigt das Pin-Icon oben links auf der Karte, klickbar ohne dass die Karte dabei umdreht. _(v3.2.30)_
+[ ] `edit.php`: Kartenansicht (Direktlink `highlight=<id>`) zeigt das Pin-Icon oben links auf der Karte, klickbar ohne dass die Karte dabei umdreht, toggelt die Vormerkung; Status wechselt sofort sichtbar (gefülltes vs. leeres Pin-Symbol, Badge "Vorgemerkt" in der Status-Spalte der Tabelle). _(v3.2.31)_
 [ ] Archivierte Karte: Vormerken ist nicht möglich (Icon ausgeblendet/deaktiviert bzw. Aktion liefert Fehlermeldung). _(v3.2.30)_
 [ ] Neu importierte Karte, für die noch nie eine Leitner-Session gestartet wurde: Vormerken funktioniert trotzdem (kein stiller Fehlschlag durch fehlende `card_progress`-Zeile). _(v3.2.30)_
 [ ] Filter-Tab "Vorgemerkt" zeigt genau die vorgemerkten Karten dieser Liste, Zähler stimmt. _(v3.2.30)_
@@ -108,5 +107,13 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Kartenübersicht auf Desktop-Breite (Safari): mit einer vorgemerkten Karte in der Liste ("Vorgemerkt"-Badge sichtbar) bleiben die 4 Aktions-Icons in einer Zeile nebeneinander, kein Umbruch. _(v3.2.31)_
 [ ] Neuinstallation über `install.php`: Spalte `drill_pinned_correct` ist in der Tabellendefinition von `card_progress` vorhanden. _(v3.2.30)_
 [ ] Bestehende Installation: Migration 15 legt `drill_pinned_correct` beim ersten Seitenaufruf nach dem Deploy an, `db_version` steht danach auf 15. _(v3.2.30)_
+
+## 9. Deploy-Status: Changelog-Vorschau _(v3.2.32)_
+
+[ ] `deploy.php` mit älterer installierter Version als auf GitHub: zwischen Versionsvergleich und "Deploy starten"-Button erscheint je Änderungspunkt eine Zeile `[X.Y.Z] - Titel`, neueste Version zuerst. _(v3.2.32)_
+[ ] Die aktuell installierte Version selbst taucht in der Liste NICHT auf — nur Versionen neuer als die installierte, bis einschliesslich der GitHub-Version. _(v3.2.32)_
+[ ] Ist bereits alles aktuell (Installiert = GitHub), erscheint kein Changelog-Block. _(v3.2.32)_
+[ ] Änderungspunkte ohne Fett-Hervorhebung in `CHANGELOG.md` zeigen trotzdem einen sinnvollen (gekürzten) Titel, kein leerer oder abgeschnittener Text mitten im Wort. _(v3.2.32)_
+[ ] Nach einem tatsächlich ausgeführten Deploy (Erfolgsmeldung sichtbar) wird kein Changelog-Block mehr angezeigt. _(v3.2.32)_
 
 ---

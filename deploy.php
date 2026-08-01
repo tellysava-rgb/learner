@@ -49,9 +49,52 @@ function deploy_read_github_version(): string {
     return ($remote_cfg && preg_match("/define\('APP_VERSION',\s*'([^']+)'\)/", $remote_cfg, $m)) ? $m[1] : 'unbekannt';
 }
 
+// Liefert je Änderungspunkt aus CHANGELOG.md ein ['version' => ..., 'title' => ...] — eingegrenzt
+// auf Versionen NEUER als $from_version (installiert) bis EINSCHLIESSLICH $to_version (GitHub).
+// Die installierte Version selbst wird bewusst nicht mit angezeigt (es geht nur darum, was ein
+// Deploy an Neuem bringen würde). Titel = fetter Text am Zeilenanfang eines Eintrags; hat ein
+// Eintrag keinen (nicht jede Zeile in CHANGELOG.md ist fett eingeleitet), wird bis zum ersten
+// Satzende bzw. max. 100 Zeichen als Fallback-Titel verwendet.
+function deploy_read_changelog_entries(string $from_version, string $to_version): array {
+    if ($from_version === 'unbekannt' || $to_version === 'unbekannt') return [];
+
+    $raw_url = 'https://raw.githubusercontent.com/' . GITHUB_OWNER . '/' . GITHUB_REPO . '/main/docs/CHANGELOG.md';
+    $ch = curl_init($raw_url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 15,
+        CURLOPT_USERAGENT      => 'PHP-Deploy/1.0',
+    ]);
+    $content = curl_exec($ch);
+    unset($ch);
+    if (!$content) return [];
+
+    preg_match_all('/^## \[([\d.]+)\][^\n]*\n(.*?)(?=^## \[|\z)/ms', $content, $blocks, PREG_SET_ORDER);
+
+    $entries = [];
+    foreach ($blocks as $block) {
+        $version = $block[1];
+        if (version_compare($version, $from_version, '<=') || version_compare($version, $to_version, '>')) {
+            continue;
+        }
+        preg_match_all('/^- (.+)$/m', $block[2], $bullets);
+        foreach ($bullets[1] as $bullet) {
+            if (preg_match('/^\*\*(.+?)\*\*/', $bullet, $m)) {
+                $title = $m[1];
+            } else {
+                $title = preg_split('/(?<=[.:])\s/', $bullet, 2)[0];
+                if (mb_strlen($title) > 100) $title = mb_substr($title, 0, 100) . '…';
+            }
+            $entries[] = ['version' => $version, 'title' => $title];
+        }
+    }
+    return $entries;
+}
+
 $local_config    = __DIR__ . '/includes/config.php';
 $current_version = deploy_read_local_version($local_config);
 $new_version     = deploy_read_github_version();
+$changelog_entries = deploy_read_changelog_entries($current_version, $new_version);
 
 // GitHub-Version älter als installierte Version? (z.B. lokale Änderungen noch nicht gepusht)
 $is_downgrade = $current_version !== 'unbekannt' && $new_version !== 'unbekannt'
@@ -212,6 +255,10 @@ function deploy_run(array &$log, bool &$success): void {
         .err { color: #ef4444; font-weight: bold; }
         a    { color: #60a5fa; }
         .meta { color: #555; font-size: 0.85em; margin-top: 16px; }
+        .changelog { margin: 16px 0; padding: 0; list-style: none; }
+        .changelog li { padding: 6px 0; border-bottom: 1px solid #2a2a2a; }
+        .changelog li:last-child { border-bottom: none; }
+        .changelog .cl-version { color: #60a5fa; font-weight: bold; margin-right: 8px; }
         button { font-family: monospace; font-size: 1em; background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 10px 20px; cursor: pointer; }
         button:hover { background: #1d4ed8; }
 
@@ -240,6 +287,14 @@ function deploy_run(array &$log, bool &$success): void {
             <strong>v<?= htmlspecialchars($new_version) ?></strong>
         </div>
     </div>
+
+    <?php if ($changelog_entries && !$deploy_ran): ?>
+    <ul class="changelog">
+        <?php foreach ($changelog_entries as $entry): ?>
+        <li><span class="cl-version">[<?= htmlspecialchars($entry['version']) ?>]</span> - <?= htmlspecialchars($entry['title']) ?></li>
+        <?php endforeach; ?>
+    </ul>
+    <?php endif; ?>
 
     <?php if ($show_downgrade_warning): ?>
         <p class="err">⚠️ Achtung: Die Version auf GitHub (v<?= htmlspecialchars($new_version) ?>) ist ÄLTER als die hier installierte Version (v<?= htmlspecialchars($current_version) ?>).</p>
