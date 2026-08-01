@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.39] - 2026-08-01
+
+### Verbessert
+- Leitner-Debug-Meldung bei falscher Antwort im 1. Versuch: "kommt nochmal dran" steht jetzt direkt bei der Antwort-Zeile ("falsch (1. Versuch) -> kommt nochmals dran") statt am Ende der Fach-Zeile — die Fach/Fälligkeits-Zeile bleibt dadurch auf die reine Statusänderung fokussiert.
+
+---
+
 ## [3.2.38] - 2026-08-01
 
 ### Behoben

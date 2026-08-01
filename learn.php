@@ -227,8 +227,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
             if ($debug_enabled) {
                 $_SESSION['debug_last_answer'] = [
                     debug_card_label($pdo, $card_id),
-                    'falsch (1. Versuch)',
-                    "Fach {$current_box}→1, fällig " . debug_format_date($due_before) . '→' . debug_format_date($due) . ', kommt nochmal dran',
+                    'falsch (1. Versuch) -> kommt nochmals dran',
+                    "Fach {$current_box}→1, fällig " . debug_format_date($due_before) . '→' . debug_format_date($due),
                 ];
             }
         } else {
