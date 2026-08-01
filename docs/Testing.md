@@ -139,4 +139,10 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] MCP-Server: Liste mit Sprache A = Deutsch, Sprache B = Fremdsprache, `speech_lang_b` gesetzt → Agent fragt NICHT explizit nach der Muttersprache, sondern nimmt Sprache A als gegeben an. _(v3.2.37)_
 [ ] MCP-Server: Liste bei der beide Sprachen für den User erkennbar fremd sind (z.B. im Gespräch erwähnt) → Agent fragt in diesem Fall doch explizit nach der Muttersprache, bevor `phonetik_b` befüllt wird. _(v3.2.37)_
 
+## 12. Bugfix: Drill-Meisterung stufte Leitner-Fach fälschlich zurück _(v3.2.38)_
+
+[ ] Karte mit `drill_mastery = 1` und `leitner_box = 4` (z.B. früher einmal im Drill gemeistert, danach unabhängig über Leitner bis Fach 4 aufgestiegen) im Drill erneut 3× hintereinander "Gewusst" → Fach bleibt bei 4, `drill_mastery` steigt auf 2, `next_due_date` unverändert. _(v3.2.38)_
+[ ] Debug-Panel zeigt in diesem Fall "Fach 4→4" (keine Änderung) statt einer Rückstufung. _(v3.2.38)_
+[ ] Normalfall weiterhin korrekt: komplett neue Karte (`drill_mastery = 0`, `leitner_box = 1`) wird im Drill gemeistert → steigt wie gewohnt auf Fach 2 (bzw. 3 bei der zweiten, 4 bei der dritten Meisterung), da das Ziel-Fach dort höher ist als das aktuelle. _(v3.2.38)_
+
 ---

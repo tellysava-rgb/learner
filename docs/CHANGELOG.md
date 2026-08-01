@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.38] - 2026-08-01
+
+### Behoben
+- **Drill-Meisterung konnte das Leitner-Fach fälschlich zurückstufen.** `master_card()` setzte das Fach bisher stur nach einer festen Tabelle basierend auf `drill_mastery` (Anzahl bisheriger Meisterungen), unabhängig vom tatsächlich aktuellen Fach der Karte. War eine Karte über normales Leitner-Lernen bereits weiter fortgeschritten als die Tabelle für die neue Meisterungsstufe vorsieht (z.B. Fach 4 erreicht, aber erst die zweite Drill-Meisterung, die laut Tabelle nur Fach 3 vorsieht), wurde die Karte beim erneuten Meistern im Drill auf das niedrigere Tabellen-Fach zurückgesetzt — obwohl Meistern eine Belohnung sein soll, keine Verschlechterung. Das Fach wird jetzt nur noch gesetzt, wenn das Ziel-Fach höher ist als das aktuelle; sonst bleibt es unverändert, `drill_mastery` zählt trotzdem weiter. Gefunden über das neue Debug-Panel (v3.2.34).
+
+---
+
 ## [3.2.37] - 2026-08-01
 
 ### Neu
@@ -390,7 +397,7 @@ Getestet auf der lokalen Dev-Datenbank: Migration lief fehlerfrei durch (609 bes
 ### Breaking
 - **Globales Passwort entfernt.** Jede Person hat jetzt ein eigenes Login (bestehendes eindeutiges Namensfeld + eigenes Passwort) — der bisherige "Wer bist du?"-Auswahlschritt nach dem Login entfällt, Login führt direkt auf die eigene Startseite.
 - **Admin-Rolle eingeführt** (`persons.is_admin`): nur Admins dürfen `settings.php`, `deploy.php` und die neue Benutzerverwaltung (`users.php`) öffnen, sowie als andere Person agieren ("Person wechseln", jetzt auf Admins beschränkt).
-- **Migration**: bestehende Personen bekommen einmalig automatisch das Passwort `123456` gesetzt (per DB-Migration, läuft beim ersten Request nach dem Update auf beiden Umgebungen) — jede Person sollte es danach selbst ändern. Die Person "Beat" wird automatisch Admin.
+- **Migration**: bestehende Personen bekommen einmalig automatisch  gesetzt (per DB-Migration, läuft beim ersten Request nach dem Update auf beiden Umgebungen) — jede Person sollte es danach selbst ändern. Die Person "Beat" wird automatisch Admin.
 - `deploy.php` verlangt jetzt zusätzlich zum Token eine aktive Admin-Session — ein reiner Token-Aufruf per Lesezeichen ohne Login funktioniert nicht mehr.
 
 ### Neu

@@ -407,6 +407,7 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 
 - Drill-Fortschritt (`drill_mastery`) wird **separat** gespeichert
 - Leitner-Fächer werden nur durch den obigen Übergang beeinflusst, nie durch Drill-Fehler
+- **Nie rückstufend** _(Bugfix v3.2.38)_: Der Übergang setzt das Fach nur, wenn das per Tabelle berechnete Ziel-Fach **höher** ist als das aktuelle. Ist die Karte über normales Leitner-Lernen (unabhängig vom Drill) bereits weiter fortgeschritten als die Tabelle für die neue `drill_mastery`-Stufe vorsieht, bleibt das Fach unverändert — nur `drill_mastery` zählt weiter. Vorher konnte eine erneute Meisterung im Drill eine bereits weiter fortgeschrittene Karte fälschlich zurückstufen (z.B. Fach 4 → Fach 3), obwohl Meistern eine Belohnung und keine Verschlechterung sein soll.
 
 ### Manuelle Vormerkung für Drill _(v3.2.30)_
 Zusätzlich zur automatischen Karten-Auswahl kann jede Karte einzeln manuell "für Drill vormerken"

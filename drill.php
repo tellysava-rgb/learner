@@ -341,14 +341,23 @@ function master_card(PDO $pdo, array &$state, int $person_id, int $card_id, stri
     $state['stats']['mastered']++;
     remove_from_pools($state, $card_id);
 
-    $stmt = $pdo->prepare("SELECT drill_mastery FROM card_progress WHERE person_id = ? AND card_id = ?");
+    $stmt = $pdo->prepare("SELECT drill_mastery, leitner_box FROM card_progress WHERE person_id = ? AND card_id = ?");
     $stmt->execute([$person_id, $card_id]);
     $cp = $stmt->fetch();
     $new_mastery = (int)($cp['drill_mastery'] ?? 0) + 1;
+    $current_box = (int)($cp['leitner_box'] ?? 1);
 
     $leitner_transitions = [1 => 2, 2 => 3, 3 => 4];
     $target_box = $leitner_transitions[$new_mastery] ?? null;
     $intervals  = LEITNER_INTERVALS;
+
+    // Meistern ist eine Belohnung und darf das Fach nie zurückstufen. Ist die Karte über normales
+    // Leitner-Lernen (unabhängig vom Drill) bereits weiter als die feste Zieltabelle vorsieht,
+    // bleibt das Fach unverändert — nur drill_mastery zählt weiter (Bugfix: bisher konnte eine
+    // erneute Meisterung eine bereits weiter fortgeschrittene Karte zurückstufen).
+    if ($target_box !== null && $target_box <= $current_box) {
+        $target_box = null;
+    }
 
     if ($target_box) {
         $due = date('Y-m-d', strtotime($today . ' +' . $intervals[$target_box] . ' days'));
