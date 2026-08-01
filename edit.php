@@ -344,7 +344,7 @@ if (str_starts_with($filter, 'box')) {
                     <th><?= htmlspecialchars($list['language_a']) ?></th>
                     <th><?= htmlspecialchars($list['language_b']) ?></th>
                     <th>Status</th>
-                    <th class="text-end">Aktionen</th>
+                    <th class="text-end" style="min-width:170px;">Aktionen</th>
                 </tr>
             </thead>
             <tbody>
@@ -421,9 +421,10 @@ if (str_starts_with($filter, 'box')) {
                         <span class="badge bg-primary" title="Für Drill vorgemerkt"><i class="bi bi-pin-angle-fill"></i> Vorgemerkt</span>
                         <?php endif; ?>
                     </td>
-                    <td class="text-end">
-                        <!-- flex-wrap: auf dem Handy passen die vier Icons nicht nebeneinander und
-                             würden sonst aus der Tabelle laufen; sie brechen dort in zwei Reihen um -->
+                    <td class="text-end" style="min-width:170px;">
+                        <!-- min-width auf th/td: verhindert, dass andere Spalten (z.B. Status-Badges)
+                             diese Spalte zusammendrücken. flex-wrap bleibt als Fallback für sehr
+                             schmale Bildschirme (Handy) — dort brechen die Icons in zwei Reihen um. -->
                         <div class="d-flex justify-content-end gap-1 flex-wrap">
                             <a href="edit.php?list_id=<?= $list_id ?>&highlight=<?= $card['id'] ?>&filter=<?= $filter ?>"
                                class="btn btn-sm btn-outline-secondary"
@@ -433,26 +434,6 @@ if (str_starts_with($filter, 'box')) {
                                class="btn btn-sm btn-outline-primary"
                                onclick="sessionStorage.setItem('edit_scroll_<?= $list_id ?>', window.scrollY)"
                                data-bs-toggle="tooltip" title="Bearbeiten"><i class="bi bi-pencil"></i></a>
-
-                            <?php if ($card['drill_pinned_correct'] !== null): ?>
-                            <form method="post" class="d-inline">
-                                <?= csrf_field() ?>
-                                <input type="hidden" name="action" value="toggle_pin">
-                                <input type="hidden" name="list_id" value="<?= $list_id ?>">
-                                <input type="hidden" name="card_id" value="<?= $card['id'] ?>">
-                                <button type="submit" class="btn btn-sm btn-primary"
-                                        data-bs-toggle="tooltip" title="Vormerkung entfernen"><i class="bi bi-pin-angle-fill"></i></button>
-                            </form>
-                            <?php elseif ($card['status'] !== 'archived'): ?>
-                            <form method="post" class="d-inline">
-                                <?= csrf_field() ?>
-                                <input type="hidden" name="action" value="toggle_pin">
-                                <input type="hidden" name="list_id" value="<?= $list_id ?>">
-                                <input type="hidden" name="card_id" value="<?= $card['id'] ?>">
-                                <button type="submit" class="btn btn-sm btn-outline-secondary"
-                                        data-bs-toggle="tooltip" title="Für Drill vormerken"><i class="bi bi-pin-angle"></i></button>
-                            </form>
-                            <?php endif; ?>
 
                             <?php if ($card['status'] !== 'archived'): ?>
                             <form method="post" class="d-inline">

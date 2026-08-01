@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.31] - 2026-08-01
+
+### Behoben
+- **Kartenübersicht (`edit.php`): Aktions-Icons (Ansehen/Bearbeiten/Archivieren/Löschen) brachen auf Desktop-Breite in Safari in mehrere Zeilen um**, sobald eine Karte in der Liste vorgemerkt war (breiterer "Vorgemerkt"-Badge in der Status-Spalte drückte die Aktionen-Spalte zusammen — abhängig vom Browser-Layout-Verhalten, in Chrome nicht reproduzierbar gewesen). Der Pin-Toggle-Button, der testweise zusätzlich in der Aktionsleiste stand, wurde wieder entfernt (Vormerken bleibt über die Kartenansicht möglich) und die Aktionen-Spalte hat jetzt eine feste Mindestbreite (170px), die für die 4 Icons ausgelegt ist — dadurch kann keine andere Spalte sie mehr verengen.
+
+---
+
 ## [3.2.30] - 2026-08-01
 
 ### Neu
