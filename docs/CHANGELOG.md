@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.1] - 2026-08-02
+
+### Hinweis zur Versionsnummer
+- **Keine inhaltliche Änderung** — reine Korrektur der Versionszählung. Am 29.07.2026 wurde `v3.3.0` getaggt (Listen-Status Aktiv/Inaktiv), die Entwicklung danach lief aber versehentlich unter `3.2.42`–`3.2.48` statt unter der `3.3.x`-Linie weiter. Ab hier zählt die Nummerierung korrekt ab `3.3.1` weiter (letzter inhaltlicher Stand entspricht `3.2.48`: Icon für den "Statistik"-Button auf der Startseite).
+
+---
+
 ## [3.2.48] - 2026-08-02
 
 ### Verbessert
