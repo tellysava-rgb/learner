@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.48] - 2026-08-02
+
+### Verbessert
+- **"Statistik"-Button auf der Startseite mit Icon** (`bi-bar-chart-line`, dasselbe Icon wie beim gleichnamigen Button auf den einzelnen Listen-Karten) statt reinem Text — konsistent zu "Meine Listen".
+
+---
+
 ## [3.2.47] - 2026-08-02
 
 ### Neu

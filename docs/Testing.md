@@ -176,7 +176,7 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 
 ## 16. Listenübergreifende Leitner-/Drill-Buttons und Drill-Listenauswahl _(v3.2.47)_
 
-[ ] Startseite: Button-Reihe neben "Meine Listen" zeigt in dieser Reihenfolge: "Leitner", "Drill", "Meine Listen" (mit Stift-Icon `bi-pencil` vor dem Text), "Statistik". _(v3.2.47)_
+[ ] Startseite: Button-Reihe neben "Meine Listen" zeigt in dieser Reihenfolge: "Leitner", "Drill", "Meine Listen" (mit Stift-Icon `bi-pencil` vor dem Text), "Statistik" (mit Icon `bi-bar-chart-line` vor dem Text). _(v3.2.48)_
 [ ] Auf schmalem Viewport (iPhone, 430 px) bricht die Button-Reihe sauber um, keine Seite lässt sich horizontal wegschieben. _(v3.2.47)_
 [ ] Klick auf "Drill" (ohne vorausgewählte Liste) → neue Auswahlseite "Drill-Session starten" mit Checkboxen aller eigenen aktiven Listen (erste vorausgewählt), Button "Drill starten". _(v3.2.47)_
 [ ] Mehrere Listen ankreuzen und "Drill starten" → Session startet mit Karten aus allen ausgewählten Listen gemischt. _(v3.2.47)_

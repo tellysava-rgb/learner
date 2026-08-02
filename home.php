@@ -156,7 +156,7 @@ $_SESSION['streak_date'] = today();
                 <a href="learn.php" class="btn btn-sm btn-outline-primary">Leitner</a>
                 <a href="drill.php" class="btn btn-sm btn-outline-primary">Drill</a>
                 <a href="lists.php" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>Meine Listen</a>
-                <a href="stats.php" class="btn btn-sm btn-outline-secondary">Statistik</a>
+                <a href="stats.php" class="btn btn-sm btn-outline-secondary"><i class="bi bi-bar-chart-line me-1"></i>Statistik</a>
             </div>
         </div>
 
