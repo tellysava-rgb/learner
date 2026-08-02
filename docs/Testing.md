@@ -173,3 +173,18 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Nach einem Deploy sind geschützte Dateien (`db-credentials.php`, `config-runtime.php`, `deploy.php`, `deploy-config.php`, `install.php`) unverändert — Regressionscheck, da die Kopierlogik angepasst wurde. _(v3.2.46)_
 
 ---
+
+## 16. Listenübergreifende Leitner-/Drill-Buttons und Drill-Listenauswahl _(v3.2.47)_
+
+[ ] Startseite: Button-Reihe neben "Meine Listen" zeigt in dieser Reihenfolge: "Leitner", "Drill", "Meine Listen" (mit Stift-Icon `bi-pencil` vor dem Text), "Statistik". _(v3.2.47)_
+[ ] Auf schmalem Viewport (iPhone, 430 px) bricht die Button-Reihe sauber um, keine Seite lässt sich horizontal wegschieben. _(v3.2.47)_
+[ ] Klick auf "Drill" (ohne vorausgewählte Liste) → neue Auswahlseite "Drill-Session starten" mit Checkboxen aller eigenen aktiven Listen (erste vorausgewählt), Button "Drill starten". _(v3.2.47)_
+[ ] Mehrere Listen ankreuzen und "Drill starten" → Session startet mit Karten aus allen ausgewählten Listen gemischt. _(v3.2.47)_
+[ ] Kein Häkchen gesetzt und trotzdem absenden (z.B. per manuell verändertem POST) → zurück auf die Drill-Auswahlseite mit Fehlermeldung "Bitte mindestens eine Liste auswählen.", keine Session gestartet. _(v3.2.47)_
+[ ] Sind alle eigenen Listen inaktiv bzw. keine Liste vorhanden → Hinweis "Du hast noch keine Listen" statt leerem Formular. _(v3.2.47)_
+[ ] Nur inaktive Listen erscheinen in der Drill-Auswahl NICHT (analog zu Leitner, siehe Abschnitt 14). _(v3.2.47)_
+[ ] Pro-Liste-Button "Drill" auf einer einzelnen Listen-Karte startet weiterhin sofort ohne Auswahlseite (unverändertes Verhalten). _(v3.2.47)_
+[ ] Klick auf "Leitner" (ohne vorausgewählte Liste) führt weiterhin zur bestehenden `learn.php`-Konfigurationsseite (Richtung, Kartenanzahl) — unverändert durch diese Änderung. _(v3.2.47)_
+[ ] Nach Abschluss einer über die neue Drill-Auswahl gestarteten Session mit mehreren Listen: "Erneut starten"-Button auf dem Abschluss-Screen erscheint NICHT (nur bei genau einer Liste vorhanden, bestehendes Verhalten). _(v3.2.47)_
+
+---

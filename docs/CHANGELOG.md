@@ -5,6 +5,18 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.47] - 2026-08-02
+
+### Neu
+- **Listenübergreifende Leitner-/Drill-Buttons auf der Startseite:** Neben "Meine Listen" stehen jetzt zusätzlich "Leitner" und "Drill" — beide starten ohne vorausgewählte Liste und zeigen zuerst eine Checkbox-Auswahl aller eigenen aktiven Listen (Mehrfachauswahl möglich), analog zur bestehenden Listenauswahl in `learn.php`.
+- **`drill.php` unterstützt jetzt Mehrfach-Listenauswahl:** Bisher liess sich eine Drill-Session nur direkt aus einer einzelnen Liste heraus starten. Wird `drill.php` ohne vorausgewählte Liste aufgerufen, erscheint eine neue Setup-Seite mit Checkbox-Auswahl (erste Liste vorausgewählt) — die zugrundeliegende Pool-Logik unterstützte mehrere Listen bereits zuvor, es fehlte nur der Einstiegspunkt dafür.
+
+### Verbessert
+- **"Meine Listen"-Button mit Icon** (`bi-pencil`, wie beim gleichnamigen Icon-Button auf den einzelnen Listen-Karten) statt reinem Text.
+- Fehler beim Starten einer Drill-Session (keine Liste ausgewählt, keine gültige Liste, keine geeigneten Karten) führen jetzt zurück auf die Drill-Auswahlseite statt auf die Startseite.
+
+---
+
 ## [3.2.46] - 2026-08-02
 
 ### Behoben

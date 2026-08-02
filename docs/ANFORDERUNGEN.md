@@ -102,8 +102,8 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 - Öffentliche Listen anderer Personen sind über den Bereich "Entdecken" auf der Startseite zugänglich
 - **Zuletzt verwendete Liste** wird automatisch vorgeschlagen (in DB gespeichert → browserübergreifend)
 - Wahl des **Lernmodus** pro Session: Leitner oder Drill
-  - **Drill:** startet sofort (keine Zwischenauswahl nötig — Liste bereits gewählt)
-  - **Leitner:** kurze Konfigurationsseite (Richtung, Kartenanzahl) vor dem Start
+  - **Pro Liste** (Button auf der Listen-Karte): Drill startet sofort mit genau dieser Liste (keine Zwischenauswahl nötig — Liste bereits gewählt), Leitner zeigt eine kurze Konfigurationsseite (Richtung, Kartenanzahl) vor dem Start
+  - **Listenübergreifend** (Buttons "Leitner"/"Drill" oben neben "Meine Listen", ohne Liste vorausgewählt) _(v3.2.46)_: beide zeigen zuerst eine Checkbox-Auswahl aller eigenen aktiven Listen (Mehrfachauswahl möglich, erste Liste vorausgewählt) — bei Drill nur die Listenauswahl (keine Richtung/Kartenanzahl, wie im Drill-Modus generell nicht konfigurierbar), bei Leitner zusätzlich wie gehabt Richtung und Kartenanzahl
 - Navigation zur Startseite jederzeit über die Breadcrumb-Navigation möglich
 - Pro Liste zusätzlich zur Warteschlangen-Anzahl (⏳) eine Anzeige **"📚 N heute fällig"** _(v2.7.0)_ — Anzahl aktiver Leitner-Karten mit `next_due_date <= heute`
 - Beide Zeilen sind **immer sichtbar**, auch bei 0 _(v2.7.2)_: "⏳ Keine in Warteschlange" bzw. "✅ Keine heute fällig" (Häkchen-Icon statt 📚, sobald für heute nichts mehr ansteht — bewusste positive Rückmeldung statt einfach nichts anzuzeigen)
@@ -111,6 +111,8 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 - **Listen-Status Aktiv/Inaktiv** (`lists.is_active`) _(v3.3.0)_: Jede Liste hat einen Status, standardmässig aktiv. Aktive Listen werden wie gewohnt angezeigt (Warteschlange, "heute fällig", Leitner-/Drill-Buttons). Inaktive Listen erscheinen in einem eigenen, kompakteren Bereich "Inaktive Listen" unterhalb der aktiven Listen — ohne Warteschlangen-/Fällig-Anzeige und ohne Leitner-/Drill-Buttons. Umschalt-Button unten rechts auf jeder Listen-Karte (aktiv wie inaktiv): `bi-check-circle-fill` ("Inaktiv setzen") bei aktiven Listen, `bi-circle text-secondary` ("Aktiv setzen") bei inaktiven Listen. Betrifft nur Anzeige/Sichtbarkeit — Leitner-Fortschritt und Warteschlangen-Mechanik einer inaktiven Liste laufen im Hintergrund unverändert weiter.
 - **MCP-Server und Listen-Status** _(v3.3.0)_: `list_lists` gibt standardmässig nur aktive Listen zurück und erwähnt inaktive nicht proaktiv. Nennt der User eine Liste explizit beim Namen, ruft der Agent `list_lists` mit `include_inactive=true` erneut auf, um auch inaktive Listen zu finden — Karten dürfen weiterhin gezielt in eine benannte inaktive Liste eingefügt werden (`add_cards` prüft den Status nicht).
 - **Listenauswahl in der Leitner-Session** (`learn.php`) _(v3.2.45)_: Die Checkbox-Auswahl beim Starten einer Session zeigt nur aktive Listen (`is_active = 1`) — analog zur Statistik-Auswahl (siehe oben) und zu den Leitner-/Drill-Buttons auf der Startseite.
+- **Button-Reihe oben neben der Überschrift "Meine Listen"** _(v3.2.46)_: **Leitner** und **Drill** (starten listenübergreifend mit Checkbox-Auswahl, siehe oben), **Meine Listen** (Icon `bi-pencil` + Text, führt zu `lists.php`) und **Statistik** (führt zu `stats.php`, allgemeine Übersicht aller Listen). Zeile bricht bei schmalem Viewport um (`flex-wrap`).
+- **Listenauswahl in der Drill-Session** (`drill.php`) _(v3.2.46)_: Wird `drill.php` ohne vorausgewählte Liste aufgerufen (weder laufende Session noch `list_id` in der URL), erscheint dieselbe Art Checkbox-Auswahl wie bei Leitner — nur aktive Listen, erste vorausgewählt. Fehlerfälle (keine Liste ausgewählt, keine gültige Liste, keine geeigneten Karten) führen zurück auf diese Auswahlseite statt auf die Startseite, mit Fehlermeldung über der Auswahl.
 
 ---
 

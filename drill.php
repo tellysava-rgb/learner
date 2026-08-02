@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin
     $list_ids = array_map('intval', array_filter((array)($_POST['list_ids'] ?? [])));
     if (!$list_ids) {
         $_SESSION['flash_error'] = 'Bitte mindestens eine Liste auswählen.';
-        header('Location: home.php');
+        header('Location: drill.php');
         exit;
     }
     start_drill_session($pdo, $person_id, $list_ids);
@@ -180,7 +180,7 @@ function start_drill_session(PDO $pdo, int $person_id, array $list_ids): void {
 
     if (!$valid_ids) {
         $_SESSION['flash_error'] = 'Keine gültige Liste ausgewählt.';
-        header('Location: home.php');
+        header('Location: drill.php');
         exit;
     }
 
@@ -189,7 +189,7 @@ function start_drill_session(PDO $pdo, int $person_id, array $list_ids): void {
 
     if (!$pool_known && !$pool_new && !$pool_pinned) {
         $_SESSION['flash_error'] = 'Keine geeigneten Karten für Drill in dieser Liste.';
-        header('Location: home.php');
+        header('Location: drill.php');
         exit;
     }
 
@@ -218,7 +218,7 @@ function start_drill_session(PDO $pdo, int $person_id, array $list_ids): void {
     $first = next_drill_card($state);
     if ($first === null) {
         $_SESSION['flash_error'] = 'Keine geeigneten Karten für Drill in dieser Liste.';
-        header('Location: home.php');
+        header('Location: drill.php');
         exit;
     }
     $state['current_card_id'] = $first;
@@ -448,9 +448,21 @@ if (isset($_GET['done']) && isset($_SESSION['drill_done'])) {
     unset($_SESSION['drill_done']);
 }
 
+// SETUP: weder laufende Session noch Abschluss noch Vorauswahl via list_id → Listenauswahl anzeigen
+$all_lists   = [];
+$setup_error = '';
 if (!$state && !$done_data) {
-    header('Location: home.php');
-    exit;
+    $setup_error = $_SESSION['flash_error'] ?? '';
+    unset($_SESSION['flash_error']);
+
+    $stmt = $pdo->prepare("
+        SELECT l.id, l.name, l.language_a, l.language_b
+        FROM lists l
+        WHERE l.person_id = ? AND l.is_active = 1
+        ORDER BY l.last_used_at DESC, l.name
+    ");
+    $stmt->execute([$person_id]);
+    $all_lists = $stmt->fetchAll();
 }
 ?>
 <!DOCTYPE html>
@@ -607,6 +619,40 @@ if (!$state && !$done_data) {
 </div>
 
 <?= debug_panel() ?>
+
+<?php elseif (!$state && !$done_data): ?>
+<!-- ==================== SETUP ==================== -->
+<h1 class="h4 mb-4">Drill-Session starten</h1>
+
+<?php if ($setup_error): ?>
+<div class="alert alert-danger"><?= htmlspecialchars($setup_error) ?></div>
+<?php endif; ?>
+
+<?php if (!$all_lists): ?>
+<p class="text-muted">Du hast noch keine Listen. <a href="lists.php">Erstelle zuerst eine Liste</a>.</p>
+<?php else: ?>
+<form method="post">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="begin">
+
+    <div class="mb-4">
+        <label class="form-label fw-semibold">Listen auswählen</label>
+        <?php foreach ($all_lists as $list): ?>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="list_ids[]"
+                   value="<?= $list['id'] ?>" id="list_<?= $list['id'] ?>"
+                   <?= $list['id'] === ($all_lists[0]['id'] ?? 0) ? 'checked' : '' ?>>
+            <label class="form-check-label" for="list_<?= $list['id'] ?>">
+                <?= htmlspecialchars($list['name']) ?>
+                <span class="text-muted small">(<?= htmlspecialchars($list['language_a']) ?> / <?= htmlspecialchars($list['language_b']) ?>)</span>
+            </label>
+        </div>
+        <?php endforeach; ?>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-lg">Drill starten</button>
+</form>
+<?php endif; ?>
 
 <?php endif; ?>
 </div>

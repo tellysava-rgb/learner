@@ -150,10 +150,12 @@ $_SESSION['streak_date'] = today();
 <div class="row g-4">
     <!-- Eigene Listen -->
     <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
             <h2 class="h5 mb-0">Meine Listen</h2>
-            <div class="d-flex gap-2">
-                <a href="lists.php" class="btn btn-sm btn-outline-primary">Meine Listen</a>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="learn.php" class="btn btn-sm btn-outline-primary">Leitner</a>
+                <a href="drill.php" class="btn btn-sm btn-outline-primary">Drill</a>
+                <a href="lists.php" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>Meine Listen</a>
                 <a href="stats.php" class="btn btn-sm btn-outline-secondary">Statistik</a>
             </div>
         </div>
