@@ -135,6 +135,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin
 }
 
 // -------------------------------------------------------
+// POST: "Für Drill vormerken" direkt während der Leitner-Session umschalten
+// Rührt Queue/Stats/Fortschritt der laufenden Session nicht an — nur der Pin-Status der
+// aktuell angezeigten Karte ändert sich, danach wird dieselbe Karte erneut angezeigt.
+// -------------------------------------------------------
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggle_pin' && isset($_SESSION['learn'])) {
+    csrf_validate();
+
+    $card_id = intval($_POST['card_id'] ?? 0);
+    $queue_state = $_SESSION['learn'];
+
+    // Nur die aktuell angezeigte Karte darf umgeschaltet werden — verhindert, dass über eine
+    // manipulierte card_id der Pin-Status fremder Karten geändert wird.
+    if ($card_id !== ($queue_state['queue'][0] ?? null)) {
+        header('Location: learn.php');
+        exit;
+    }
+
+    // Zeile könnte noch nicht existieren (z.B. Karte frisch importiert) — vorher sicherstellen.
+    $pdo->prepare("
+        INSERT INTO card_progress (person_id, card_id, status)
+        VALUES (?, ?, 'queued')
+        ON DUPLICATE KEY UPDATE status = status
+    ")->execute([$person_id, $card_id]);
+
+    $stmt = $pdo->prepare("SELECT drill_pinned_correct FROM card_progress WHERE person_id = ? AND card_id = ?");
+    $stmt->execute([$person_id, $card_id]);
+    $is_pinned = $stmt->fetchColumn() !== null;
+
+    $new_value = $is_pinned ? null : 0;
+    $stmt = $pdo->prepare("UPDATE card_progress SET drill_pinned_correct = ? WHERE person_id = ? AND card_id = ?");
+    $stmt->execute([$new_value, $person_id, $card_id]);
+
+    header('Location: learn.php');
+    exit;
+}
+
+// -------------------------------------------------------
 // POST: Karte beantworten (während Session)
 // -------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answer' && isset($_SESSION['learn'])) {
@@ -543,10 +580,17 @@ $is_retry  = isset($state['answered'][$current['id']]);
 <!-- Karte (klicken zum Aufdecken) -->
 <div class="learn-card mx-auto mb-4 position-relative"
      id="learn-card" style="max-width:540px; cursor:pointer;" onclick="flipCard()">
-    <?php if ($current['drill_pinned_correct'] !== null): ?>
-    <span class="position-absolute btn btn-sm btn-primary rounded-circle" style="top:8px; left:8px; z-index:2;"
-          title="Für Drill vorgemerkt"><i class="bi bi-pin-angle-fill"></i></span>
-    <?php endif; ?>
+    <?php $is_pinned = $current['drill_pinned_correct'] !== null; ?>
+    <form method="post" class="position-absolute" style="top:8px; left:8px; z-index:2;">
+        <?= csrf_field() ?>
+        <input type="hidden" name="action" value="toggle_pin">
+        <input type="hidden" name="card_id" value="<?= $current['id'] ?>">
+        <button type="submit" class="btn btn-sm <?= $is_pinned ? 'btn-primary' : 'btn-outline-secondary' ?> rounded-circle"
+                onclick="event.stopPropagation();"
+                title="<?= $is_pinned ? 'Vormerkung entfernen' : 'Für Drill vormerken' ?>">
+            <i class="bi <?= $is_pinned ? 'bi-pin-angle-fill' : 'bi-pin-angle' ?>"></i>
+        </button>
+    </form>
     <div class="text-center p-5" style="min-height:280px;">
         <p class="text-muted small mb-2"><?= htmlspecialchars($qa['q_lang']) ?></p>
         <div class="fw-bold fs-2 mb-1">

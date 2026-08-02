@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.41] - 2026-08-02
+
+### Neu
+- **"Für Drill vormerken" direkt in der Leitner-Session:** Das Pin-Symbol oben links auf der Lernkarte in `learn.php` ist jetzt klickbar statt nur anzeigend — ein Klick schaltet die Vormerkung sofort um, ohne die laufende Session zu unterbrechen (Queue, Fortschritt und Statistik bleiben unverändert, dieselbe Karte bleibt sichtbar). Bisher ging das nur über die Kartenansicht in `edit.php`. Neue Sicherheitsprüfung: nur die aktuell angezeigte Karte darf umgeschaltet werden. In `drill.php` bleibt das Symbol bewusst rein anzeigend.
+
+---
+
 ## [3.2.40] - 2026-08-01
 
 ### Behoben

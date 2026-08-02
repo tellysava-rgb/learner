@@ -411,8 +411,14 @@ Fach 5 wird ausschliesslich durch echte Leitner-Wiederholungen erreicht.
 
 ### Manuelle Vormerkung für Drill _(v3.2.30)_
 Zusätzlich zur automatischen Karten-Auswahl kann jede Karte einzeln manuell "für Drill vormerken"
-werden — Kartenübersicht `edit.php`: Pin-Icon (<i class="bi bi-pin-angle"></i>) in der Aktionsleiste
-sowie oben links auf der Karte in der Kartenansicht (Direktlink `edit.php?...&highlight=<id>`).
+werden — umschaltbar an zwei Stellen:
+- Kartenübersicht `edit.php`: Pin-Icon oben links auf der Karte in der Kartenansicht (Direktlink
+  `edit.php?...&highlight=<id>`)
+- **Direkt während einer laufenden Leitner-Session** _(v3.2.41)_: derselbe runde Pin-Button oben
+  links auf der Lernkarte in `learn.php`, ausgefüllt wenn vorgemerkt. Klick schaltet die Vormerkung
+  sofort um, ohne die laufende Session zu unterbrechen (Queue/Fortschritt/Statistik bleiben
+  unverändert, dieselbe Karte wird danach weiterhin angezeigt). In `drill.php` bleibt das Symbol
+  bewusst rein anzeigend (nicht klickbar), da man dort bereits mitten im Drill ist.
 
 - Eigenes Feld `drill_pinned_correct` — **unabhängig von `drill_mastery`**. Grund: `drill_mastery`
   steuert über eine feste Fach-Zuordnung (`master_card()`) den Einstieg ins Leitner-System (siehe
