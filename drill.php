@@ -551,7 +551,6 @@ if (!$state && !$done_data) {
 
 <?php elseif ($state && $card_data): ?>
 <!-- ==================== KARTE ==================== -->
-<?= debug_panel() ?>
 
 <div class="learn-card mx-auto mb-4 position-relative" id="flip-card" style="max-width:540px; cursor:pointer;" onclick="flipCard()">
     <?php if ($card_data['drill_pinned_correct'] !== null): ?>
@@ -606,6 +605,8 @@ if (!$state && !$done_data) {
         <button type="submit" class="btn btn-success btn-lg">Gewusst</button>
     </form>
 </div>
+
+<?= debug_panel() ?>
 
 <?php endif; ?>
 </div>

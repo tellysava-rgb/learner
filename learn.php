@@ -562,7 +562,6 @@ $remaining = count($state['queue']);
 $total     = $remaining + $state['stats']['correct'] + $state['stats']['incorrect'];
 $is_retry  = isset($state['answered'][$current['id']]);
 ?>
-<?= debug_panel() ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <small class="text-muted">
@@ -665,6 +664,8 @@ $is_retry  = isset($state['answered'][$current['id']]);
         </form>
     </div>
 </div>
+
+<?= debug_panel() ?>
 
 <?php else: ?>
 <!-- ==================== SETUP ==================== -->

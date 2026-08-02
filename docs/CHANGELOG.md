@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.43] - 2026-08-02
+
+### Behoben
+- **Debug-Panel verdeckte auf dem iPhone die Antwort-Buttons.** In `learn.php` und `drill.php` erschien das Debug-Panel bisher oberhalb der Karte und schob dadurch die Antwort-Buttons auf kleinen Bildschirmen unter den sichtbaren Bereich. Das Panel steht jetzt unterhalb von Karte und Buttons. Auf der Zusammenfassungs-/Abschlussseite (letzte Antwort der Session) bleibt es unverändert oben.
+
+---
+
 ## [3.2.42] - 2026-08-02
 
 ### Verbessert

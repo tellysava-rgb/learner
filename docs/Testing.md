@@ -121,6 +121,7 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 
 [ ] Einstellungen → Debug: Schalter "Debug-Modus aktiv" lässt sich unabhängig vom grossen Einstellungs-Formular speichern, andere Einstellungen bleiben dabei unverändert. _(v3.2.34)_
 [ ] Debug-Modus aktiv, als Admin eingeloggt: nach einer Leitner-Antwort erscheint ein Info-Panel mit Fach- und Fälligkeits-Änderung der beantworteten Karte, bevor die neue Karte gezeigt wird. _(v3.2.34)_
+[ ] Leitner und Drill, laufende Karte: das Debug-Panel erscheint UNTERHALB der Karte samt Antwort-Buttons, nicht mehr darüber — auf dem iPhone bleiben die Buttons dadurch ohne Scrollen sichtbar. Auf der Zusammenfassungs-/Abschlussseite (letzte Antwort der Session) steht das Panel weiterhin oben. _(v3.2.43)_
 [ ] Leitner "Überspringen" bei aktivem Debug-Modus → Panel zeigt "übersprungen, nichts geändert". _(v3.2.34)_
 [ ] Leitner 2. Versuch (nach falscher Antwort) → Panel vermerkt "2. Versuch" korrekt, unabhängig ob danach richtig oder falsch. _(v3.2.34)_
 [ ] War die beantwortete Karte die letzte der Leitner-Session → Panel erscheint auf der Zusammenfassungsseite, nicht auf einer (nicht mehr existierenden) nächsten Karte. _(v3.2.34)_
