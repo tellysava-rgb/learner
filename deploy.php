@@ -206,9 +206,19 @@ function deploy_run(array &$log, bool &$success): void {
                 continue;
             }
 
-            if (copy($item->getPathname(), $target)) {
+            // Nicht direkt auf $target kopieren: copy() schreibt in die bestehende Datei hinein und
+            // überschreibt sie Stück für Stück — eine parallele Anfrage, die genau diese Datei gerade
+            // einliest (z.B. ein Kartenupdate in edit.php während des Deploys), kann sie dadurch
+            // abgeschnitten oder syntaktisch kaputt zu sehen bekommen ("Server hat die Verbindung
+            // unerwartet beendet"). Stattdessen in eine temporäre Datei im selben Verzeichnis
+            // schreiben und per rename() atomar über die Zieldatei legen — rename() ist auf demselben
+            // Dateisystem atomar, jede parallele Anfrage sieht dadurch immer entweder die komplett
+            // alte oder komplett neue Datei, nie einen Zwischenzustand.
+            $tmp_target = $target . '.deploytmp' . bin2hex(random_bytes(4));
+            if (copy($item->getPathname(), $tmp_target) && rename($tmp_target, $target)) {
                 $copied++;
             } else {
+                @unlink($tmp_target);
                 $log[] = 'WARNUNG: Konnte nicht kopieren: ' . $rel;
             }
         }

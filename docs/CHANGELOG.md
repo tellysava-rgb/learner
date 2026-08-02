@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.46] - 2026-08-02
+
+### Behoben
+- **Deploy konnte laufende Anfragen mit "Verbindung unerwartet beendet" abbrechen.** `deploy.php` kopierte neue Dateien bisher direkt per `copy()` auf die live laufenden PHP-Dateien — das ist nicht atomar und überschreibt die Zieldatei Stück für Stück. Eine parallele Anfrage (z.B. ein Kartenupdate in `edit.php`), die genau in diesem Moment dieselbe Datei einliest, konnte sie dadurch abgeschnitten oder syntaktisch kaputt zu sehen bekommen, was sich als plötzlicher Verbindungsabbruch zeigte — im Extremfall bei `includes/auth.php` auch als unerwarteter Logout. Jede Datei wird jetzt zuerst in eine temporäre Datei im selben Verzeichnis geschrieben und erst per `rename()` (auf demselben Dateisystem atomar) über die Zieldatei gelegt — eine parallele Anfrage sieht dadurch immer entweder die komplett alte oder komplett neue Datei, nie einen Zwischenzustand.
+
+---
+
 ## [3.2.45] - 2026-08-02
 
 ### Behoben

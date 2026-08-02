@@ -166,4 +166,10 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Sind ALLE eigenen Listen inaktiv → Hinweis "Du hast noch keine Listen" erscheint (gleiches Verhalten wie ganz ohne Listen), kein leeres Formular. _(v3.2.45)_
 [ ] Startseite → Leitner-Button einer aktiven Liste (setzt `list_id` in der URL) funktioniert weiterhin unverändert (Liste vorausgewählt, keine Checkbox-Liste sichtbar). _(v3.2.45)_
 
+## 15. Deploy: atomares Überschreiben der Live-Dateien _(v3.2.46)_
+
+[ ] Deploy ausführen, während gleichzeitig (zweiter Browser/Tab) aktiv eine Seite genutzt wird (z.B. Kartenupdate in `edit.php`) → kein Verbindungsabbruch, kein unerwarteter Logout während des Deploys. Manuell schwer reproduzierbar (Timing-Fenster sehr klein) — primär Code-Review-Absicherung, kein zwingender manueller Test.
+[ ] Normaler Deploy ohne parallele Last funktioniert weiterhin unverändert: Statusanzeige, "Deploy starten", Erfolgsmeldung mit Anzahl kopierter/übersprungener Dateien. _(v3.2.46)_
+[ ] Nach einem Deploy sind geschützte Dateien (`db-credentials.php`, `config-runtime.php`, `deploy.php`, `deploy-config.php`, `install.php`) unverändert — Regressionscheck, da die Kopierlogik angepasst wurde. _(v3.2.46)_
+
 ---
