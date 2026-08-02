@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.42] - 2026-08-02
+
+### Verbessert
+- **Drill-Debug-Panel zeigt jetzt beide Zähler gleichzeitig** statt nur den zur aktuellen Antwort passenden: "Mastery-Zähler X/3" (Folge richtiger Antworten, setzt bei Fehler zurück) und "Zu-schwer-Zähler X/5" (Gesamtzahl falscher Antworten in der Session, wird durch richtige Antworten dazwischen nicht zurückgesetzt) — vorher war nicht ersichtlich, dass es sich um zwei unabhängige Zähler mit unterschiedlichem Reset-Verhalten handelt.
+
+---
+
 ## [3.2.41] - 2026-08-02
 
 ### Neu

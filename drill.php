@@ -103,10 +103,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
         $stmt = $pdo->prepare($debug_snapshot_sql);
         $stmt->execute([$person_id, $card_id]);
         $debug_after = $stmt->fetch();
-        $session_counter = $result === 'known'
-            ? ($state['session_correct'][$card_id] ?? 0)
-            : ($state['session_unknown'][$card_id] ?? 0);
-        $_SESSION['debug_last_answer'] = debug_drill_message($pdo, $card_id, $result, $is_pinned, $debug_before, $debug_after, $session_counter);
+        $mastery_counter  = $state['session_correct'][$card_id] ?? 0;
+        $too_hard_counter = $state['session_unknown'][$card_id] ?? 0;
+        $_SESSION['debug_last_answer'] = debug_drill_message($pdo, $card_id, $result, $is_pinned, $debug_before, $debug_after, $mastery_counter, $too_hard_counter);
     }
 
     // Session-Ende: Timer abgelaufen oder keine Karten mehr
@@ -139,8 +138,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
 // Debug-Modus: baut die Vorher/Nachher-Meldung aus den beiden Snapshots. Erkennt besondere
 // Ereignisse (gemeistert, zu schwer markiert, Vormerkung erreicht) an der jeweiligen Feldänderung,
 // statt sie separat nachzuverfolgen — robust gegenüber Änderungen an master_card()/mark_too_hard_card().
-// Rückgabe: 3 Zeilen [Karte, Antwort (Kontext), Detail] — siehe debug_panel() in includes/auth.php.
-function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_pinned, array $before, array $after, int $session_counter): array {
+// Rückgabe: 3-4 Zeilen [Karte, Antwort (Kontext), Detail(s)] — siehe debug_panel() in includes/auth.php.
+function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_pinned, array $before, array $after, int $mastery_counter, int $too_hard_counter): array {
     $label   = debug_card_label($pdo, $card_id);
     $antwort = $result === 'known' ? 'gewusst' : 'musste nachdenken';
 
@@ -165,8 +164,12 @@ function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_p
         return [$label, $antwort, 'als zu schwer markiert, bis morgen pausiert'];
     }
 
-    $limit = $result === 'known' ? DRILL_MASTERY_THRESHOLD : DRILL_TOO_HARD_LIMIT;
-    return [$label, $antwort, "Zähler {$session_counter}/{$limit}"];
+    return [
+        $label,
+        $antwort,
+        "Mastery-Zähler {$mastery_counter}/" . DRILL_MASTERY_THRESHOLD,
+        "Zu-schwer-Zähler {$too_hard_counter}/" . DRILL_TOO_HARD_LIMIT,
+    ];
 }
 
 function start_drill_session(PDO $pdo, int $person_id, array $list_ids): void {

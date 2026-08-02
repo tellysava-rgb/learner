@@ -124,7 +124,7 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Leitner "Überspringen" bei aktivem Debug-Modus → Panel zeigt "übersprungen, nichts geändert". _(v3.2.34)_
 [ ] Leitner 2. Versuch (nach falscher Antwort) → Panel vermerkt "2. Versuch" korrekt, unabhängig ob danach richtig oder falsch. _(v3.2.34)_
 [ ] War die beantwortete Karte die letzte der Leitner-Session → Panel erscheint auf der Zusammenfassungsseite, nicht auf einer (nicht mehr existierenden) nächsten Karte. _(v3.2.34)_
-[ ] Drill, normale Karte (nicht vorgemerkt): Panel zeigt bei einer normalen Antwort den Session-Zähler-Stand (z.B. "Zähler 2/3"); wird die Karte in diesem Schritt gemeistert oder als zu schwer markiert, zeigt das Panel stattdessen die Fach-Änderung bzw. den Hinweis "als zu schwer markiert". _(v3.2.34)_
+[ ] Drill, normale Karte (nicht vorgemerkt): Panel zeigt bei einer normalen Antwort BEIDE Zähler gleichzeitig ("Mastery-Zähler X/3" und "Zu-schwer-Zähler X/5", je auf eigener Zeile); wird die Karte in diesem Schritt gemeistert oder als zu schwer markiert, zeigt das Panel stattdessen nur die Fach-Änderung bzw. den Hinweis "als zu schwer markiert". _(v3.2.42)_
 [ ] Drill, vorgemerkte Karte: Panel zeigt den Vormerk-Zähler; wird die Vormerkung in diesem Schritt entfernt, vermerkt das Panel das explizit — Fach bleibt dabei laut Panel unverändert. _(v3.2.34)_
 [ ] War die beantwortete Karte die letzte der Drill-Session → Panel erscheint auf dem Abschluss-Screen. _(v3.2.34)_
 [ ] Debug-Modus aktiv, aber als NICHT-Admin eingeloggt (z.B. andere Person im selben Haushalt): kein Panel sichtbar, keinerlei Unterschied zum ausgeschalteten Zustand. _(v3.2.34)_

@@ -492,7 +492,7 @@ werden — umschaltbar an zwei Stellen:
 - **Global, aber nur für Admins sichtbar:** Der Schalter selbst gilt serverweit (in `config-runtime.php`), das Debug-Panel wird aber nur gerendert, wenn die eingeloggte Person zusätzlich Admin ist (`$_SESSION['is_admin']`) — andere Personen sehen bei aktivem Debug-Modus keinerlei Unterschied. Bleibt auch bei "Person wechseln" korrekt, da der Admin-Status dabei erhalten bleibt (siehe Abschnitt "Zugang / Benutzerverwaltung")
 - **Wirkung:** In `learn.php` und `drill.php` erscheint nach jeder beantworteten Karte ein `alert alert-info`-Panel (einmalig, wie eine Flash-Message) mit dem Vorher/Nachher-Status der gerade beantworteten Karte:
   - Leitner: Fach vorher→nachher, Fälligkeit vorher→nachher; bei Übersprungen "nichts geändert"; bei 2. Versuch entsprechend vermerkt
-  - Drill: bei besonderen Ereignissen (gemeistert, als zu schwer markiert, Vormerkung erreicht) eine hervorgehobene Zeile mit Fach-/Zähler-Änderung; sonst der aktuelle Session-Zähler-Stand (z.B. "Zähler 2/3")
+  - Drill: bei besonderen Ereignissen (gemeistert, als zu schwer markiert, Vormerkung erreicht) eine hervorgehobene Zeile mit Fach-/Zähler-Änderung; sonst **beide** Session-Zähler gleichzeitig, je auf eigener Zeile — "Mastery-Zähler X/`DRILL_MASTERY_THRESHOLD`" (Folge richtiger Antworten, setzt bei falscher Antwort auf 0 zurück) und "Zu-schwer-Zähler X/`DRILL_TOO_HARD_LIMIT`" (Gesamtzahl falscher Antworten in dieser Session, wird durch richtige Antworten dazwischen NICHT zurückgesetzt) _(v3.2.42)_
   - Erscheint auch auf der jeweiligen Abschluss-/Zusammenfassungsseite, wenn die beantwortete Karte die letzte der Session war
 - Betrifft nur `learn.php`/`drill.php`, nicht `math.php`
 
