@@ -188,3 +188,12 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Nach Abschluss einer über die neue Drill-Auswahl gestarteten Session mit mehreren Listen: "Erneut starten"-Button auf dem Abschluss-Screen erscheint NICHT (nur bei genau einer Liste vorhanden, bestehendes Verhalten). _(v3.2.47)_
 
 ---
+
+## 17. Hilfe-Abschnitt "Aufbau einer Lernkarte" _(v3.3.2)_
+
+[ ] `help.php`: neuer Abschnitt "Aufbau einer Lernkarte" erscheint an dritter Position im Accordion, zwischen "Wörter hinzufügen" und "Leitner-Modus". _(v3.3.2)_
+[ ] Screenshot (`img/learner-karte.png`) wird angezeigt, ist scharf/nicht verzerrt und bleibt auf schmalem Viewport (iPhone) innerhalb der Seitenbreite. _(v3.3.2)_
+[ ] Alle nachfolgenden Accordion-Abschnitte (Leitner-Modus bis "Für Technik-Fans …") lassen sich weiterhin einzeln auf-/zuklappen, keine zwei Abschnitte öffnen gleichzeitig durch die ID-Verschiebung. _(v3.3.2)_
+[ ] Als Nicht-Admin eingeloggt: 8 Abschnitte sichtbar (kein Admin-/MCP-Abschnitt), als Admin: 10 Abschnitte. _(v3.3.2)_
+
+---

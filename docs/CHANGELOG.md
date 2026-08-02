@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.2] - 2026-08-02
+
+### Neu
+- **Neuer Hilfe-Abschnitt "Aufbau einer Lernkarte"** (`help.php`), zwischen "Wörter hinzufügen" und "Leitner-Modus": erklärt anhand eines Screenshots (`img/learner-karte.png`) den Aufbau der Lernkarte — Frageseite oben, per Antippen aufgedeckte Antwortseite unten, Lautschrift und 🔊-Ausspracheknopf (immer auf der fremdsprachigen Seite), sowie das Pin-Symbol "Für Drill vormerken". Gilt übergreifend für Leitner und Drill, da die Karte in beiden Modi identisch aussieht.
+
+---
+
 ## [3.3.1] - 2026-08-02
 
 ### Hinweis zur Versionsnummer

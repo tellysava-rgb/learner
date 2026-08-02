@@ -110,10 +110,34 @@ $pin_ratio        = DRILL_PIN_RATIO;
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h4">
-                    Leitner-Modus
+                    Aufbau einer Lernkarte
                 </button>
             </h2>
             <div id="h4" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                    <p>Egal ob Leitner oder Drill — die Lernkarte selbst sieht in beiden Modi gleich aus:</p>
+                    <div class="text-center mb-3">
+                        <img src="img/learner-karte.png" alt="Beispiel einer Lernkarte: oben die Frageseite mit Begriff und Beschreibung, unten die aufgedeckte Antwortseite mit Lautschrift und Ausspracheknopf, oben links das Pin-Symbol"
+                             class="img-fluid rounded border shadow-sm" style="max-width:340px;">
+                    </div>
+                    <ul class="mb-2">
+                        <li><strong>Oberer Teil:</strong> die Frageseite — Sprachname, der Begriff sowie optional eine Beschreibung oder ein Beispielsatz dazu.</li>
+                        <li><strong>Antippen/Anklicken der Karte</strong> deckt darunter die Antwortseite auf, farblich grün hervorgehoben — gleicher Aufbau: Sprachname, Begriff, optionale Beschreibung.</li>
+                        <li><strong>Lautschrift</strong> (in eckigen Klammern, z.B. <code>[tuh-DAY]</code>) und der <strong>🔊-Ausspracheknopf</strong> gehören immer zur fremdsprachigen Seite (Sprache B) einer Karte — je nach gewählter Lernrichtung kann das die obere oder untere Hälfte sein (im Drill-Modus immer unten, da dort stets Sprache A → Sprache B gezeigt wird). Beide erscheinen nur, wenn für die Liste ein Aussprache-Dialekt hinterlegt ist bzw. eine Lautschrift zur Karte gepflegt wurde (siehe Abschnitt "Aussprache: Audio & Lautschrift").</li>
+                        <li><strong>Pin-Symbol</strong> oben links (<i class="bi bi-pin-angle"></i> / ausgefüllt <i class="bi bi-pin-angle-fill"></i>): merkt die Karte einzeln "für Drill vormerken" — unabhängig davon, ob man sich gerade im Leitner- oder Drill-Modus befindet. Näheres dazu im Abschnitt "Drill-Modus".</li>
+                    </ul>
+                    <p class="mb-0">Welche Sprache oben und welche unten erscheint, hängt von der gewählten <strong>Lernrichtung</strong> ab (im Leitner-Modus wählbar: A→B, B→A oder gemischt; im Drill-Modus fest A→B).</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h5">
+                    Leitner-Modus
+                </button>
+            </h2>
+            <div id="h5" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Das Leitner-System arbeitet mit <strong>5 Fächern</strong>. Jedes Fach hat ein festes Wiederholungs-Intervall: Fach 1 = morgen, Fach 2 = in <?= $li[2] ?> Tagen, Fach 3 = in <?= $li[3] ?> Tagen, Fach 4 = in <?= $li[4] ?> Tagen, Fach 5 = alle <?= $li[5] ?> Tage. Eine Karte rückt bei richtiger Antwort ein Fach auf, bei falscher Antwort fällt sie zurück auf Fach 1.</p>
                     <ul class="mb-2">
@@ -129,11 +153,11 @@ $pin_ratio        = DRILL_PIN_RATIO;
 
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h5">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h6">
                     Drill-Modus
                 </button>
             </h2>
-            <div id="h5" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div id="h6" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Kurze, intensive Trainingsrunde (aktuell <?= $drill_minutes ?> Minuten, in den Einstellungen anpassbar) mit wenigen Karten gleichzeitig im Umlauf — neue und bereits bekannte Karten werden im Verhältnis <?= $drill_ratio ?>:1 (bekannt:neu) gemischt gezeigt, mit deutlichem Übergewicht bekannter Karten.</p>
                     <ul class="mb-2">
@@ -151,11 +175,11 @@ $pin_ratio        = DRILL_PIN_RATIO;
 
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h6">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h7">
                     Aussprache: Audio & Lautschrift
                 </button>
             </h2>
-            <div id="h6" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div id="h7" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Hat eine Liste einen Aussprache-Dialekt hinterlegt (z.B. <code>en-GB</code>), erscheint bei Karten in Sprache B ein 🔊-Knopf, der das Wort per Sprachausgabe des Geräts vorliest. Zusätzlich kann pro Karte eine vereinfachte <strong>Lautschrift</strong> hinterlegt sein (in eckigen Klammern angezeigt) — beide Hilfen sind unabhängig voneinander nutzbar.</p>
                     <p class="mb-0">Die Stimme und ihr Klang kommen dabei <strong>nicht von der Anwendung selbst</strong>, sondern von der Sprachausgabe des jeweiligen Geräts bzw. Betriebssystems — sie kann daher je nach Gerät unterschiedlich und mitunter mechanisch klingen. Dennoch hilft sie dabei, auf die richtige <strong>Betonung</strong> zu achten, also welche Silbe bzw. welches Wort stärker betont wird.</p>
@@ -165,11 +189,11 @@ $pin_ratio        = DRILL_PIN_RATIO;
 
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h7">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h8">
                     Statistik & Streak
                 </button>
             </h2>
-            <div id="h7" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div id="h8" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Die Statistik-Seite zeigt Lernverlauf und Fortschritt pro Liste. Das 🔥-Abzeichen in der Navbar zeigt die aktuelle <strong>Streak</strong> (Anzahl Tage in Folge mit mindestens einer abgeschlossenen Lernsession) — verschwindet, sobald ein Tag ausgelassen wird.</p>
                     <p class="mb-1">Ganz oben auf der Statistik-Seite zeigt die Karte <strong>"Lernaktivität"</strong> (listenübergreifend, unabhängig vom Listen-Filter darunter):</p>
@@ -186,11 +210,11 @@ $pin_ratio        = DRILL_PIN_RATIO;
         <?php if (!empty($_SESSION['is_admin'])): ?>
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h8">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h9">
                     Für Admins: Einstellungen & Benutzerverwaltung
                 </button>
             </h2>
-            <div id="h8" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div id="h9" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Manche Bereiche sind nur für Personen mit <strong>Admin-Status</strong> sichtbar und zugänglich — erkennbar am zusätzlichen "Einstellungen"-Link und "Person wechseln" in der Navbar der Startseite.</p>
                     <ul class="mb-2">
@@ -206,11 +230,11 @@ $pin_ratio        = DRILL_PIN_RATIO;
 
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h9">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h10">
                     Für Technik-Fans: Karten per KI-Agent verwalten
                 </button>
             </h2>
-            <div id="h9" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div id="h10" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Für technisch versierte Nutzer bietet die App eine Schnittstelle (MCP), über die ein KI-Agent (z.B. Claude) direkt mit den eigenen Wortlisten arbeiten kann — praktisch, um z.B. grössere Wortlisten im Gespräch mit einer KI zu erstellen oder zu pflegen. Der Agent zeigt vorgeschlagene Änderungen immer erst zur Bestätigung an, bevor etwas gespeichert wird.</p>
                     <p class="mb-1">Damit ein KI-Agent so arbeiten kann:</p>
