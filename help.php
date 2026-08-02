@@ -185,10 +185,10 @@ $pin_ratio        = DRILL_PIN_RATIO;
                     <p class="mb-1">Zum Ausprobieren, wie das in etwa klingt:</p>
                     <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
                         <button type="button" class="btn btn-sm btn-outline-secondary" onclick="speakWord(this)"
-                                data-speak="Mich kann man hören" data-lang="de-CH">
-                            <i class="bi bi-volume-up-fill"></i> Anhören
+                                data-speak="Can you hear me?" data-lang="en-GB">
+                            <i class="bi bi-volume-up-fill"></i> Klick mich
                         </button>
-                        <span class="text-muted small">Begriff: „Mich kann man hören" · Sprache: <code>de-CH</code></span>
+                        <span class="text-muted small">Begriff: „Can you hear me?" · Sprache: <code>en-GB</code></span>
                     </div>
                     <p class="mb-0">Die Stimme und ihr Klang kommen dabei <strong>nicht von der Anwendung selbst</strong>, sondern von der Sprachausgabe des jeweiligen Geräts bzw. Betriebssystems — sie kann daher je nach Gerät unterschiedlich und mitunter mechanisch klingen. Dennoch hilft sie dabei, auf die richtige <strong>Betonung</strong> zu achten, also welche Silbe bzw. welches Wort stärker betont wird.</p>
                 </div>

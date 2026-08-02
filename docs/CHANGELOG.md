@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.4] - 2026-08-02
+
+### Verbessert
+- **Hörprobe in `help.php` angepasst:** Beispieltext jetzt "Can you hear me?" auf Englisch (`en-GB`) statt "Mich kann man hören" (`de-CH`). Button/Icon entsprechen jetzt exakt dem 🔊-Knopf auf den Lernkarten (`bi-volume-up-fill`), zusätzlich mit Beschriftung "Klick mich".
+
+---
+
 ## [3.3.3] - 2026-08-02
 
 ### Neu

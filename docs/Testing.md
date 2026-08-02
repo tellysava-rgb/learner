@@ -198,10 +198,10 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 
 ---
 
-## 18. Hörprobe im Aussprache-Abschnitt der Hilfeseite _(v3.3.3)_
+## 18. Hörprobe im Aussprache-Abschnitt der Hilfeseite _(v3.3.3, Text/Sprache/Button angepasst v3.3.4)_
 
-[ ] `help.php` → Abschnitt "Aussprache: Audio & Lautschrift": Button "Anhören" ist vorhanden, daneben steht der Text `Begriff: „Mich kann man hören" · Sprache: de-CH`. _(v3.3.3)_
-[ ] Klick auf "Anhören" (Gerät/Browser mit Sprachausgabe) → Satz wird tatsächlich vorgelesen, nach Möglichkeit mit einer Schweizerdeutsch-Stimme (`de-CH`), sonst Fallback auf eine andere `de-*`-Stimme. _(v3.3.3)_
+[ ] `help.php` → Abschnitt "Aussprache: Audio & Lautschrift": Button ist vorhanden, Icon (`bi-volume-up-fill`) und Button-Stil sind identisch zum 🔊-Knopf auf den Lernkarten, zusätzlich mit Text "Klick mich" beschriftet; daneben steht `Begriff: „Can you hear me?" · Sprache: en-GB`. _(v3.3.4)_
+[ ] Klick auf den Button (Gerät/Browser mit Sprachausgabe) → "Can you hear me?" wird tatsächlich vorgelesen, nach Möglichkeit mit einer britisch-englischen Stimme (`en-GB`), sonst Fallback auf eine andere `en-*`-Stimme. _(v3.3.4)_
 [ ] Mehrfaches Klicken hintereinander unterbricht die vorherige Wiedergabe sauber, statt sich zu überlagern (`speechSynthesis.cancel()` vor jeder neuen Wiedergabe). _(v3.3.3)_
 [ ] Browser ohne Web-Speech-API-Unterstützung: Klick auf den Button tut nichts, keine Fehlermeldung/kein JS-Fehler in der Konsole. _(v3.3.3)_
 
