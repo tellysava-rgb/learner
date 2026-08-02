@@ -29,11 +29,11 @@ if (($_GET['action'] ?? '') === 'setup') {
     exit;
 }
 
-// Verfügbare eigene Listen laden
+// Verfügbare eigene Listen laden (nur aktive — inaktive Listen stehen zum Lernen nicht zur Wahl)
 $stmt = $pdo->prepare("
     SELECT l.id, l.name, l.language_a, l.language_b
     FROM lists l
-    WHERE l.person_id = ?
+    WHERE l.person_id = ? AND l.is_active = 1
     ORDER BY l.last_used_at DESC, l.name
 ");
 $stmt->execute([$person_id]);

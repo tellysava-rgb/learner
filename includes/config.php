@@ -1,5 +1,5 @@
 <?php
-define('APP_VERSION', '3.2.44');
+define('APP_VERSION', '3.2.45');
 define('TIMEZONE', 'Europe/Zurich');
 define('LEITNER_INTERVALS', [1 => 1, 2 => 2, 3 => 7, 4 => 14, 5 => 30]);
 date_default_timezone_set(TIMEZONE);

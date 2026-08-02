@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.45] - 2026-08-02
+
+### Behoben
+- **Inaktive Listen erschienen in der Leitner-Listenauswahl.** Beim Starten einer Leitner-Session (`learn.php`, ohne Vorauswahl von der Startseite) tauchten bisher auch als inaktiv markierte Listen (`lists.is_active = 0`) in den auswählbaren Checkboxen auf, obwohl sie überall sonst (Startseite, Statistik) ausgeblendet werden. Die Abfrage filtert jetzt konsistent auf `is_active = 1`.
+
+---
+
 ## [3.2.44] - 2026-08-02
 
 ### Verbessert

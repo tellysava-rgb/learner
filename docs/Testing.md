@@ -160,4 +160,10 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] `edit.php`-Kartenansicht und Leitner-Session zeigen für dieselbe Karte konsistent denselben Vormerkungs-Status. _(v3.2.41)_
 [ ] In `drill.php` bleibt das Pin-Symbol weiterhin nur anzeigend (nicht klickbar) — bewusst kein Umschalten während einer laufenden Drill-Session. _(v3.2.41)_
 
+## 14. Listenauswahl in der Leitner-Session zeigt nur aktive Listen _(v3.2.45)_
+
+[ ] `learn.php` ohne `list_id`-Vorauswahl aufrufen, mind. eine eigene Liste ist inaktiv → die Checkbox-Liste "Listen auswählen" zeigt nur aktive Listen, inaktive tauchen nicht auf. _(v3.2.45)_
+[ ] Sind ALLE eigenen Listen inaktiv → Hinweis "Du hast noch keine Listen" erscheint (gleiches Verhalten wie ganz ohne Listen), kein leeres Formular. _(v3.2.45)_
+[ ] Startseite → Leitner-Button einer aktiven Liste (setzt `list_id` in der URL) funktioniert weiterhin unverändert (Liste vorausgewählt, keine Checkbox-Liste sichtbar). _(v3.2.45)_
+
 ---
