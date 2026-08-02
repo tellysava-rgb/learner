@@ -197,3 +197,12 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Als Nicht-Admin eingeloggt: 8 Abschnitte sichtbar (kein Admin-/MCP-Abschnitt), als Admin: 10 Abschnitte. _(v3.3.2)_
 
 ---
+
+## 18. Hörprobe im Aussprache-Abschnitt der Hilfeseite _(v3.3.3)_
+
+[ ] `help.php` → Abschnitt "Aussprache: Audio & Lautschrift": Button "Anhören" ist vorhanden, daneben steht der Text `Begriff: „Mich kann man hören" · Sprache: de-CH`. _(v3.3.3)_
+[ ] Klick auf "Anhören" (Gerät/Browser mit Sprachausgabe) → Satz wird tatsächlich vorgelesen, nach Möglichkeit mit einer Schweizerdeutsch-Stimme (`de-CH`), sonst Fallback auf eine andere `de-*`-Stimme. _(v3.3.3)_
+[ ] Mehrfaches Klicken hintereinander unterbricht die vorherige Wiedergabe sauber, statt sich zu überlagern (`speechSynthesis.cancel()` vor jeder neuen Wiedergabe). _(v3.3.3)_
+[ ] Browser ohne Web-Speech-API-Unterstützung: Klick auf den Button tut nichts, keine Fehlermeldung/kein JS-Fehler in der Konsole. _(v3.3.3)_
+
+---

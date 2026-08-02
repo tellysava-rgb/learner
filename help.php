@@ -182,6 +182,14 @@ $pin_ratio        = DRILL_PIN_RATIO;
             <div id="h7" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Hat eine Liste einen Aussprache-Dialekt hinterlegt (z.B. <code>en-GB</code>), erscheint bei Karten in Sprache B ein 🔊-Knopf, der das Wort per Sprachausgabe des Geräts vorliest. Zusätzlich kann pro Karte eine vereinfachte <strong>Lautschrift</strong> hinterlegt sein (in eckigen Klammern angezeigt) — beide Hilfen sind unabhängig voneinander nutzbar.</p>
+                    <p class="mb-1">Zum Ausprobieren, wie das in etwa klingt:</p>
+                    <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="speakWord(this)"
+                                data-speak="Mich kann man hören" data-lang="de-CH">
+                            <i class="bi bi-volume-up-fill"></i> Anhören
+                        </button>
+                        <span class="text-muted small">Begriff: „Mich kann man hören" · Sprache: <code>de-CH</code></span>
+                    </div>
                     <p class="mb-0">Die Stimme und ihr Klang kommen dabei <strong>nicht von der Anwendung selbst</strong>, sondern von der Sprachausgabe des jeweiligen Geräts bzw. Betriebssystems — sie kann daher je nach Gerät unterschiedlich und mitunter mechanisch klingen. Dennoch hilft sie dabei, auf die richtige <strong>Betonung</strong> zu achten, also welche Silbe bzw. welches Wort stärker betont wird.</p>
                 </div>
             </div>
@@ -261,5 +269,22 @@ $pin_ratio        = DRILL_PIN_RATIO;
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script>
+function speakWord(btn) {
+    if (!('speechSynthesis' in window)) return;
+    var text = btn.dataset.speak;
+    var lang = btn.dataset.lang;
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    // utterance.lang allein wird von manchen Browsern/Geräten ignoriert und fällt auf die
+    // Standardstimme des Systems zurück — passende Stimme explizit suchen und setzen.
+    var voices = window.speechSynthesis.getVoices();
+    var match = voices.find(function (v) { return v.lang === lang; })
+             || voices.find(function (v) { return v.lang.split('-')[0] === lang.split('-')[0]; });
+    if (match) u.voice = match;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+}
+</script>
 </body>
 </html>

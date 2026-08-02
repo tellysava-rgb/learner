@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.3] - 2026-08-02
+
+### Neu
+- **Aussprache-Abschnitt in `help.php` zum Ausprobieren:** Button "Anhören" spricht den Beispielsatz "Mich kann man hören" auf Schweizerdeutsch (`de-CH`) per Web Speech API — dieselbe Technik wie die 🔊-Knöpfe auf Leitner-/Drill-Karten. Begriff und verwendete Sprache stehen direkt daneben.
+
+---
+
 ## [3.3.2] - 2026-08-02
 
 ### Neu
