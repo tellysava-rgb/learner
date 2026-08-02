@@ -474,5 +474,8 @@ function debug_panel(): string {
     // Zeilen werden beim Erzeugen bereits kontrolliert zusammengesetzt (debug_card_label escaped
     // den einzigen freien Textteil), daher hier kein zusätzliches htmlspecialchars.
     $lines[0] = 'Debug: ' . $lines[0];
-    return '<div class="alert alert-info py-2 px-3 small mb-3"><i class="bi bi-bug me-1"></i>' . implode('<br>', $lines) . '</div>';
+    // Fixiert am unteren Bildschirmrand statt im normalen Textfluss, damit die Meldung ohne
+    // Scrollen sichtbar ist. Bei Karten die den Viewport sprengen kann sie dadurch die
+    // Antwort-Buttons überlagern — akzeptiert, betrifft nur Admins mit aktivem Debug-Modus.
+    return '<div class="alert alert-info py-2 px-3 small mb-0" style="position:fixed; bottom:0; left:0; right:0; z-index:1030; border-radius:0; padding-bottom:calc(.5rem + env(safe-area-inset-bottom));"><i class="bi bi-bug me-1"></i>' . implode('<br>', $lines) . '</div>';
 }

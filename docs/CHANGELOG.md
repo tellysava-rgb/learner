@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.2.44] - 2026-08-02
+
+### Verbessert
+- **Debug-Panel jetzt fix am unteren Bildschirmrand statt im normalen Textfluss** (`position: fixed`, inkl. Platz für die iPhone-Home-Indicator-Leiste) — dadurch ohne Scrollen sichtbar, unabhängig von der Position im Seitenaufbau. Bei ungewöhnlich hohen Karten kann das Panel dadurch die Antwort-Buttons überlagern; betrifft nur Admins mit aktivem Debug-Modus.
+
+---
+
 ## [3.2.43] - 2026-08-02
 
 ### Behoben
