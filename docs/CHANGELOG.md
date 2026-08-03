@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.6] - 2026-08-03
+
+### Neu
+- **Debug-Panel wegklickbar:** Das fixierte Debug-Panel in `learn.php`/`drill.php` hat jetzt einen "×"-Schliessen-Button. Bei ungewöhnlich hohen Karten konnte das Panel bisher dauerhaft die Antwort-Buttons verdecken — einzige Abhilfe war der Session-Abbruch. Nutzt Bootstraps `data-bs-dismiss="alert"` (kein zusätzliches Script nötig, da Bootstrap-JS auf beiden Seiten bereits geladen ist).
+
+---
+
 ## [3.3.5] - 2026-08-03
 
 ### Neu

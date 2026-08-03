@@ -123,7 +123,10 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Debug-Modus aktiv, als Admin eingeloggt: nach einer Leitner-Antwort erscheint ein Info-Panel mit Fach- und Fälligkeits-Änderung der beantworteten Karte, bevor die neue Karte gezeigt wird. _(v3.2.34)_
 [ ] Leitner und Drill: das Debug-Panel klebt fix am unteren Bildschirmrand (`position: fixed`) statt im normalen Textfluss zu stehen — sichtbar ohne Scrollen, unabhängig davon wie lang die Karte/Seite ist. _(v3.2.44)_
 [ ] Auf dem iPhone überlappt das fixierte Panel NICHT die Statusleiste/Home-Indicator-Leiste am unteren Rand (sichtbarer Abstand durch `safe-area-inset-bottom`). _(v3.2.44)_
-[ ] Ungewöhnlich lange Karte (z.B. langer Beispielsatz) → das fixierte Panel darf dabei die Antwort-Buttons überlagern, das ist bekannt und akzeptiert (nur admin-seitiges Debug-Feature). _(v3.2.44)_
+[ ] Ungewöhnlich lange Karte (z.B. langer Beispielsatz) → das fixierte Panel kann dabei die Antwort-Buttons überlagern — dagegen der Schliessen-Button (siehe unten). _(v3.2.44)_
+[ ] Debug-Panel zeigt rechts einen "×"-Schliessen-Button (Bootstrap `btn-close`). Klick darauf blendet das Panel sofort aus, ohne die Seite neu zu laden. _(v3.3.6)_
+[ ] Nach dem Schliessen bleibt der Rest der Kartenanzeige (Karte, Antwort-Buttons) uneingeschränkt bedienbar — insbesondere wenn das Panel vorher die Buttons verdeckt hatte. _(v3.3.6)_
+[ ] Bei der nächsten beantworteten Karte erscheint ein neues Debug-Panel wieder normal (das Schliessen wirkt nur für die aktuell angezeigte Meldung, nicht dauerhaft für die Session). _(v3.3.6)_
 [ ] Leitner "Überspringen" bei aktivem Debug-Modus → Panel zeigt "übersprungen, nichts geändert". _(v3.2.34)_
 [ ] Leitner 2. Versuch (nach falscher Antwort) → Panel vermerkt "2. Versuch" korrekt, unabhängig ob danach richtig oder falsch. _(v3.2.34)_
 [ ] War die beantwortete Karte die letzte der Leitner-Session → Panel erscheint auf der Zusammenfassungsseite, nicht auf einer (nicht mehr existierenden) nächsten Karte. _(v3.2.34)_

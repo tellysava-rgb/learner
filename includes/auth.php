@@ -504,6 +504,12 @@ function debug_panel(): string {
     $lines[0] = 'Debug: ' . $lines[0];
     // Fixiert am unteren Bildschirmrand statt im normalen Textfluss, damit die Meldung ohne
     // Scrollen sichtbar ist. Bei Karten die den Viewport sprengen kann sie dadurch die
-    // Antwort-Buttons überlagern — akzeptiert, betrifft nur Admins mit aktivem Debug-Modus.
-    return '<div class="alert alert-info py-2 px-3 small mb-0" style="position:fixed; bottom:0; left:0; right:0; z-index:1030; border-radius:0; padding-bottom:calc(.5rem + env(safe-area-inset-bottom));"><i class="bi bi-bug me-1"></i>' . implode('<br>', $lines) . '</div>';
+    // Antwort-Buttons überlagern — deshalb per Schliessen-Button wegklickbar (Bootstrap-JS ist
+    // auf learn.php/drill.php bereits geladen, kein zusätzliches Script nötig).
+    return '<div class="alert alert-info py-2 small mb-0 d-flex justify-content-between align-items-start gap-2"'
+        . ' role="alert" style="position:fixed; bottom:0; left:0; right:0; z-index:1030; border-radius:0;'
+        . ' padding-left:.75rem; padding-bottom:calc(.5rem + env(safe-area-inset-bottom));">'
+        . '<div><i class="bi bi-bug me-1"></i>' . implode('<br>', $lines) . '</div>'
+        . '<button type="button" class="btn-close flex-shrink-0 mt-1" data-bs-dismiss="alert" aria-label="Debug-Meldung schliessen"></button>'
+        . '</div>';
 }

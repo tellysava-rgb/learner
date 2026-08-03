@@ -503,6 +503,7 @@ werden — umschaltbar an zwei Stellen:
   - Drill: bei besonderen Ereignissen (gemeistert, als zu schwer markiert, Vormerkung erreicht) eine hervorgehobene Zeile mit Fach-/Zähler-Änderung; sonst **beide** Session-Zähler gleichzeitig, je auf eigener Zeile — "Mastery-Zähler X/`DRILL_MASTERY_THRESHOLD`" (Folge richtiger Antworten, setzt bei falscher Antwort auf 0 zurück) und "Zu-schwer-Zähler X/`DRILL_TOO_HARD_LIMIT`" (Gesamtzahl falscher Antworten in dieser Session, wird durch richtige Antworten dazwischen NICHT zurückgesetzt) _(v3.2.42)_
   - Erscheint auch auf der jeweiligen Abschluss-/Zusammenfassungsseite, wenn die beantwortete Karte die letzte der Session war
 - Betrifft nur `learn.php`/`drill.php`, nicht `math.php`
+- **Position & Schliessen-Button** _(v3.2.44, Schliessen-Button v3.3.6)_: Panel ist per `position: fixed` am unteren Bildschirmrand fixiert statt im normalen Textfluss, damit es ohne Scrollen sichtbar ist. Bei Karten die den Viewport sprengen kann es dadurch die Antwort-Buttons überlagern — dagegen ein "×"-Schliessen-Button rechts im Panel (`data-bs-dismiss="alert"`, nutzt die auf `learn.php`/`drill.php` bereits geladene Bootstrap-JS, kein zusätzliches Script). Panel bleibt danach für den Rest der Kartenanzeige ausgeblendet, erscheint bei der nächsten beantworteten Karte wieder neu.
 
 ---
 
