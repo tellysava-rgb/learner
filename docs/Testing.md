@@ -183,7 +183,7 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Kein Häkchen gesetzt und trotzdem absenden (z.B. per manuell verändertem POST) → zurück auf die Drill-Auswahlseite mit Fehlermeldung "Bitte mindestens eine Liste auswählen.", keine Session gestartet. _(v3.2.47)_
 [ ] Sind alle eigenen Listen inaktiv bzw. keine Liste vorhanden → Hinweis "Du hast noch keine Listen" statt leerem Formular. _(v3.2.47)_
 [ ] Nur inaktive Listen erscheinen in der Drill-Auswahl NICHT (analog zu Leitner, siehe Abschnitt 14). _(v3.2.47)_
-[ ] Pro-Liste-Button "Drill" auf einer einzelnen Listen-Karte startet weiterhin sofort ohne Auswahlseite (unverändertes Verhalten). _(v3.2.47)_
+[ ] Pro-Liste-Button "Drill" auf einer einzelnen Listen-Karte zeigt seit v3.3.5 ebenfalls die Konfigurationsseite (Liste als Text vorausgewählt, Richtung + Timer wählbar) statt sofort zu starten. _(v3.3.5)_
 [ ] Klick auf "Leitner" (ohne vorausgewählte Liste) führt weiterhin zur bestehenden `learn.php`-Konfigurationsseite (Richtung, Kartenanzahl) — unverändert durch diese Änderung. _(v3.2.47)_
 [ ] Nach Abschluss einer über die neue Drill-Auswahl gestarteten Session mit mehreren Listen: "Erneut starten"-Button auf dem Abschluss-Screen erscheint NICHT (nur bei genau einer Liste vorhanden, bestehendes Verhalten). _(v3.2.47)_
 
@@ -204,5 +204,20 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Klick auf den Button (Gerät/Browser mit Sprachausgabe) → "Can you hear me?" wird tatsächlich vorgelesen, nach Möglichkeit mit einer britisch-englischen Stimme (`en-GB`), sonst Fallback auf eine andere `en-*`-Stimme. _(v3.3.4)_
 [ ] Mehrfaches Klicken hintereinander unterbricht die vorherige Wiedergabe sauber, statt sich zu überlagern (`speechSynthesis.cancel()` vor jeder neuen Wiedergabe). _(v3.3.3)_
 [ ] Browser ohne Web-Speech-API-Unterstützung: Klick auf den Button tut nichts, keine Fehlermeldung/kein JS-Fehler in der Konsole. _(v3.3.3)_
+
+---
+
+## 19. Lernrichtung & Timer im Drill-Modus _(v3.3.5)_
+
+[ ] `drill.php` ohne laufende Session aufrufen (egal ob mit oder ohne `list_id`) → Konfigurationsseite zeigt zusätzlich zur Liste die Felder "Lernrichtung" (A→B, B→A, Gemischt — A→B vorausgewählt) und "Timer" (Minuten-Feld mit ±5-Buttons, vorausgefüllt mit dem Wert aus den Einstellungen). _(v3.3.5)_
+[ ] Bei vorausgewählter Liste (`list_id` in der URL) zeigen die Richtungs-Labels sofort die echten Sprachnamen dieser Liste (z.B. "Deutsch → English") statt "A → B". _(v3.3.5)_
+[ ] Bei der listenübergreifenden Auswahl (Checkboxen) aktualisieren sich die Richtungs-Labels dynamisch je nach angehakter erster Liste — identisches Verhalten wie im Leitner-Setup. _(v3.3.5)_
+[ ] Richtung "B→A" gewählt → auf der Lernkarte erscheint zuerst Sprache B, nach dem Aufdecken Sprache A; Lautschrift/🔊-Knopf erscheinen dabei oben (an Sprache B gebunden, nicht an die Position). _(v3.3.5)_
+[ ] Richtung "Gemischt" gewählt, mehrere Karten in der Session → einzelne Karten zeigen A→B, andere B→A; dieselbe Karte behält ihre Richtung über die ganze Session hinweg (deterministisch über die Karten-ID, kein Wechsel bei erneutem Anzeigen). _(v3.3.5)_
+[ ] Timer auf z.B. 2 Minuten gesetzt und Session gestartet → Session endet tatsächlich nach ca. 2 Minuten (Countdown in der Navbar beginnt bei 2:00), nicht beim Standardwert aus den Einstellungen. _(v3.3.5)_
+[ ] Nach einer Session mit angepasstem Timer: die globale Einstellung (Einstellungen → Drill-Modus → Timer) bleibt unverändert — der Session-Timer wird nicht dauerhaft gespeichert. _(v3.3.5)_
+[ ] Eingabe ausserhalb 1–120 Minuten (z.B. 0 oder 500, per manuell verändertem POST) wird serverseitig auf den gültigen Bereich begrenzt. _(v3.3.5)_
+[ ] "Erneut starten" auf dem Drill-Abschluss-Screen (nur bei genau einer Liste) führt jetzt zur Konfigurationsseite mit vorausgewählter Liste statt die Session sofort neu zu starten. _(v3.3.5)_
+[ ] `help.php`, Abschnitte "Aufbau einer Lernkarte" und "Drill-Modus": Texte erwähnen korrekt, dass Lernrichtung und Timer in beiden Modi wählbar sind (nicht mehr "im Drill-Modus fest A→B"). _(v3.3.5)_
 
 ---

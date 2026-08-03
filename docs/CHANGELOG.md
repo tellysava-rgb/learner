@@ -5,6 +5,20 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.5] - 2026-08-03
+
+### Neu
+- **Lernrichtung im Drill-Modus:** `drill.php` unterstützt jetzt wie das Leitner-System die Wahl der Lernrichtung (A→B, B→A oder gemischt) auf der Konfigurationsseite vor dem Start. Frage-/Antwortseite und die Zuordnung von Audio/Lautschrift (immer an Sprache B gebunden) folgen derselben Logik wie im Leitner-System — die dafür nötige Funktion `get_question_answer()` wurde aus `learn.php` nach `includes/auth.php` verschoben, damit beide Seiten sie gemeinsam nutzen.
+- **Timer pro Drill-Session frei einstellbar:** Auf derselben Konfigurationsseite lässt sich die Dauer der Session (in Minuten, ±5-Buttons) für den aktuellen Start anpassen — Standardwert kommt aus den Einstellungen, die Änderung selbst wird nicht dauerhaft gespeichert.
+
+### Verbessert
+- **Konsistentes Drill-Start-Verhalten:** Der "Drill"-Button auf einer einzelnen Listen-Karte (Startseite) sowie "Erneut starten" auf dem Abschluss-Screen zeigen jetzt wie beim Leitner-System immer die Konfigurationsseite (Liste vorausgewählt, Richtung + Timer wählbar), statt die Session ohne Zwischenschritt sofort zu starten.
+
+### Behoben
+- **`help.php` enthielt eine durch diese Änderung überholte Aussage** ("im Drill-Modus fest A→B") — korrigiert, beide Modi werden jetzt einheitlich beschrieben.
+
+---
+
 ## [3.3.4] - 2026-08-02
 
 ### Verbessert

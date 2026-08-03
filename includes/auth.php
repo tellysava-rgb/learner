@@ -450,6 +450,34 @@ function breadcrumb(array $items): string {
     return $html;
 }
 
+// Bestimmt Frage-/Antwortseite einer Karte je Lernrichtung — gemeinsam von learn.php und
+// drill.php genutzt, da die Lernkarte in beiden Modi identisch aufgebaut ist (siehe help.php,
+// Abschnitt "Aufbau einer Lernkarte"). 'mixed' entscheidet pro Karte deterministisch über die
+// Karten-ID, nicht zufällig bei jeder Anzeige, damit dieselbe Karte innerhalb einer Session nicht
+// hin- und herspringt. Audio/Lautschrift gehören immer zur fremdsprachigen Seite (Sprache B),
+// unabhängig davon ob diese als Frage oder Antwort erscheint.
+function get_question_answer(array $card, string $direction): array {
+    $b_first = ($direction === 'b_to_a') || ($direction === 'mixed' && $card['id'] % 2 === 0);
+    $speech_lang_b = $card['speech_lang_b'] ?? null;
+
+    if ($b_first) {
+        return [
+            'q' => $card['word_b'], 'a' => $card['word_a'],
+            'q_desc' => $card['desc_b'], 'a_desc' => $card['desc_a'],
+            'q_lang' => $card['language_b'], 'a_lang' => $card['language_a'],
+            'q_audio' => $speech_lang_b ? $card['word_b'] : null, 'a_audio' => null,
+            'q_phonetic' => $card['phonetic_b'] ?? null, 'a_phonetic' => null,
+        ];
+    }
+    return [
+        'q' => $card['word_a'], 'a' => $card['word_b'],
+        'q_desc' => $card['desc_a'], 'a_desc' => $card['desc_b'],
+        'q_lang' => $card['language_a'], 'a_lang' => $card['language_b'],
+        'q_audio' => null, 'a_audio' => $speech_lang_b ? $card['word_b'] : null,
+        'q_phonetic' => null, 'a_phonetic' => $card['phonetic_b'] ?? null,
+    ];
+}
+
 // Debug-Modus (Einstellungen → Debug, nur für Admins): Hilfsfunktionen für die Vorher/Nachher-
 // Anzeige in learn.php/drill.php. Bewusst nur bei DEBUG_MODE + Admin aufgerufen — siehe
 // docs/ANFORDERUNGEN.md, Abschnitt "Debug-Modus".

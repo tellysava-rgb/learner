@@ -22,22 +22,48 @@ if (($_GET['action'] ?? '') === 'abort') {
     exit;
 }
 
-// POST: Session starten (von home.php Formular)
+// Verfügbare eigene Listen laden (nur aktive — inaktive Listen stehen zum Lernen nicht zur Wahl)
+$stmt = $pdo->prepare("
+    SELECT l.id, l.name, l.language_a, l.language_b
+    FROM lists l
+    WHERE l.person_id = ? AND l.is_active = 1
+    ORDER BY l.last_used_at DESC, l.name
+");
+$stmt->execute([$person_id]);
+$all_lists = $stmt->fetchAll();
+
+// Vorausgewählte Liste aus URL (von home.php oder "Erneut starten") — startet die Session nicht
+// mehr direkt, sondern füllt nur die Setup-Seite vor (Richtung/Timer sollen wählbar bleiben).
+$preset_list_id = intval($_GET['list_id'] ?? 0);
+$preset_list    = null;
+if ($preset_list_id) {
+    foreach ($all_lists as $l) {
+        if ((int)$l['id'] === $preset_list_id) {
+            $preset_list = $l;
+            break;
+        }
+    }
+}
+
+// POST: Session konfigurieren und starten
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin') {
     csrf_validate();
     unset($_SESSION['drill']);
-    $list_ids = array_map('intval', array_filter((array)($_POST['list_ids'] ?? [])));
+
+    $list_ids  = array_map('intval', array_filter((array)($_POST['list_ids'] ?? [])));
+    $direction = $_POST['direction'] ?? 'a_to_b';
+    if (!in_array($direction, ['a_to_b', 'b_to_a', 'mixed'], true)) {
+        $direction = 'a_to_b';
+    }
+    $default_minutes = (int) round(DRILL_SESSION_SECONDS / 60);
+    $session_minutes = max(1, min(120, intval($_POST['session_minutes'] ?? $default_minutes)));
+
     if (!$list_ids) {
         $_SESSION['flash_error'] = 'Bitte mindestens eine Liste auswählen.';
         header('Location: drill.php');
         exit;
     }
-    start_drill_session($pdo, $person_id, $list_ids);
-}
-
-// GET: Direkt aus Startseite starten
-if (!isset($_SESSION['drill']) && isset($_GET['list_id']) && !isset($_GET['done'])) {
-    start_drill_session($pdo, $person_id, [intval($_GET['list_id'])]);
+    start_drill_session($pdo, $person_id, $list_ids, $direction, $session_minutes * 60);
 }
 
 // POST: Karte beantworten
@@ -112,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
     $elapsed  = time() - $state['started_at'];
     $no_cards = empty($state['pool_known']) && empty($state['pool_new']) && empty($state['pool_pinned']);
 
-    if ($elapsed >= DRILL_SESSION_SECONDS || $no_cards) {
+    if ($elapsed >= $state['session_seconds'] || $no_cards) {
         finish_drill_session($pdo, $state, $person_id);
         header('Location: drill.php?done=1');
         exit;
@@ -172,7 +198,7 @@ function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_p
     ];
 }
 
-function start_drill_session(PDO $pdo, int $person_id, array $list_ids): void {
+function start_drill_session(PDO $pdo, int $person_id, array $list_ids, string $direction, int $session_seconds): void {
     $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
     $stmt = $pdo->prepare("SELECT id FROM lists WHERE id IN ($placeholders) AND person_id = ?");
     $stmt->execute(array_merge($list_ids, [$person_id]));
@@ -200,6 +226,8 @@ function start_drill_session(PDO $pdo, int $person_id, array $list_ids): void {
 
     $state = [
         'list_ids'        => $valid_ids,
+        'direction'       => $direction,
+        'session_seconds' => $session_seconds,
         'pool_known'      => $pool_known,
         'pool_new'        => $pool_new,
         'pool_pinned'     => $pool_pinned,
@@ -425,6 +453,7 @@ function finish_drill_session(PDO $pdo, array &$state, int $person_id): void {
 $state     = $_SESSION['drill'] ?? null;
 $card_data = null;
 
+$qa = null;
 if ($state && $state['current_card_id']) {
     $stmt = $pdo->prepare("
         SELECT c.*, l.language_a, l.language_b, l.speech_lang_b, cp.drill_pinned_correct
@@ -435,11 +464,14 @@ if ($state && $state['current_card_id']) {
     ");
     $stmt->execute([$person_id, $state['current_card_id']]);
     $card_data = $stmt->fetch() ?: null;
+    if ($card_data) {
+        $qa = get_question_answer($card_data, $state['direction']);
+    }
 }
 
 $remaining_s = 0;
 if ($state) {
-    $remaining_s = max(0, DRILL_SESSION_SECONDS - (time() - $state['started_at']));
+    $remaining_s = max(0, $state['session_seconds'] - (time() - $state['started_at']));
 }
 
 $done_data = null;
@@ -448,22 +480,13 @@ if (isset($_GET['done']) && isset($_SESSION['drill_done'])) {
     unset($_SESSION['drill_done']);
 }
 
-// SETUP: weder laufende Session noch Abschluss noch Vorauswahl via list_id → Listenauswahl anzeigen
-$all_lists   = [];
+// SETUP: weder laufende Session noch Abschluss → Listenauswahl/Richtung/Timer anzeigen
 $setup_error = '';
 if (!$state && !$done_data) {
     $setup_error = $_SESSION['flash_error'] ?? '';
     unset($_SESSION['flash_error']);
-
-    $stmt = $pdo->prepare("
-        SELECT l.id, l.name, l.language_a, l.language_b
-        FROM lists l
-        WHERE l.person_id = ? AND l.is_active = 1
-        ORDER BY l.last_used_at DESC, l.name
-    ");
-    $stmt->execute([$person_id]);
-    $all_lists = $stmt->fetchAll();
 }
+$default_drill_minutes = (int) round(DRILL_SESSION_SECONDS / 60);
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -570,30 +593,42 @@ if (!$state && !$done_data) {
           title="Für Drill vorgemerkt"><i class="bi bi-pin-angle-fill"></i></span>
     <?php endif; ?>
     <div class="text-center p-5" style="min-height:280px;">
-        <p class="text-muted small mb-2"><?= htmlspecialchars($card_data['language_a']) ?></p>
-        <div class="fw-bold fs-2 mb-1"><?= htmlspecialchars($card_data['word_a']) ?></div>
-        <?php if ($card_data['desc_a']): ?>
-        <p class="text-muted mb-0"><?= htmlspecialchars($card_data['desc_a']) ?></p>
+        <p class="text-muted small mb-2"><?= htmlspecialchars($qa['q_lang']) ?></p>
+        <div class="fw-bold fs-2 mb-1">
+            <?= htmlspecialchars($qa['q']) ?>
+            <?php if ($qa['q_audio']): ?>
+            <button type="button" class="btn btn-sm btn-outline-secondary align-middle ms-1"
+                    onclick="event.stopPropagation(); speakWord(this)"
+                    data-speak="<?= htmlspecialchars($qa['q_audio']) ?>" data-lang="<?= htmlspecialchars($card_data['speech_lang_b']) ?>">
+                <i class="bi bi-volume-up-fill"></i>
+            </button>
+            <?php endif; ?>
+        </div>
+        <?php if ($qa['q_phonetic']): ?>
+        <p class="text-muted small mb-1">[<?= htmlspecialchars($qa['q_phonetic']) ?>]</p>
+        <?php endif; ?>
+        <?php if ($qa['q_desc']): ?>
+        <p class="text-muted mb-0"><?= htmlspecialchars($qa['q_desc']) ?></p>
         <?php endif; ?>
 
         <div id="card-back" style="display:none;">
             <hr class="my-3">
-            <p class="text-muted small mb-1"><?= htmlspecialchars($card_data['language_b']) ?></p>
+            <p class="text-muted small mb-1"><?= htmlspecialchars($qa['a_lang']) ?></p>
             <div class="fw-bold fs-3 text-success mb-0">
-                <?= htmlspecialchars($card_data['word_b']) ?>
-                <?php if ($card_data['speech_lang_b']): ?>
+                <?= htmlspecialchars($qa['a']) ?>
+                <?php if ($qa['a_audio']): ?>
                 <button type="button" class="btn btn-sm btn-outline-secondary align-middle ms-1"
                         onclick="event.stopPropagation(); speakWord(this)"
-                        data-speak="<?= htmlspecialchars($card_data['word_b']) ?>" data-lang="<?= htmlspecialchars($card_data['speech_lang_b']) ?>">
+                        data-speak="<?= htmlspecialchars($qa['a_audio']) ?>" data-lang="<?= htmlspecialchars($card_data['speech_lang_b']) ?>">
                     <i class="bi bi-volume-up-fill"></i>
                 </button>
                 <?php endif; ?>
             </div>
-            <?php if ($card_data['phonetic_b']): ?>
-            <p class="text-muted small mb-1">[<?= htmlspecialchars($card_data['phonetic_b']) ?>]</p>
+            <?php if ($qa['a_phonetic']): ?>
+            <p class="text-muted small mb-1">[<?= htmlspecialchars($qa['a_phonetic']) ?>]</p>
             <?php endif; ?>
-            <?php if ($card_data['desc_b']): ?>
-            <p class="text-muted mt-1 mb-0"><?= htmlspecialchars($card_data['desc_b']) ?></p>
+            <?php if ($qa['a_desc']): ?>
+            <p class="text-muted mt-1 mb-0"><?= htmlspecialchars($qa['a_desc']) ?></p>
             <?php endif; ?>
         </div>
 
@@ -631,10 +666,23 @@ if (!$state && !$done_data) {
 <?php if (!$all_lists): ?>
 <p class="text-muted">Du hast noch keine Listen. <a href="lists.php">Erstelle zuerst eine Liste</a>.</p>
 <?php else: ?>
+<?php
+$lang_a = $preset_list ? htmlspecialchars($preset_list['language_a']) : 'A';
+$lang_b = $preset_list ? htmlspecialchars($preset_list['language_b']) : 'B';
+?>
 <form method="post">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="begin">
 
+    <?php if ($preset_list): ?>
+    <!-- Vorausgewählte Liste (von Startseite oder "Erneut starten") -->
+    <input type="hidden" name="list_ids[]" value="<?= $preset_list['id'] ?>">
+    <div class="mb-4">
+        <div class="fw-semibold mb-1">Liste</div>
+        <div class="text-muted"><?= htmlspecialchars($preset_list['name']) ?> <span class="small">(<?= $lang_a ?> / <?= $lang_b ?>)</span></div>
+    </div>
+    <?php else: ?>
+    <!-- Alle aktiven Listen zur Auswahl -->
     <div class="mb-4">
         <label class="form-label fw-semibold">Listen auswählen</label>
         <?php foreach ($all_lists as $list): ?>
@@ -648,6 +696,38 @@ if (!$state && !$done_data) {
             </label>
         </div>
         <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+
+    <!-- Lernrichtung -->
+    <div class="mb-4">
+        <label class="form-label fw-semibold">Lernrichtung</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="direction" id="dir_ab" value="a_to_b" checked>
+                <label class="form-check-label" for="dir_ab" id="label_ab"><?= $lang_a ?> → <?= $lang_b ?></label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="direction" id="dir_ba" value="b_to_a">
+                <label class="form-check-label" for="dir_ba" id="label_ba"><?= $lang_b ?> → <?= $lang_a ?></label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="direction" id="dir_mix" value="mixed">
+                <label class="form-check-label" for="dir_mix">Gemischt</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timer (nur für diese Session, wird nicht dauerhaft gespeichert) -->
+    <div class="mb-4">
+        <label class="form-label fw-semibold">Timer</label>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-outline-secondary" onclick="adjustMinutes(-5)">−5</button>
+            <input type="number" name="session_minutes" id="session_minutes" class="form-control text-center" value="<?= $default_drill_minutes ?>" min="1" max="120" style="width:80px;">
+            <span class="text-muted">Min.</span>
+            <button type="button" class="btn btn-outline-secondary" onclick="adjustMinutes(5)">+5</button>
+        </div>
+        <div class="form-text">Gilt nur für diese Session. Standard aus den Einstellungen: <?= $default_drill_minutes ?> Min.</div>
     </div>
 
     <button type="submit" class="btn btn-primary btn-lg">Drill starten</button>
@@ -699,6 +779,31 @@ function speakWord(btn) {
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(u);
 }
+
+function adjustMinutes(delta) {
+    const el = document.getElementById('session_minutes');
+    if (el) el.value = Math.max(1, Math.min(120, parseInt(el.value || <?= $default_drill_minutes ?>) + delta));
+}
+
+<?php if (!$state && !$done_data && !$preset_list && $all_lists): ?>
+// Richtungs-Labels bei Mehrfach-Listenauswahl dynamisch aktualisieren
+const langMap = <?= json_encode(array_combine(
+    array_column($all_lists, 'id'),
+    array_map(fn($l) => ['a' => $l['language_a'], 'b' => $l['language_b']], $all_lists)
+), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+
+function updateDirLabels() {
+    const first = document.querySelector('input[name="list_ids[]"]:checked');
+    const langs = first && langMap[first.value] ? langMap[first.value] : {a: 'A', b: 'B'};
+    document.getElementById('label_ab').textContent = langs.a + ' → ' + langs.b;
+    document.getElementById('label_ba').textContent = langs.b + ' → ' + langs.a;
+}
+
+document.querySelectorAll('input[name="list_ids[]"]').forEach(cb => {
+    cb.addEventListener('change', updateDirLabels);
+});
+updateDirLabels();
+<?php endif; ?>
 
 <?php if ($state && $card_data): ?>
 function flipCard() {

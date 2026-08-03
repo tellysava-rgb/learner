@@ -438,28 +438,6 @@ if (isset($_GET['done']) && isset($_SESSION['learn_done'])) {
 // Lernrichtung auf Karte anwenden
 // Aussprache-Button (Web Speech API) gilt ausschliesslich für Sprache B — q_audio/a_audio
 // ist der vorzulesende Text (word_b) auf der Seite, wo Sprache B angezeigt wird, sonst null.
-function get_question_answer(array $card, string $direction): array {
-    $b_first = ($direction === 'b_to_a') || ($direction === 'mixed' && $card['id'] % 2 === 0);
-    $speech_lang_b = $card['speech_lang_b'] ?? null;
-
-    if ($b_first) {
-        return [
-            'q' => $card['word_b'], 'a' => $card['word_a'],
-            'q_desc' => $card['desc_b'], 'a_desc' => $card['desc_a'],
-            'q_lang' => $card['language_b'], 'a_lang' => $card['language_a'],
-            'q_audio' => $speech_lang_b ? $card['word_b'] : null, 'a_audio' => null,
-            'q_phonetic' => $card['phonetic_b'] ?? null, 'a_phonetic' => null,
-        ];
-    }
-    return [
-        'q' => $card['word_a'], 'a' => $card['word_b'],
-        'q_desc' => $card['desc_a'], 'a_desc' => $card['desc_b'],
-        'q_lang' => $card['language_a'], 'a_lang' => $card['language_b'],
-        'q_audio' => null, 'a_audio' => $speech_lang_b ? $card['word_b'] : null,
-        'q_phonetic' => null, 'a_phonetic' => $card['phonetic_b'] ?? null,
-    ];
-}
-
 $setup_error = '';
 
 render_setup:

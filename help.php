@@ -123,10 +123,10 @@ $pin_ratio        = DRILL_PIN_RATIO;
                     <ul class="mb-2">
                         <li><strong>Oberer Teil:</strong> die Frageseite — Sprachname, der Begriff sowie optional eine Beschreibung oder ein Beispielsatz dazu.</li>
                         <li><strong>Antippen/Anklicken der Karte</strong> deckt darunter die Antwortseite auf, farblich grün hervorgehoben — gleicher Aufbau: Sprachname, Begriff, optionale Beschreibung.</li>
-                        <li><strong>Lautschrift</strong> (in eckigen Klammern, z.B. <code>[tuh-DAY]</code>) und der <strong>🔊-Ausspracheknopf</strong> gehören immer zur fremdsprachigen Seite (Sprache B) einer Karte — je nach gewählter Lernrichtung kann das die obere oder untere Hälfte sein (im Drill-Modus immer unten, da dort stets Sprache A → Sprache B gezeigt wird). Beide erscheinen nur, wenn für die Liste ein Aussprache-Dialekt hinterlegt ist bzw. eine Lautschrift zur Karte gepflegt wurde (siehe Abschnitt "Aussprache: Audio & Lautschrift").</li>
+                        <li><strong>Lautschrift</strong> (in eckigen Klammern, z.B. <code>[tuh-DAY]</code>) und der <strong>🔊-Ausspracheknopf</strong> gehören immer zur fremdsprachigen Seite (Sprache B) einer Karte — je nach gewählter Lernrichtung kann das die obere oder untere Hälfte sein. Beide erscheinen nur, wenn für die Liste ein Aussprache-Dialekt hinterlegt ist bzw. eine Lautschrift zur Karte gepflegt wurde (siehe Abschnitt "Aussprache: Audio & Lautschrift").</li>
                         <li><strong>Pin-Symbol</strong> oben links (<i class="bi bi-pin-angle"></i> / ausgefüllt <i class="bi bi-pin-angle-fill"></i>): merkt die Karte einzeln "für Drill vormerken" — unabhängig davon, ob man sich gerade im Leitner- oder Drill-Modus befindet. Näheres dazu im Abschnitt "Drill-Modus".</li>
                     </ul>
-                    <p class="mb-0">Welche Sprache oben und welche unten erscheint, hängt von der gewählten <strong>Lernrichtung</strong> ab (im Leitner-Modus wählbar: A→B, B→A oder gemischt; im Drill-Modus fest A→B).</p>
+                    <p class="mb-0">Welche Sprache oben und welche unten erscheint, hängt von der gewählten <strong>Lernrichtung</strong> ab (A→B, B→A oder gemischt — in Leitner und Drill gleichermassen auf der Konfigurationsseite vor dem Start wählbar).</p>
                 </div>
             </div>
         </div>
@@ -159,8 +159,9 @@ $pin_ratio        = DRILL_PIN_RATIO;
             </h2>
             <div id="h6" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
-                    <p>Kurze, intensive Trainingsrunde (aktuell <?= $drill_minutes ?> Minuten, in den Einstellungen anpassbar) mit wenigen Karten gleichzeitig im Umlauf — neue und bereits bekannte Karten werden im Verhältnis <?= $drill_ratio ?>:1 (bekannt:neu) gemischt gezeigt, mit deutlichem Übergewicht bekannter Karten.</p>
+                    <p>Kurze, intensive Trainingsrunde (Standard <?= $drill_minutes ?> Minuten aus den Einstellungen, beim Start jeder Session frei anpassbar) mit wenigen Karten gleichzeitig im Umlauf — neue und bereits bekannte Karten werden im Verhältnis <?= $drill_ratio ?>:1 (bekannt:neu) gemischt gezeigt, mit deutlichem Übergewicht bekannter Karten.</p>
                     <ul class="mb-2">
+                        <li><strong>Vor dem Start wählbar</strong> (analog zum Leitner-System): Lernrichtung (A→B, B→A oder gemischt) und Timer in Minuten — beide gelten nur für diese eine Session und werden nicht dauerhaft gespeichert.</li>
                         <li>Bei <?= $drill_mastery ?>× richtiger Antwort <strong>in Folge</strong> gilt eine Karte als <strong>gemeistert</strong> und wechselt danach automatisch ins Leitner-System (ein einzelner Fehler setzt diese Zählung zurück auf 0).</li>
                         <li>Bei einem Fehler kommt nur diese eine Karte ans Ende der aktuellen Runde — nicht die ganze Runde von vorne.</li>
                         <li>Wird eine Karte <?= $drill_too_hard ?>× als "musste nachdenken" bewertet, wird sie für den Rest dieser Session pausiert und taucht erst am nächsten Tag wieder auf.</li>

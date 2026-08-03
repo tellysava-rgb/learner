@@ -102,8 +102,8 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 - Öffentliche Listen anderer Personen sind über den Bereich "Entdecken" auf der Startseite zugänglich
 - **Zuletzt verwendete Liste** wird automatisch vorgeschlagen (in DB gespeichert → browserübergreifend)
 - Wahl des **Lernmodus** pro Session: Leitner oder Drill
-  - **Pro Liste** (Button auf der Listen-Karte): Drill startet sofort mit genau dieser Liste (keine Zwischenauswahl nötig — Liste bereits gewählt), Leitner zeigt eine kurze Konfigurationsseite (Richtung, Kartenanzahl) vor dem Start
-  - **Listenübergreifend** (Buttons "Leitner"/"Drill" oben neben "Meine Listen", ohne Liste vorausgewählt) _(v3.2.46)_: beide zeigen zuerst eine Checkbox-Auswahl aller eigenen aktiven Listen (Mehrfachauswahl möglich, erste Liste vorausgewählt) — bei Drill nur die Listenauswahl (keine Richtung/Kartenanzahl, wie im Drill-Modus generell nicht konfigurierbar), bei Leitner zusätzlich wie gehabt Richtung und Kartenanzahl
+  - **Pro Liste** (Button auf der Listen-Karte): sowohl Leitner als auch Drill zeigen vor dem Start eine kurze Konfigurationsseite mit der jeweils bereits vorausgewählten Liste (Leitner: Richtung + Kartenanzahl; Drill: Richtung + Timer, siehe Abschnitt "Drill-Modus") _(Drill zeigt diese Seite seit v3.3.5 — vorher startete Drill hier ohne Zwischenschritt sofort)_
+  - **Listenübergreifend** (Buttons "Leitner"/"Drill" oben neben "Meine Listen", ohne Liste vorausgewählt) _(v3.2.46)_: dieselbe Konfigurationsseite, zusätzlich mit Checkbox-Auswahl aller eigenen aktiven Listen (Mehrfachauswahl möglich, erste Liste vorausgewählt)
 - Navigation zur Startseite jederzeit über die Breadcrumb-Navigation möglich
 - Pro Liste zusätzlich zur Warteschlangen-Anzahl (⏳) eine Anzeige **"📚 N heute fällig"** _(v2.7.0)_ — Anzahl aktiver Leitner-Karten mit `next_due_date <= heute`
 - Beide Zeilen sind **immer sichtbar**, auch bei 0 _(v2.7.2)_: "⏳ Keine in Warteschlange" bzw. "✅ Keine heute fällig" (Häkchen-Icon statt 📚, sobald für heute nichts mehr ansteht — bewusste positive Rückmeldung statt einfach nichts anzuzeigen)
@@ -112,7 +112,7 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 - **MCP-Server und Listen-Status** _(v3.3.0)_: `list_lists` gibt standardmässig nur aktive Listen zurück und erwähnt inaktive nicht proaktiv. Nennt der User eine Liste explizit beim Namen, ruft der Agent `list_lists` mit `include_inactive=true` erneut auf, um auch inaktive Listen zu finden — Karten dürfen weiterhin gezielt in eine benannte inaktive Liste eingefügt werden (`add_cards` prüft den Status nicht).
 - **Listenauswahl in der Leitner-Session** (`learn.php`) _(v3.2.45)_: Die Checkbox-Auswahl beim Starten einer Session zeigt nur aktive Listen (`is_active = 1`) — analog zur Statistik-Auswahl (siehe oben) und zu den Leitner-/Drill-Buttons auf der Startseite.
 - **Button-Reihe oben neben der Überschrift "Meine Listen"** _(v3.2.46, Icons ergänzt v3.2.48)_: **Leitner** und **Drill** (starten listenübergreifend mit Checkbox-Auswahl, siehe oben), **Meine Listen** (Icon `bi-pencil` + Text, führt zu `lists.php`) und **Statistik** (Icon `bi-bar-chart-line` + Text, führt zu `stats.php`, allgemeine Übersicht aller Listen). Zeile bricht bei schmalem Viewport um (`flex-wrap`).
-- **Listenauswahl in der Drill-Session** (`drill.php`) _(v3.2.46)_: Wird `drill.php` ohne vorausgewählte Liste aufgerufen (weder laufende Session noch `list_id` in der URL), erscheint dieselbe Art Checkbox-Auswahl wie bei Leitner — nur aktive Listen, erste vorausgewählt. Fehlerfälle (keine Liste ausgewählt, keine gültige Liste, keine geeigneten Karten) führen zurück auf diese Auswahlseite statt auf die Startseite, mit Fehlermeldung über der Auswahl.
+- **Konfigurationsseite in der Drill-Session** (`drill.php`) _(v3.2.46, Richtung + Timer ergänzt v3.3.5)_: Wird `drill.php` ohne laufende Session aufgerufen, erscheint immer die Konfigurationsseite — mit `list_id` in der URL (z.B. Startseite oder "Erneut starten") mit vorausgewählter Liste als Text, sonst mit Checkbox-Auswahl aller eigenen aktiven Listen (erste vorausgewählt). Zusätzlich wählbar: Lernrichtung (A→B, B→A, gemischt) und Timer in Minuten für diese eine Session (Standard aus den Einstellungen, nicht dauerhaft gespeichert). Fehlerfälle (keine Liste ausgewählt, keine gültige Liste, keine geeigneten Karten) führen zurück auf diese Seite statt auf die Startseite, mit Fehlermeldung über der Auswahl.
 
 ---
 
@@ -365,8 +365,13 @@ Geeignet für: Mathe-Fakten, häufig vergessene Vokabeln, neue Wörter festigen.
 - Archivierte Karten erscheinen **nicht** im Drill
 - Keine manuelle Karten-Auswahl — stattdessen ungewünschte Karten einfach archivieren
 
+### Lernrichtung & Timer (Session-Konfiguration) _(v3.3.5)_
+- Auf der Konfigurationsseite vor dem Start wählbar, analog zum Leitner-System: **Lernrichtung** (A→B, B→A oder gemischt — bei "gemischt" pro Karte deterministisch über die Karten-ID bestimmt, damit dieselbe Karte innerhalb einer Session nicht zwischen den Richtungen hin- und herspringt) sowie **Timer** in Minuten.
+- Beide Werte gelten **nur für die jeweilige Session** und werden nicht dauerhaft gespeichert — der Timer-Standardwert stammt aus den Einstellungen (`DRILL_SESSION_SECONDS`), lässt sich aber pro Start frei anpassen (1–120 Min.).
+- Frage-/Antwortseite und die Zuordnung von Audio/Lautschrift (immer an Sprache B gebunden, unabhängig von Frage- oder Antwortposition) folgen derselben Logik wie im Leitner-System (`get_question_answer()`, gemeinsam genutzt von `learn.php` und `drill.php`).
+
 ### Ablauf (eine Karte nach der anderen)
-1. Karte wird angezeigt (nur Vorderseite / Frage)
+1. Karte wird angezeigt (nur Vorderseite / Frage, gemäss gewählter Lernrichtung)
 2. User denkt nach, tippt/klickt auf die Karte → Karte dreht sich um (Flip-Animation)
 3. Antwort erscheint, darunter: Button **"Gewusst"** (grün) und **"Musste nachdenken"** (orange)
 4. User bewertet → nächste Karte erscheint sofort
@@ -389,7 +394,7 @@ Eine Karte gilt als in dieser Session gemeistert wenn sie **3× hintereinander**
 - **Timer** (MM:SS, rückwärts) und **X gemeistert** werden nebeneinander angezeigt — aktualisieren sich nach jeder Kartenbewertung (PRG-Redirect)
 
 ### Session-Ende
-- Endet nach **10 Minuten** — nach Ablauf wird die aktuelle Karte noch fertig gespielt (Flip + Bewertung), dann Abschluss
+- Endet nach dem beim Start gewählten Timer (Standard aus den Einstellungen, aktuell 10 Minuten) — nach Ablauf wird die aktuelle Karte noch fertig gespielt (Flip + Bewertung), dann Abschluss
 - Oder früher wenn alle Karten gemeistert oder als "zu schwer" markiert wurden
 - Abschlussmeldung:
   - Anzahl Gewusst / Musste nachdenken / Gemeistert
