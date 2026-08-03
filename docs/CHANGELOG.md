@@ -5,6 +5,14 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.8] - 2026-08-03
+
+### Neu
+- **Vier weitere Screenshots auf der Hilfeseite** (`help.php`), im gleichen Bildstil wie der bestehende Kartenscreenshot: "Wörter hinzufügen" zeigt jetzt das Formular für die manuelle Eingabe (`neues-wort.png`); "Leitner-Modus" und "Drill-Modus" zeigen je die Konfigurationsseite vor dem Start (`neue-session-leitner.png`, `neue-session-drill.png`); "Drill-Modus" zeigt zusätzlich Timer und Abbrechen-Symbol aus der Navbar einer laufenden Session (`drill-timer.png`), bisher unbebildert.
+- **Timer-Empfehlung im Drill-Modus:** Hinweis auf der Hilfeseite, dass der Timer mindestens 5 Minuten laufen sollte — bei weniger Zeit reicht es meist nicht, um dieselbe Karte oft genug zu wiederholen (3× richtig hintereinander nötig, um als gemeistert zu gelten).
+
+---
+
 ## [3.3.7] - 2026-08-03
 
 ### Behoben

@@ -234,3 +234,14 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Bestehendes Verhalten unverändert: gleiches Sprachenpaar, gleiches Wortpaar → weiterhin als Duplikat erkannt, inkl. globaler Entscheidung (alle überspringen/importieren) und Ausnahmen. _(v3.3.7)_
 
 ---
+
+## 21. Weitere Screenshots auf der Hilfeseite _(v3.3.8)_
+
+[ ] `help.php`, Abschnitt "Wörter hinzufügen": Screenshot `neues-wort.png` erscheint nach der Aufzählung der drei Wege, zeigt das Formular für "Manuell". _(v3.3.8)_
+[ ] `help.php`, Abschnitt "Leitner-Modus": Screenshot `neue-session-leitner.png` erscheint direkt nach dem einleitenden Absatz, vor der Aufzählung. _(v3.3.8)_
+[ ] `help.php`, Abschnitt "Drill-Modus": Screenshot `neue-session-drill.png` erscheint direkt nach dem einleitenden Absatz, darunter ein Tipp-Hinweis "Der Timer sollte mindestens 5 Minuten laufen …". _(v3.3.8)_
+[ ] `help.php`, Abschnitt "Drill-Modus": Screenshot `drill-timer.png` (Abbrechen-Symbol + Countdown) erscheint nach der Aufzählung, mit kurzem Begleittext zum Timer/Abbrechen während der Session. _(v3.3.8)_
+[ ] Alle vier neuen Bilder sind scharf, nicht verzerrt, zentriert bzw. korrekt ausgerichtet und bleiben auf schmalem Viewport (iPhone) innerhalb der Seitenbreite (`img-fluid`). _(v3.3.8)_
+[ ] Bildstil (Rahmen, Schatten, abgerundete Ecken, Bildunterschrift in gedämpfter Schrift) ist einheitlich mit dem bereits vorhandenen Screenshot `learner-karte.png` im Abschnitt "Aufbau einer Lernkarte". _(v3.3.8)_
+
+---

@@ -102,6 +102,11 @@ $pin_ratio        = DRILL_PIN_RATIO;
                         <li><strong>CSV-Import:</strong> Datei mit mehreren Karten auf einmal hochladen (Format wird auf der Import-Seite erklärt). Dort steht auch ein fertiger <strong>Prompt für eine KI</strong> bereit, mit dem sich passende Wortlisten zu einem Thema generieren lassen — einfach kopieren, Thema ergänzen und einer KI wie Claude oder ChatGPT geben.</li>
                         <li><strong>Entdecken:</strong> öffentliche Listen anderer Personen komplett in die eigene Sammlung kopieren.</li>
                     </ul>
+                    <div class="text-center mb-3">
+                        <img src="img/neues-wort.png" alt="Formular zum manuellen Hinzufügen einer neuen Karte auf der Kartenübersicht: Begriff in beiden Sprachen (Pflichtfelder), Beschreibung und Lautschrift als Zusatz, daneben die Buttons für CSV Import und Export"
+                             class="img-fluid rounded border shadow-sm" style="max-width:600px;">
+                        <p class="text-muted small mt-1 mb-0">So sieht das Formular für "Manuell" auf der Kartenübersicht einer Liste aus.</p>
+                    </div>
                     <p class="mb-0">Neue Karten landen zunächst in der <strong>Warteschlange</strong> (siehe Leitner-Modus) statt sofort aktiv zu sein — so wird man nicht mit zu vielen neuen Wörtern auf einmal überfordert.</p>
                 </div>
             </div>
@@ -140,6 +145,11 @@ $pin_ratio        = DRILL_PIN_RATIO;
             <div id="h5" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Das Leitner-System arbeitet mit <strong>5 Fächern</strong>. Jedes Fach hat ein festes Wiederholungs-Intervall: Fach 1 = morgen, Fach 2 = in <?= $li[2] ?> Tagen, Fach 3 = in <?= $li[3] ?> Tagen, Fach 4 = in <?= $li[4] ?> Tagen, Fach 5 = alle <?= $li[5] ?> Tage. Eine Karte rückt bei richtiger Antwort ein Fach auf, bei falscher Antwort fällt sie zurück auf Fach 1.</p>
+                    <div class="text-center mb-3">
+                        <img src="img/neue-session-leitner.png" alt="Startseite einer Leitner-Session: gewählte Liste, Lernrichtung als Auswahlknöpfe (z.B. Deutsch → Englisch, Englisch → Deutsch, Gemischt) und Kartenanzahl mit ±5-Knöpfen, darunter der Button „Session starten“"
+                             class="img-fluid rounded border shadow-sm" style="max-width:400px;">
+                        <p class="text-muted small mt-1 mb-0">So sieht die Startseite einer Leitner-Session aus, bevor es losgeht.</p>
+                    </div>
                     <ul class="mb-2">
                         <li><strong>Warteschlange:</strong> Neue Karten werden nicht alle auf einmal aktiv — aktuell werden pro Tag <?= $daily_limit ?> Karten aus der Warteschlange in Fach 1 aufgenommen (in den Einstellungen anpassbar).</li>
                         <li><strong>Session:</strong> Eine Lernrunde zeigt standardmässig bis zu <?= $default_cards ?> fällige Karten (beim Start der Session anpassbar), aus einer oder mehreren ausgewählten Listen gemischt; Sprachrichtung ist wählbar (A→B, B→A oder gemischt).</li>
@@ -160,6 +170,12 @@ $pin_ratio        = DRILL_PIN_RATIO;
             <div id="h6" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Kurze, intensive Trainingsrunde (Standard <?= $drill_minutes ?> Minuten aus den Einstellungen, beim Start jeder Session frei anpassbar) mit wenigen Karten gleichzeitig im Umlauf — neue und bereits bekannte Karten werden im Verhältnis <?= $drill_ratio ?>:1 (bekannt:neu) gemischt gezeigt, mit deutlichem Übergewicht bekannter Karten.</p>
+                    <div class="text-center mb-3">
+                        <img src="img/neue-session-drill.png" alt="Startseite einer Drill-Session: gewählte Liste, Lernrichtung als Auswahlknöpfe und Timer in Minuten mit ±5-Knöpfen, darunter der Button „Drill starten“"
+                             class="img-fluid rounded border shadow-sm" style="max-width:400px;">
+                        <p class="text-muted small mt-1 mb-0">So sieht die Startseite einer Drill-Session aus — hier ebenfalls Lernrichtung und Timer wählbar.</p>
+                        <p class="small mt-1 mb-0"><strong>Tipp:</strong> Der Timer sollte mindestens <strong>5 Minuten</strong> laufen. Bei weniger Zeit sieht man dieselbe Karte meist nicht oft genug, um sie wirklich zu lernen.</p>
+                    </div>
                     <ul class="mb-2">
                         <li><strong>Vor dem Start wählbar</strong> (analog zum Leitner-System): Lernrichtung (A→B, B→A oder gemischt) und Timer in Minuten — beide gelten nur für diese eine Session und werden nicht dauerhaft gespeichert.</li>
                         <li>Bei <?= $drill_mastery ?>× richtiger Antwort <strong>in Folge</strong> gilt eine Karte als <strong>gemeistert</strong> und wechselt danach automatisch ins Leitner-System (ein einzelner Fehler setzt diese Zählung zurück auf 0).</li>
@@ -169,6 +185,11 @@ $pin_ratio        = DRILL_PIN_RATIO;
                         <li>Es gibt <strong>keine Leitner-Fach-Obergrenze</strong> für den Drill-Modus — auch Karten, die bereits in einem höheren Leitner-Fach sind, können weiterhin im Drill auftauchen, solange sie nicht archiviert sind.</li>
                         <li><strong>Für Drill vormerken:</strong> Jede Karte lässt sich einzeln über das Pin-Icon (<i class="bi bi-pin-angle"></i>) "für Drill vormerken" — entweder auf der Kartenübersicht (Kartenansicht über das Augen-Icon "Karte ansehen") oder direkt während einer laufenden Leitner-Session (Symbol oben links auf der Lernkarte). Vorgemerkte Karten werden im Drill <?= $pin_mode === 'absolute' ? 'immer zuerst gezeigt, solange mindestens eine vorgemerkte Karte übrig ist' : "bevorzugt eingeschoben (aktuell etwa jede {$pin_ratio}. Karte)" ?> — Priorität in den Einstellungen anpassbar. Erkennbar an einem ausgefüllten Pin-Symbol (<i class="bi bi-pin-angle-fill"></i>) oben links auf der Karte sowie am Badge "Für Drill vorgemerkt" in der Kartenübersicht. Das Leitner-System läuft für diese Karte währenddessen völlig unverändert weiter (kein Einfrieren, kein Fach-Sprung). Bei <?= $drill_mastery ?>× richtiger Antwort in Folge seit dem Vormerken wird die Vormerkung automatisch entfernt, kann aber auch jederzeit manuell wieder entfernt werden.</li>
                     </ul>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <img src="img/drill-timer.png" alt="Ausschnitt aus der Navbar während einer laufenden Drill-Session: links ein X-Symbol zum Abbrechen der Session, rechts daneben der Countdown-Timer, hier 9:50"
+                             class="img-fluid rounded border shadow-sm" style="max-width:220px;">
+                        <p class="mb-0 small text-muted">Während der Session zählt der Timer oben rückwärts. Über das <i class="bi bi-x-lg"></i>-Symbol lässt sich jederzeit abbrechen.</p>
+                    </div>
                     <p class="mb-0">Geeignet für <strong>intensives Kurzzeit-Pauken</strong>, z.B. vor einem Test — als Ergänzung zum Leitner-System, nicht als Ersatz.</p>
                 </div>
             </div>
