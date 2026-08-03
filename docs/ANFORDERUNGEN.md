@@ -217,7 +217,7 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 - Beim Import wird auf Duplikate geprüft anhand von:
   - Normalisierter Text A (Kleinschreibung, Leerzeichen getrimmt, mehrfache Leerzeichen reduziert)
   - Normalisierter Text B (gleiche Normalisierung)
-  - Prüfung ist **listenübergreifend** — alle eigenen Karten der Person werden berücksichtigt
+  - Prüfung ist **listenübergreifend, aber auf das Sprachenpaar begrenzt** _(v3.3.7)_ — nur eigene Karten aus Listen mit identischer Sprache A **und** Sprache B (exakter Textvergleich der Sprachbezeichnung) werden berücksichtigt. Eine Karte "casa"/"Haus" aus einer Italienisch-Liste zählt beim Import einer Französisch-Liste nicht als Duplikat, selbst wenn dieselbe deutsche Übersetzung existiert.
   - `colour` vs. `color` gilt als unterschiedlich — kein automatischer Ausgleich
   - `7 × 8 = ?` vs. `7x8=?` gilt als unterschiedlich — Verantwortung beim User
 - Warnung zeigt Übersicht aller gefundenen Duplikate (in welcher Liste sie existieren)

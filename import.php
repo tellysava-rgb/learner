@@ -137,16 +137,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['stage']) && $_GET['stag
 
     $parsed_rows = $import_data['rows'];
 
-    // Bestehende Karten aller Listen dieser Person laden (für listenübergreifenden Duplikat-Check)
+    // Bestehende Karten aller Listen dieser Person mit demselben Sprachenpaar laden (listenübergreifender
+    // Duplikat-Check) — Listen mit anderen Sprachen sind für den Vergleich irrelevant (z.B. italienische
+    // Wörter sollen beim Import einer französischen Liste nicht als Duplikate auftauchen).
     $stmt = $pdo->prepare("
         SELECT c.id, c.word_a, c.word_b, l.name AS list_name,
                COALESCE(cp.status, 'queued') AS status
         FROM cards c
         JOIN lists l ON l.id = c.list_id
         LEFT JOIN card_progress cp ON cp.card_id = c.id AND cp.person_id = ?
-        WHERE l.person_id = ?
+        WHERE l.person_id = ? AND l.language_a = ? AND l.language_b = ?
     ");
-    $stmt->execute([$person_id, $person_id]);
+    $stmt->execute([$person_id, $person_id, $list['language_a'], $list['language_b']]);
     $existing = $stmt->fetchAll();
 
     // Normalisierte Map für Duplikat-Check
@@ -195,16 +197,17 @@ if ($import_stage === 'confirm' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $dup_exceptions  = array_map('intval', (array)($_POST['dup_exceptions'] ?? []));
         $archived_decisions = $_POST['archived'] ?? [];          // [index => 'keep'|'reactivate'|'new']
 
-        // Bestehende Karten aller Listen dieser Person laden (Duplikat-Check wiederholen)
+        // Bestehende Karten aller Listen dieser Person mit demselben Sprachenpaar laden (Duplikat-Check
+        // wiederholen — siehe Kommentar bei der identischen Abfrage in Stufe 2)
         $stmt = $pdo->prepare("
             SELECT c.id, c.word_a, c.word_b,
                    COALESCE(cp.status, 'queued') AS status
             FROM cards c
             JOIN lists l ON l.id = c.list_id
             LEFT JOIN card_progress cp ON cp.card_id = c.id AND cp.person_id = ?
-            WHERE l.person_id = ?
+            WHERE l.person_id = ? AND l.language_a = ? AND l.language_b = ?
         ");
-        $stmt->execute([$person_id, $person_id]);
+        $stmt->execute([$person_id, $person_id, $list['language_a'], $list['language_b']]);
         $existing = $stmt->fetchAll();
 
         $existing_map = [];

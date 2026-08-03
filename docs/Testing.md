@@ -224,3 +224,13 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] `help.php`, Abschnitte "Aufbau einer Lernkarte" und "Drill-Modus": Texte erwähnen korrekt, dass Lernrichtung und Timer in beiden Modi wählbar sind (nicht mehr "im Drill-Modus fest A→B"). _(v3.3.5)_
 
 ---
+
+## 20. Duplikat-Prüfung beim Import auf Sprachenpaar begrenzt _(v3.3.7)_
+
+[ ] Liste A (Deutsch/Italienisch) enthält die Karte "Haus"/"casa". CSV mit "Haus"/"maison" in eine Liste B (Deutsch/Französisch) importieren → **kein** Duplikat-Treffer, Karte erscheint als neu importierbar. _(v3.3.7)_
+[ ] Dieselbe CSV-Zeile "Haus"/"maison" existiert bereits identisch in einer anderen Deutsch/Französisch-Liste → wird weiterhin korrekt als Duplikat erkannt (Sprachenpaar identisch). _(v3.3.7)_
+[ ] Archivierte Karte mit gleichem Wortpaar, aber in einer Liste mit anderem Sprachenpaar → erscheint **nicht** in der Archiv-Reaktivierungs-Abfrage, wird stattdessen normal importiert. _(v3.3.7)_
+[ ] Zwei eigene Listen mit identischer Sprachbezeichnung, aber unterschiedlicher Gross-/Kleinschreibung (z.B. "Englisch" vs. "englisch") → gelten als unterschiedliches Sprachenpaar (exakter Textvergleich, keine Normalisierung) — Duplikat-Check greift dort bewusst nicht. _(v3.3.7)_
+[ ] Bestehendes Verhalten unverändert: gleiches Sprachenpaar, gleiches Wortpaar → weiterhin als Duplikat erkannt, inkl. globaler Entscheidung (alle überspringen/importieren) und Ausnahmen. _(v3.3.7)_
+
+---

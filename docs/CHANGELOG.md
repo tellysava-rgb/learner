@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.7] - 2026-08-03
+
+### Behoben
+- **Duplikat-Prüfung beim CSV-Import verglich über alle Sprachen hinweg.** Beim Import wurden bisher alle eigenen Karten aller Listen unabhängig von der Sprache als möglicher Duplikat-Treffer herangezogen — ein italienisches "casa"/"Haus" wurde so beim Import einer französischen Liste fälschlich als Duplikat von "maison"/"Haus" angezeigt, obwohl die Sprachen nicht zusammenpassen. Die Prüfung berücksichtigt jetzt nur noch Karten aus Listen mit identischer Sprache A **und** Sprache B wie die Ziel-Liste.
+
+---
+
 ## [3.3.6] - 2026-08-03
 
 ### Neu
