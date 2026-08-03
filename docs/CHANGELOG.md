@@ -5,6 +5,17 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.9] - 2026-08-03
+
+### Neu
+- **Eigener Einleitungs-Abschnitt auf der Hilfeseite:** Der kurze Überblick über die Grundfunktionen stand bisher als freier Text oberhalb des Accordions und passte optisch nicht zum Rest der Seite. Er steht jetzt als erster, standardmässig aufgeklappter Accordion-Abschnitt "Einleitung". Der vormals erste Abschnitt heisst dadurch nur noch "Login & Person" (statt "Einstieg: Login & Person") und ist wie alle anderen Abschnitte standardmässig eingeklappt.
+
+### Verbessert
+- **Timer-Screenshot auf der Hilfeseite deutlich verkleinert:** `drill-timer.png` wurde bisher auf 220px Breite hochskaliert (Original nur 210×94px) und wirkte dadurch wie ein grosser Screenshot statt wie der kleine Navbar-Ausschnitt, den er zeigt. Feste Breite jetzt 105px — entspricht in etwa der tatsächlichen Grösse auf der Webseite.
+- **Hilfeseite erwähnt jetzt die mobile Heatmap-Anpassung:** Im Abschnitt "Statistik & Streak" ein zusätzlicher Hinweis, dass sich die Jahres-Heatmap der Bildschirmbreite anpasst (auf dem Handy ein kürzerer, aktuellerer Zeitraum statt aller 52 Wochen). Rein textlich — das Verhalten selbst existiert bereits seit v3.2.27.
+
+---
+
 ## [3.3.8] - 2026-08-03
 
 ### Neu

@@ -197,7 +197,7 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] `help.php`: neuer Abschnitt "Aufbau einer Lernkarte" erscheint an dritter Position im Accordion, zwischen "Wörter hinzufügen" und "Leitner-Modus". _(v3.3.2)_
 [ ] Screenshot (`img/learner-karte.png`) wird angezeigt, ist scharf/nicht verzerrt und bleibt auf schmalem Viewport (iPhone) innerhalb der Seitenbreite. _(v3.3.2)_
 [ ] Alle nachfolgenden Accordion-Abschnitte (Leitner-Modus bis "Für Technik-Fans …") lassen sich weiterhin einzeln auf-/zuklappen, keine zwei Abschnitte öffnen gleichzeitig durch die ID-Verschiebung. _(v3.3.2)_
-[ ] Als Nicht-Admin eingeloggt: 8 Abschnitte sichtbar (kein Admin-/MCP-Abschnitt), als Admin: 10 Abschnitte. _(v3.3.2)_
+[ ] Als Nicht-Admin eingeloggt: 9 Abschnitte sichtbar (kein Admin-/MCP-Abschnitt), als Admin: 11 Abschnitte — siehe Abschnitt 22 für die aktuelle Zählung inkl. "Einleitung". _(v3.3.9)_
 
 ---
 
@@ -241,7 +241,22 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] `help.php`, Abschnitt "Leitner-Modus": Screenshot `neue-session-leitner.png` erscheint direkt nach dem einleitenden Absatz, vor der Aufzählung. _(v3.3.8)_
 [ ] `help.php`, Abschnitt "Drill-Modus": Screenshot `neue-session-drill.png` erscheint direkt nach dem einleitenden Absatz, darunter ein Tipp-Hinweis "Der Timer sollte mindestens 5 Minuten laufen …". _(v3.3.8)_
 [ ] `help.php`, Abschnitt "Drill-Modus": Screenshot `drill-timer.png` (Abbrechen-Symbol + Countdown) erscheint nach der Aufzählung, mit kurzem Begleittext zum Timer/Abbrechen während der Session. _(v3.3.8)_
-[ ] Alle vier neuen Bilder sind scharf, nicht verzerrt, zentriert bzw. korrekt ausgerichtet und bleiben auf schmalem Viewport (iPhone) innerhalb der Seitenbreite (`img-fluid`). _(v3.3.8)_
+[ ] `drill-timer.png` wird deutlich kleiner als die anderen drei Screenshots dargestellt (feste Breite 105px, nicht mehr auf 220px hochskaliert) — wirkt wie ein kleiner Navbar-Ausschnitt, nicht wie ein grosser Screenshot. _(v3.3.9)_
+[ ] Alle vier neuen Bilder sind scharf, nicht verzerrt, zentriert bzw. korrekt ausgerichtet und bleiben auf schmalem Viewport (iPhone) innerhalb der Seitenbreite. _(v3.3.9)_
 [ ] Bildstil (Rahmen, Schatten, abgerundete Ecken, Bildunterschrift in gedämpfter Schrift) ist einheitlich mit dem bereits vorhandenen Screenshot `learner-karte.png` im Abschnitt "Aufbau einer Lernkarte". _(v3.3.8)_
+
+## 22. Hilfeseite: eigener Einleitungs-Abschnitt _(v3.3.9)_
+
+[ ] `help.php` öffnet mit dem Accordion-Abschnitt "Einleitung" standardmässig aufgeklappt — enthält die Grundfunktionen-Liste (Wortlisten erstellen, öffentliche Listen kopieren, Leitner/Drill, 1×1, Audioaussprache). _(v3.3.9)_
+[ ] Alle anderen Abschnitte, inkl. des vormals ersten ("Login & Person"), sind beim Laden der Seite eingeklappt. _(v3.3.9)_
+[ ] Der Abschnitt, der bisher "Einstieg: Login & Person" hiess, heisst jetzt nur noch "Login & Person" — Inhalt selbst unverändert (Login-Ablauf, Passwort/E-Mail-Verwaltung, Admin-Hinweis). _(v3.3.9)_
+[ ] Als Nicht-Admin eingeloggt: 9 Abschnitte sichtbar (inkl. neuer "Einleitung", ohne Admin-/MCP-Abschnitt), als Admin: 11 Abschnitte. _(v3.3.9)_
+[ ] Querverweis im Admin-Abschnitt ("Für Admins …") auf "Login & Person" verwendet den neuen Namen, kein toter Verweis auf "Einstieg: Login & Person" mehr. _(v3.3.9)_
+[ ] Auf-/Zuklappen jedes Abschnitts funktioniert weiterhin einzeln (Bootstrap-Accordion, `data-bs-parent`) — kein gleichzeitiges Öffnen zweier Abschnitte durch die ID-Verschiebung. _(v3.3.9)_
+
+## 23. Hilfeseite: Hinweis auf mobile Heatmap-Anpassung _(v3.3.9)_
+
+[ ] `help.php`, Abschnitt "Statistik & Streak": neuer Punkt in der Aufzählung erwähnt, dass sich die Heatmap der Bildschirmbreite anpasst (Handy: kürzerer Zeitraum, Desktop: alle 52 Wochen). _(v3.3.9)_
+[ ] Text widerspricht nicht der bereits bestehenden, ausführlicheren technischen Beschreibung in `docs/ANFORDERUNGEN.md` (Abschnitt "Statistik-Dashboard") — reine Ergänzung auf der Hilfeseite, keine Verhaltensänderung an `stats.php` selbst. _(v3.3.9)_
 
 ---

@@ -43,24 +43,35 @@ $pin_ratio        = DRILL_PIN_RATIO;
     <h1 class="h4 mb-1">Hilfe & Handbuch</h1>
     <p class="text-muted small mb-3">Kurzanleitung zu <?= htmlspecialchars(APP_NAME) ?> — was die Funktionen tun und wie das Lernen dahinter funktioniert.</p>
 
-    <p class="mb-1"><?= htmlspecialchars(APP_NAME) ?> ist ein Vokabeltrainer mit diesen Grundfunktionen:</p>
-    <ul class="mb-4">
-        <li>Eigene Wortlisten erstellen und pflegen</li>
-        <li>Öffentliche Wortlisten anderer Personen kopieren</li>
-        <li>Wortlisten lernen — wahlweise mit dem Leitner-System (Karteikarten) oder im Drill-Modus</li>
-        <li>Das kleine 1×1 der Mathematik lernen (Multiplikation und Division)</li>
-        <li>Wortlisten werden durch Audioaussprache unterstützt, sofern für die jeweilige Liste ein Aussprache-Dialekt konfiguriert ist</li>
-    </ul>
-
     <div class="accordion" id="helpAccordion">
 
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#h1">
-                    Einstieg: Login & Person
+                    Einleitung
                 </button>
             </h2>
             <div id="h1" class="accordion-collapse collapse show" data-bs-parent="#helpAccordion">
+                <div class="accordion-body">
+                    <p class="mb-1"><?= htmlspecialchars(APP_NAME) ?> ist ein Vokabeltrainer mit diesen Grundfunktionen:</p>
+                    <ul class="mb-0">
+                        <li>Eigene Wortlisten erstellen und pflegen</li>
+                        <li>Öffentliche Wortlisten anderer Personen kopieren</li>
+                        <li>Wortlisten lernen — wahlweise mit dem Leitner-System (Karteikarten) oder im Drill-Modus</li>
+                        <li>Das kleine 1×1 der Mathematik lernen (Multiplikation und Division)</li>
+                        <li>Wortlisten werden durch Audioaussprache unterstützt, sofern für die jeweilige Liste ein Aussprache-Dialekt konfiguriert ist</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h2">
+                    Login & Person
+                </button>
+            </h2>
+            <div id="h2" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Der Login erfolgt mit deinem Namen und deinem eigenen Passwort — jede Person hat ihren eigenen Lernfortschritt, auch wenn mehrere Personen dieselbe Liste nutzen.</p>
                     <p>Über das 🔑-Icon oben in der Navbar kannst du dein eigenes Passwort ändern und optional eine E-Mail-Adresse hinterlegen — damit kannst du dein Passwort selbst zurücksetzen, falls du es vergisst (Link "Passwort vergessen?" auf der Login-Seite).</p>
@@ -71,11 +82,11 @@ $pin_ratio        = DRILL_PIN_RATIO;
 
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h2">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h3">
                     Wortlisten verwalten
                 </button>
             </h2>
-            <div id="h2" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div id="h3" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Eine <strong>Liste</strong> bündelt Karten zu einem Sprachenpaar (z.B. Deutsch/Englisch) und legt fest, welche Seite welche Sprache ist. Unter <em>Meine Listen</em> kannst du Listen erstellen, umbenennen, öffentlich stellen und löschen.</p>
                     <ul class="mb-2">
@@ -90,11 +101,11 @@ $pin_ratio        = DRILL_PIN_RATIO;
 
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h3">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h4">
                     Wörter hinzufügen
                 </button>
             </h2>
-            <div id="h3" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div id="h4" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Drei Wege, um Karten in eine Liste zu bringen:</p>
                     <ul class="mb-2">
@@ -114,11 +125,11 @@ $pin_ratio        = DRILL_PIN_RATIO;
 
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h4">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h5">
                     Aufbau einer Lernkarte
                 </button>
             </h2>
-            <div id="h4" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div id="h5" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Egal ob Leitner oder Drill — die Lernkarte selbst sieht in beiden Modi gleich aus:</p>
                     <div class="text-center mb-3">
@@ -138,11 +149,11 @@ $pin_ratio        = DRILL_PIN_RATIO;
 
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h5">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h6">
                     Leitner-Modus
                 </button>
             </h2>
-            <div id="h5" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div id="h6" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Das Leitner-System arbeitet mit <strong>5 Fächern</strong>. Jedes Fach hat ein festes Wiederholungs-Intervall: Fach 1 = morgen, Fach 2 = in <?= $li[2] ?> Tagen, Fach 3 = in <?= $li[3] ?> Tagen, Fach 4 = in <?= $li[4] ?> Tagen, Fach 5 = alle <?= $li[5] ?> Tage. Eine Karte rückt bei richtiger Antwort ein Fach auf, bei falscher Antwort fällt sie zurück auf Fach 1.</p>
                     <div class="text-center mb-3">
@@ -163,11 +174,11 @@ $pin_ratio        = DRILL_PIN_RATIO;
 
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h6">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h7">
                     Drill-Modus
                 </button>
             </h2>
-            <div id="h6" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div id="h7" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Kurze, intensive Trainingsrunde (Standard <?= $drill_minutes ?> Minuten aus den Einstellungen, beim Start jeder Session frei anpassbar) mit wenigen Karten gleichzeitig im Umlauf — neue und bereits bekannte Karten werden im Verhältnis <?= $drill_ratio ?>:1 (bekannt:neu) gemischt gezeigt, mit deutlichem Übergewicht bekannter Karten.</p>
                     <div class="text-center mb-3">
@@ -187,7 +198,7 @@ $pin_ratio        = DRILL_PIN_RATIO;
                     </ul>
                     <div class="d-flex align-items-center gap-3 mb-3">
                         <img src="img/drill-timer.png" alt="Ausschnitt aus der Navbar während einer laufenden Drill-Session: links ein X-Symbol zum Abbrechen der Session, rechts daneben der Countdown-Timer, hier 9:50"
-                             class="img-fluid rounded border shadow-sm" style="max-width:220px;">
+                             class="img-fluid rounded border shadow-sm" style="width:105px;">
                         <p class="mb-0 small text-muted">Während der Session zählt der Timer oben rückwärts. Über das <i class="bi bi-x-lg"></i>-Symbol lässt sich jederzeit abbrechen.</p>
                     </div>
                     <p class="mb-0">Geeignet für <strong>intensives Kurzzeit-Pauken</strong>, z.B. vor einem Test — als Ergänzung zum Leitner-System, nicht als Ersatz.</p>
@@ -197,11 +208,11 @@ $pin_ratio        = DRILL_PIN_RATIO;
 
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h7">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h8">
                     Aussprache: Audio & Lautschrift
                 </button>
             </h2>
-            <div id="h7" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div id="h8" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Hat eine Liste einen Aussprache-Dialekt hinterlegt (z.B. <code>en-GB</code>), erscheint bei Karten in Sprache B ein 🔊-Knopf, der das Wort per Sprachausgabe des Geräts vorliest. Zusätzlich kann pro Karte eine vereinfachte <strong>Lautschrift</strong> hinterlegt sein (in eckigen Klammern angezeigt) — beide Hilfen sind unabhängig voneinander nutzbar.</p>
                     <p class="mb-1">Zum Ausprobieren, wie das in etwa klingt:</p>
@@ -219,11 +230,11 @@ $pin_ratio        = DRILL_PIN_RATIO;
 
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h8">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h9">
                     Statistik & Streak
                 </button>
             </h2>
-            <div id="h8" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div id="h9" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Die Statistik-Seite zeigt Lernverlauf und Fortschritt pro Liste. Das 🔥-Abzeichen in der Navbar zeigt die aktuelle <strong>Streak</strong> (Anzahl Tage in Folge mit mindestens einer abgeschlossenen Lernsession) — verschwindet, sobald ein Tag ausgelassen wird.</p>
                     <p class="mb-1">Ganz oben auf der Statistik-Seite zeigt die Karte <strong>"Lernaktivität"</strong> (listenübergreifend, unabhängig vom Listen-Filter darunter):</p>
@@ -231,6 +242,7 @@ $pin_ratio        = DRILL_PIN_RATIO;
                         <li>Drei Kennzahlen: 🔥 aktueller Streak, Lerntage insgesamt, sowie die beste Woche (meiste Lerntage in einer einzelnen Kalenderwoche)</li>
                         <li>Eine <strong>Jahres-Heatmap</strong> der letzten 52 Wochen, im Stil von GitHubs Beitrags-Übersicht: jede Spalte eine Kalenderwoche (links die älteste), jede Zeile ein Wochentag (Mo–So). Je mehr Karten an einem Tag gelernt wurden, desto dunkler das Grün — ein leeres/graues Feld bedeutet, dass an diesem Tag nicht gelernt wurde</li>
                         <li>Beim Hovern über ein Feld zeigt ein Tooltip das genaue Datum und die Anzahl gelernter Karten an diesem Tag</li>
+                        <li>Die Heatmap passt sich der <strong>Bildschirmbreite</strong> deines Geräts an: auf dem Handy sind so nur die letzten paar Monate zu sehen, am Computer alle 52 Wochen — es wird nicht kleiner gequetscht, sondern zeigt einfach einen kürzeren, aktuelleren Zeitraum</li>
                     </ul>
                     <p class="mb-0">Ein Lerntag zählt, sobald mindestens eine Karte beantwortet wurde — egal ob im Leitner- oder Drill-Modus.</p>
                 </div>
@@ -240,11 +252,11 @@ $pin_ratio        = DRILL_PIN_RATIO;
         <?php if (!empty($_SESSION['is_admin'])): ?>
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h9">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h10">
                     Für Admins: Einstellungen & Benutzerverwaltung
                 </button>
             </h2>
-            <div id="h9" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div id="h10" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Manche Bereiche sind nur für Personen mit <strong>Admin-Status</strong> sichtbar und zugänglich — erkennbar am zusätzlichen "Einstellungen"-Link und "Person wechseln" in der Navbar der Startseite.</p>
                     <ul class="mb-2">
@@ -253,18 +265,18 @@ $pin_ratio        = DRILL_PIN_RATIO;
                         <li><strong>Person wechseln:</strong> ein Admin kann vorübergehend als eine andere Person agieren (z.B. für Support), ohne sich neu einzuloggen — der eigene Admin-Status bleibt dabei erhalten.</li>
                         <li><strong>Debug-Modus:</strong> eigener Schalter unter Einstellungen → Debug. Zeigt danach in Leitner und Drill nach jeder beantworteten Karte ein Info-Panel mit dem genauen Vorher/Nachher-Status (Fach, Fälligkeit, Zähler) — nützlich zum Nachvollziehen der Leitner-/Drill-Logik. Der Schalter ist zwar global, das Panel selbst sehen aber weiterhin nur Admins.</li>
                     </ul>
-                    <p class="mb-0">Alle Personen — auch ohne Admin-Status — können ihr eigenes Passwort und ihre eigene E-Mail-Adresse selbst über das 🔑-Icon verwalten (siehe "Einstieg: Login & Person").</p>
+                    <p class="mb-0">Alle Personen — auch ohne Admin-Status — können ihr eigenes Passwort und ihre eigene E-Mail-Adresse selbst über das 🔑-Icon verwalten (siehe "Login & Person").</p>
                 </div>
             </div>
         </div>
 
         <div class="accordion-item">
             <h2 class="accordion-header">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h10">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#h11">
                     Für Technik-Fans: Karten per KI-Agent verwalten
                 </button>
             </h2>
-            <div id="h10" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+            <div id="h11" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                 <div class="accordion-body">
                     <p>Für technisch versierte Nutzer bietet die App eine Schnittstelle (MCP), über die ein KI-Agent (z.B. Claude) direkt mit den eigenen Wortlisten arbeiten kann — praktisch, um z.B. grössere Wortlisten im Gespräch mit einer KI zu erstellen oder zu pflegen. Der Agent zeigt vorgeschlagene Änderungen immer erst zur Bestätigung an, bevor etwas gespeichert wird.</p>
                     <p class="mb-1">Damit ein KI-Agent so arbeiten kann:</p>
