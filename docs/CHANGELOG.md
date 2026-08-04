@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.17] - 2026-08-04
+
+### Verbessert
+- **Aktionsleiste auf "Meine Listen": Icon-only statt Icon + Text.** Die sechs Buttons pro Liste (Liste bearbeiten, Karten bearbeiten, Import, Migrieren, Export, Löschen) zeigen ihre Beschriftung jetzt nur noch als Hover-Tooltip statt zusätzlich als Text im Button — spart Platz in der Zeile, analog zur Kartenübersicht (`edit.php`). Tooltip-Initialisierung bewusst auf die Listeneinträge eingegrenzt, damit die Navbar-Icons ihre bisherigen nativen Tooltips behalten.
+
+---
+
 ## [3.3.16] - 2026-08-04
 
 ### Verbessert

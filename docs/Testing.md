@@ -300,7 +300,11 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 
 ## 27. Icons und neue Reihenfolge der Aktionsleiste auf "Meine Listen" _(v3.3.15)_
 
-[ ] Pro Liste erscheinen die sechs Buttons in dieser Reihenfolge, jeweils mit Icon vor dem Text: "Liste bearbeiten" (`bi-pencil`), "Karten bearbeiten" (`bi-pencil-square`), "Import" (`bi-upload`), "Migrieren" (`bi-box-arrow-right`), "Export" (`bi-download`), "Löschen" (`bi-trash`). _(v3.3.15)_
+[ ] Pro Liste erscheinen die sechs Buttons in dieser Reihenfolge, jeweils nur als Icon (kein Text im Button): "Liste bearbeiten" (`bi-pencil`), "Karten bearbeiten" (`bi-pencil-square`), "Import" (`bi-upload`), "Migrieren" (`bi-box-arrow-right`), "Export" (`bi-download`), "Löschen" (`bi-trash`). _(v3.3.17)_
+[ ] Hovern über jeden der sechs Buttons zeigt einen Tooltip mit dem jeweiligen Namen (z.B. "Liste bearbeiten"), auch über "Migrieren" trotz gleichzeitigem `data-bs-toggle="modal"`. _(v3.3.17)_
+[ ] Klick auf "Migrieren" öffnet weiterhin normal das Migrations-Modal (Tooltip-Init darf das nicht stören). _(v3.3.17)_
+[ ] Die Navbar-Icons oben (Logout, Hilfe, Einstellungen etc.) zeigen weiterhin ihre gewohnten (nativen) Tooltips — kein Bootstrap-Tooltip-Verhalten dort durch die neue Initialisierung auf `lists.php`. _(v3.3.17)_
+[ ] Buttons sind durch den Wegfall des Texts deutlich schmaler — auf schmalem Viewport passen dadurch mehr Buttons pro Zeile, bevor umgebrochen wird. _(v3.3.17)_
 [ ] "Liste bearbeiten" führt weiterhin zu `lists.php?edit=X` (Inline-Formular, siehe Abschnitt 26), "Karten bearbeiten" weiterhin zu `edit.php?list_id=X`. _(v3.3.15)_
 [ ] "Migrieren" fehlt weiterhin, wenn nur eine einzige eigene Liste existiert — Reihenfolge der übrigen fünf Buttons bleibt dabei unverändert (kein Lücken-Sprung). _(v3.3.15)_
 [ ] Auf schmalem Viewport (iPhone) brechen die Buttons sauber um (`flex-wrap`), keine horizontale Scrollbar auf "Meine Listen". _(v3.3.15)_

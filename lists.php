@@ -291,19 +291,24 @@ if ($edit_id) {
                     </span>
                 </div>
                 <div class="d-flex flex-wrap gap-1 ms-2">
-                    <a href="lists.php?edit=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil me-1"></i>Liste bearbeiten</a>
-                    <a href="edit.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-square me-1"></i>Karten bearbeiten</a>
-                    <a href="import.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-upload me-1"></i>Import</a>
+                    <a href="lists.php?edit=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary"
+                       data-bs-toggle="tooltip" title="Liste bearbeiten"><i class="bi bi-pencil"></i></a>
+                    <a href="edit.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-primary"
+                       data-bs-toggle="tooltip" title="Karten bearbeiten"><i class="bi bi-pencil-square"></i></a>
+                    <a href="import.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary"
+                       data-bs-toggle="tooltip" title="Import"><i class="bi bi-upload"></i></a>
                     <?php if (count($lists) > 1): ?>
                     <button type="button" class="btn btn-sm btn-outline-secondary"
-                            data-bs-toggle="modal" data-bs-target="#migrateModal<?= $list['id'] ?>">
-                        <i class="bi bi-box-arrow-right me-1"></i>Migrieren
+                            data-bs-toggle="modal" data-bs-target="#migrateModal<?= $list['id'] ?>" title="Migrieren">
+                        <i class="bi bi-box-arrow-right"></i>
                     </button>
                     <?php endif; ?>
-                    <a href="export.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-download me-1"></i>Export</a>
+                    <a href="export.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary"
+                       data-bs-toggle="tooltip" title="Export"><i class="bi bi-download"></i></a>
                     <button type="button" class="btn btn-sm btn-outline-danger"
+                            data-bs-toggle="tooltip" title="Löschen"
                             onclick="confirmDelete(<?= $list['id'] ?>, <?= htmlspecialchars(json_encode($list['name'])) ?>)">
-                        <i class="bi bi-trash me-1"></i>Löschen
+                        <i class="bi bi-trash"></i>
                     </button>
                 </div>
             </div>
@@ -364,6 +369,15 @@ if ($edit_id) {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <script>
+// Icon-only Aktionsbuttons zeigen ihre Beschriftung als Tooltip statt als Text — "Migrieren"
+// behält zusätzlich data-bs-toggle="modal" fürs Öffnen des Modals, deshalb hier über [title]
+// statt über [data-bs-toggle="tooltip"] ausgewählt (sonst würde das Modal nicht mehr öffnen).
+// Bewusst auf .list-group-item eingegrenzt, damit die Navbar-Icons (eigene, native title-Tooltips)
+// unangetastet bleiben.
+document.querySelectorAll('.list-group-item [title]').forEach(function (el) {
+    new bootstrap.Tooltip(el, { trigger: 'hover' });
+});
+
 function confirmDelete(id, name) {
     if (confirm('Liste "' + name + '" wirklich löschen? Alle Karten und Lernfortschritte werden unwiderruflich gelöscht.')) {
         document.getElementById('delete-list-id').value = id;
