@@ -5,6 +5,16 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.11] - 2026-08-04
+
+### Neu
+- **Neue Lernrichtung "Zufall"** (Leitner & Drill): vierte Option auf der Konfigurationsseite, ganz unten in der Liste — und jetzt **Default** statt A→B. Bei "Zufall" würfelt der Server einmalig beim Start der Session eine der drei echten Richtungen (A→B, B→A, Gemischt) aus; die Session läuft danach durchgehend mit dieser einen Richtung. Verhindert einseitiges Lernen durch immer dieselbe Richtung. Gemeinsame Logik (`resolve_direction()`) in `includes/auth.php`, von `learn.php` und `drill.php` gleichermassen genutzt.
+
+### Verbessert
+- **Lernrichtungs-Auswahl steht jetzt untereinander** statt nebeneinander in einer Zeile — Reihenfolge A→B, B→A, Gemischt, Zufall.
+
+---
+
 ## [3.3.10] - 2026-08-04
 
 ### Behoben

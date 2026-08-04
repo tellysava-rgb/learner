@@ -478,6 +478,18 @@ function get_question_answer(array $card, string $direction): array {
     ];
 }
 
+// Löst die Lernrichtungs-Auswahl vom Setup-Formular (learn.php/drill.php) auf. 'random' ist kein
+// eigener Kartenmodus für get_question_answer(), sondern wird hier einmalig pro Session in eine
+// der drei echten Richtungen aufgelöst — die Session läuft danach durchgehend mit dieser einen
+// Richtung, kein erneutes Auswürfeln pro Karte.
+function resolve_direction(?string $input): string {
+    $direction = in_array($input, ['a_to_b', 'b_to_a', 'mixed', 'random'], true) ? $input : 'random';
+    if ($direction === 'random') {
+        $direction = ['a_to_b', 'b_to_a', 'mixed'][random_int(0, 2)];
+    }
+    return $direction;
+}
+
 // Debug-Modus (Einstellungen → Debug, nur für Admins): Hilfsfunktionen für die Vorher/Nachher-
 // Anzeige in learn.php/drill.php. Bewusst nur bei DEBUG_MODE + Admin aufgerufen — siehe
 // docs/ANFORDERUNGEN.md, Abschnitt "Debug-Modus".

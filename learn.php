@@ -58,15 +58,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin
     csrf_validate();
 
     $list_ids  = array_map('intval', array_filter((array)($_POST['list_ids'] ?? [])));
-    $direction = $_POST['direction'] ?? 'a_to_b';
+    $direction = resolve_direction($_POST['direction'] ?? null);
     $card_limit = max(1, intval($_POST['card_limit'] ?? LEITNER_DEFAULT_CARDS));
 
     if (!$list_ids) {
         $setup_error = 'Bitte mindestens eine Liste auswählen.';
         goto render_setup;
-    }
-    if (!in_array($direction, ['a_to_b', 'b_to_a', 'mixed'])) {
-        $direction = 'a_to_b';
     }
 
     // Eigentümerschaft prüfen
@@ -693,17 +690,21 @@ $lang_b = $preset_list ? htmlspecialchars($preset_list['language_b']) : 'B';
     <div class="mb-4">
         <label class="form-label fw-semibold">Lernrichtung</label>
         <div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="direction" id="dir_ab" value="a_to_b" checked>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="direction" id="dir_ab" value="a_to_b">
                 <label class="form-check-label" for="dir_ab" id="label_ab"><?= $lang_a ?> → <?= $lang_b ?></label>
             </div>
-            <div class="form-check form-check-inline">
+            <div class="form-check">
                 <input class="form-check-input" type="radio" name="direction" id="dir_ba" value="b_to_a">
                 <label class="form-check-label" for="dir_ba" id="label_ba"><?= $lang_b ?> → <?= $lang_a ?></label>
             </div>
-            <div class="form-check form-check-inline">
+            <div class="form-check">
                 <input class="form-check-input" type="radio" name="direction" id="dir_mix" value="mixed">
                 <label class="form-check-label" for="dir_mix">Gemischt</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="direction" id="dir_random" value="random" checked>
+                <label class="form-check-label" for="dir_random">Zufall <span class="text-muted small">(wählt bei jeder Session neu eine der drei obigen Richtungen)</span></label>
             </div>
         </div>
     </div>

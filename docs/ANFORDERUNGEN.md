@@ -112,7 +112,7 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 - **MCP-Server und Listen-Status** _(v3.3.0)_: `list_lists` gibt standardmässig nur aktive Listen zurück und erwähnt inaktive nicht proaktiv. Nennt der User eine Liste explizit beim Namen, ruft der Agent `list_lists` mit `include_inactive=true` erneut auf, um auch inaktive Listen zu finden — Karten dürfen weiterhin gezielt in eine benannte inaktive Liste eingefügt werden (`add_cards` prüft den Status nicht).
 - **Listenauswahl in der Leitner-Session** (`learn.php`) _(v3.2.45)_: Die Checkbox-Auswahl beim Starten einer Session zeigt nur aktive Listen (`is_active = 1`) — analog zur Statistik-Auswahl (siehe oben) und zu den Leitner-/Drill-Buttons auf der Startseite.
 - **Button-Reihe oben neben der Überschrift "Meine Listen"** _(v3.2.46, Icons ergänzt v3.2.48)_: **Leitner** und **Drill** (starten listenübergreifend mit Checkbox-Auswahl, siehe oben), **Meine Listen** (Icon `bi-pencil` + Text, führt zu `lists.php`) und **Statistik** (Icon `bi-bar-chart-line` + Text, führt zu `stats.php`, allgemeine Übersicht aller Listen). Zeile bricht bei schmalem Viewport um (`flex-wrap`).
-- **Konfigurationsseite in der Drill-Session** (`drill.php`) _(v3.2.46, Richtung + Timer ergänzt v3.3.5)_: Wird `drill.php` ohne laufende Session aufgerufen, erscheint immer die Konfigurationsseite — mit `list_id` in der URL (z.B. Startseite oder "Erneut starten") mit vorausgewählter Liste als Text, sonst mit Checkbox-Auswahl aller eigenen aktiven Listen (erste vorausgewählt). Zusätzlich wählbar: Lernrichtung (A→B, B→A, gemischt) und Timer in Minuten für diese eine Session (Standard aus den Einstellungen, nicht dauerhaft gespeichert). Fehlerfälle (keine Liste ausgewählt, keine gültige Liste, keine geeigneten Karten) führen zurück auf diese Seite statt auf die Startseite, mit Fehlermeldung über der Auswahl.
+- **Konfigurationsseite in der Drill-Session** (`drill.php`) _(v3.2.46, Richtung + Timer ergänzt v3.3.5, Zufall-Option v3.3.11)_: Wird `drill.php` ohne laufende Session aufgerufen, erscheint immer die Konfigurationsseite — mit `list_id` in der URL (z.B. Startseite oder "Erneut starten") mit vorausgewählter Liste als Text, sonst mit Checkbox-Auswahl aller eigenen aktiven Listen (erste vorausgewählt). Zusätzlich wählbar: Lernrichtung (A→B, B→A, Gemischt oder Zufall — Zufall voreingestellt, siehe Abschnitt "Lernrichtung: Zufall-Option") und Timer in Minuten für diese eine Session (Standard aus den Einstellungen, nicht dauerhaft gespeichert). Fehlerfälle (keine Liste ausgewählt, keine gültige Liste, keine geeigneten Karten) führen zurück auf diese Seite statt auf die Startseite, mit Fehlermeldung über der Auswahl.
 
 ---
 
@@ -190,7 +190,15 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 
 ### Sprachen
 - Frei definierbar pro Liste (z.B. Deutsch/Englisch, Deutsch/Japanisch)
-- Lernrichtung wählbar pro Session: A→B, B→A oder Gemischt
+- Lernrichtung wählbar pro Session: A→B, B→A, Gemischt oder Zufall (Details siehe "Lernrichtung: Zufall-Option" weiter unten)
+
+### Lernrichtung: Zufall-Option _(v3.3.11)_
+- Vierte Option auf der Konfigurationsseite (Leitner **und** Drill, identisches Verhalten in beiden Modi), am Ende der Liste: A→B, B→A, Gemischt, **Zufall**
+- **Zufall ist der Default-Wert** — sowohl bei fehlender/ungültiger Auswahl (z.B. manipuliertes Formular) als auch beim erstmaligen Öffnen der Konfigurationsseite
+- Wird "Zufall" gewählt, würfelt der Server **einmalig beim Start der Session** eine der drei echten Richtungen aus (A→B, B→A oder Gemischt, je 1/3 Wahrscheinlichkeit, `random_int()`) — die Session läuft danach durchgehend mit dieser einen Richtung, kein erneutes Auswürfeln pro Karte. "Zufall" selbst ist also kein eigener Anzeige-Modus, sondern wird vor dem eigentlichen Session-Start in einen der drei bestehenden Werte aufgelöst (`resolve_direction()` in `includes/auth.php`, gemeinsam genutzt von `learn.php` und `drill.php`)
+- Ziel: verhindert einseitiges Lernen durch immer dieselbe, vom User (unbewusst) bevorzugte Richtung
+- Radio-Buttons stehen untereinander (nicht mehr nebeneinander in einer Zeile) — Reihenfolge von oben nach unten: A→B, B→A, Gemischt, Zufall
+- Die tatsächlich ausgewürfelte Richtung wird nirgends separat angezeigt (kein Debug- oder Info-Hinweis) — für den User macht sich das nur darin bemerkbar, welche Sprache auf der jeweiligen Karte oben bzw. unten erscheint
 
 ### Karten-Identität
 - Jede Karte erhält beim Erstellen eine **stabile `card_id`** in der Datenbank
@@ -337,7 +345,7 @@ card_progress Tabelle:
 ### Session
 - **Kartenanzahl** wählbar — App macht Vorschlag (alle fälligen), User kann ändern via:
   - Button **-5** / Eingabefeld (Zahl) / Button **+5**
-- **Lernrichtung** wählbar: A→B, B→A oder Gemischt
+- **Lernrichtung** wählbar: A→B, B→A, Gemischt oder Zufall (Default, siehe "Lernrichtung: Zufall-Option")
 - **Letzte verwendete Liste** wird automatisch vorgeschlagen
 - Session-Ende: motivierende Zusammenfassung mit:
   - Anzahl gewusst
@@ -365,8 +373,8 @@ Geeignet für: Mathe-Fakten, häufig vergessene Vokabeln, neue Wörter festigen.
 - Archivierte Karten erscheinen **nicht** im Drill
 - Keine manuelle Karten-Auswahl — stattdessen ungewünschte Karten einfach archivieren
 
-### Lernrichtung & Timer (Session-Konfiguration) _(v3.3.5)_
-- Auf der Konfigurationsseite vor dem Start wählbar, analog zum Leitner-System: **Lernrichtung** (A→B, B→A oder gemischt — bei "gemischt" pro Karte deterministisch über die Karten-ID bestimmt, damit dieselbe Karte innerhalb einer Session nicht zwischen den Richtungen hin- und herspringt) sowie **Timer** in Minuten.
+### Lernrichtung & Timer (Session-Konfiguration) _(v3.3.5, Zufall-Option v3.3.11)_
+- Auf der Konfigurationsseite vor dem Start wählbar, analog zum Leitner-System: **Lernrichtung** (A→B, B→A, Gemischt oder Zufall — bei "Gemischt" pro Karte deterministisch über die Karten-ID bestimmt, damit dieselbe Karte innerhalb einer Session nicht zwischen den Richtungen hin- und herspringt; Details zu "Zufall" siehe eigener Abschnitt weiter unten) sowie **Timer** in Minuten.
 - Beide Werte gelten **nur für die jeweilige Session** und werden nicht dauerhaft gespeichert — der Timer-Standardwert stammt aus den Einstellungen (`DRILL_SESSION_SECONDS`), lässt sich aber pro Start frei anpassen (1–120 Min.).
 - Frage-/Antwortseite und die Zuordnung von Audio/Lautschrift (immer an Sprache B gebunden, unabhängig von Frage- oder Antwortposition) folgen derselben Logik wie im Leitner-System (`get_question_answer()`, gemeinsam genutzt von `learn.php` und `drill.php`).
 

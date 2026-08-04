@@ -215,7 +215,7 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 
 ## 19. Lernrichtung & Timer im Drill-Modus _(v3.3.5)_
 
-[ ] `drill.php` ohne laufende Session aufrufen (egal ob mit oder ohne `list_id`) → Konfigurationsseite zeigt zusätzlich zur Liste die Felder "Lernrichtung" (A→B, B→A, Gemischt — A→B vorausgewählt) und "Timer" (Minuten-Feld mit ±5-Buttons, vorausgefüllt mit dem Wert aus den Einstellungen). _(v3.3.5)_
+[ ] `drill.php` ohne laufende Session aufrufen (egal ob mit oder ohne `list_id`) → Konfigurationsseite zeigt zusätzlich zur Liste die Felder "Lernrichtung" (A→B, B→A, Gemischt, Zufall — untereinander, Zufall vorausgewählt seit v3.3.11) und "Timer" (Minuten-Feld mit ±5-Buttons, vorausgefüllt mit dem Wert aus den Einstellungen). _(v3.3.11)_
 [ ] Bei vorausgewählter Liste (`list_id` in der URL) zeigen die Richtungs-Labels sofort die echten Sprachnamen dieser Liste (z.B. "Deutsch → English") statt "A → B". _(v3.3.5)_
 [ ] Bei der listenübergreifenden Auswahl (Checkboxen) aktualisieren sich die Richtungs-Labels dynamisch je nach angehakter erster Liste — identisches Verhalten wie im Leitner-Setup. _(v3.3.5)_
 [ ] Richtung "B→A" gewählt → auf der Lernkarte erscheint zuerst Sprache B, nach dem Aufdecken Sprache A; Lautschrift/🔊-Knopf erscheinen dabei oben (an Sprache B gebunden, nicht an die Position). _(v3.3.5)_
@@ -261,5 +261,18 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 
 [ ] `help.php`, Abschnitt "Statistik & Streak": neuer Punkt in der Aufzählung erwähnt, dass sich die Heatmap der Bildschirmbreite anpasst (Handy: kürzerer Zeitraum, Desktop: alle 52 Wochen). _(v3.3.9)_
 [ ] Text widerspricht nicht der bereits bestehenden, ausführlicheren technischen Beschreibung in `docs/ANFORDERUNGEN.md` (Abschnitt "Statistik-Dashboard") — reine Ergänzung auf der Hilfeseite, keine Verhaltensänderung an `stats.php` selbst. _(v3.3.9)_
+
+---
+
+## 24. Lernrichtung "Zufall" (Leitner & Drill) _(v3.3.11)_
+
+[ ] `learn.php`-Setup und `drill.php`-Setup: die vier Lernrichtungs-Optionen stehen jetzt **untereinander** (nicht mehr in einer Zeile), Reihenfolge A→B, B→A, Gemischt, Zufall. _(v3.3.11)_
+[ ] "Zufall" ist beim Öffnen der Konfigurationsseite vorausgewählt (nicht mehr A→B). Gilt sowohl bei vorausgewählter Liste als auch bei der Checkbox-Auswahl mehrerer Listen. _(v3.3.11)_
+[ ] Session mit "Zufall" mehrfach hintereinander starten (gleiche Liste) → über mehrere Starts hinweg erscheinen alle drei Richtungen (A→B, B→A, gemischte Karten) — nicht immer dieselbe. Manuell schwer 100%ig zu verifizieren (Zufall), aber über 5–10 Starts sollte Varianz sichtbar sein. _(v3.3.11)_
+[ ] Bei "Zufall" bleibt die einmal gewürfelte Richtung für die **gesamte Session** gleich — kein Wechsel der Richtung von Karte zu Karte innerhalb derselben Session (ausser die gewürfelte Richtung war selbst "Gemischt", dann wechselt es wie gewohnt pro Karte deterministisch über die Karten-ID). _(v3.3.11)_
+[ ] Manuell gesendeter POST mit ungültigem `direction`-Wert (z.B. leer oder Fantasiewert) → Server fällt auf "Zufall" zurück (würfelt eine der drei Richtungen), keine Fehlermeldung, keine feste A→B-Rückstufung. _(v3.3.11)_
+[ ] Explizite Auswahl A→B, B→A oder Gemischt funktioniert weiterhin unverändert wie bisher (nur wenn NICHT "Zufall" gewählt ist, greift keine zusätzliche Zufalls-Logik). _(v3.3.11)_
+[ ] Verhalten ist in Leitner und Drill identisch (gemeinsame Funktion `resolve_direction()` in `includes/auth.php`). _(v3.3.11)_
+[ ] `help.php`: Erwähnungen der Lernrichtung (Abschnitte "Aufbau einer Lernkarte", "Leitner-Modus", "Drill-Modus") listen jetzt alle vier Optionen inkl. Zufall als Default. _(v3.3.11)_
 
 ---

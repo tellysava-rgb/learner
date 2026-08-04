@@ -142,7 +142,7 @@ $pin_ratio        = DRILL_PIN_RATIO;
                         <li><strong>Lautschrift</strong> (in eckigen Klammern, z.B. <code>[tuh-DAY]</code>) und der <strong>🔊-Ausspracheknopf</strong> gehören immer zur fremdsprachigen Seite (Sprache B) einer Karte — je nach gewählter Lernrichtung kann das die obere oder untere Hälfte sein. Beide erscheinen nur, wenn für die Liste ein Aussprache-Dialekt hinterlegt ist bzw. eine Lautschrift zur Karte gepflegt wurde (siehe Abschnitt "Aussprache: Audio & Lautschrift").</li>
                         <li><strong>Pin-Symbol</strong> oben links (<i class="bi bi-pin-angle"></i> / ausgefüllt <i class="bi bi-pin-angle-fill"></i>): merkt die Karte einzeln "für Drill vormerken" — unabhängig davon, ob man sich gerade im Leitner- oder Drill-Modus befindet. Näheres dazu im Abschnitt "Drill-Modus".</li>
                     </ul>
-                    <p class="mb-0">Welche Sprache oben und welche unten erscheint, hängt von der gewählten <strong>Lernrichtung</strong> ab (A→B, B→A oder gemischt — in Leitner und Drill gleichermassen auf der Konfigurationsseite vor dem Start wählbar).</p>
+                    <p class="mb-0">Welche Sprache oben und welche unten erscheint, hängt von der gewählten <strong>Lernrichtung</strong> ab (A→B, B→A, gemischt oder Zufall — in Leitner und Drill gleichermassen auf der Konfigurationsseite vor dem Start wählbar).</p>
                 </div>
             </div>
         </div>
@@ -163,7 +163,7 @@ $pin_ratio        = DRILL_PIN_RATIO;
                     </div>
                     <ul class="mb-2">
                         <li><strong>Warteschlange:</strong> Neue Karten werden nicht alle auf einmal aktiv — aktuell werden pro Tag <?= $daily_limit ?> Karten aus der Warteschlange in Fach 1 aufgenommen (in den Einstellungen anpassbar).</li>
-                        <li><strong>Session:</strong> Eine Lernrunde zeigt standardmässig bis zu <?= $default_cards ?> fällige Karten (beim Start der Session anpassbar), aus einer oder mehreren ausgewählten Listen gemischt; Sprachrichtung ist wählbar (A→B, B→A oder gemischt).</li>
+                        <li><strong>Session:</strong> Eine Lernrunde zeigt standardmässig bis zu <?= $default_cards ?> fällige Karten (beim Start der Session anpassbar), aus einer oder mehreren ausgewählten Listen gemischt; Sprachrichtung ist wählbar (A→B, B→A, gemischt oder Zufall — Zufall ist voreingestellt und wählt bei jeder Session neu eine der drei anderen Richtungen, damit man nicht einseitig immer in dieselbe Richtung lernt).</li>
                         <li><strong>Fach 5:</strong> gilt als "gut gelernt", wird aber weiterhin alle <?= $li[5] ?> Tage zur Auffrischung gezeigt.</li>
                         <li>Oben links auf jeder Karte lässt sich über das runde Pin-Symbol (<i class="bi bi-pin-angle"></i> / ausgefüllt <i class="bi bi-pin-angle-fill"></i>) die Karte direkt "für Drill vormerken" — ein Klick schaltet um, ohne die laufende Session zu unterbrechen. Betrifft nur den Drill-Modus, der Leitner-Ablauf hier läuft davon völlig unberührt normal weiter (siehe Abschnitt "Drill-Modus").</li>
                     </ul>
@@ -188,7 +188,7 @@ $pin_ratio        = DRILL_PIN_RATIO;
                         <p class="small mt-1 mb-0"><strong>Tipp:</strong> Der Timer sollte mindestens <strong>5 Minuten</strong> laufen. Bei weniger Zeit sieht man dieselbe Karte meist nicht oft genug, um sie wirklich zu lernen.</p>
                     </div>
                     <ul class="mb-2">
-                        <li><strong>Vor dem Start wählbar</strong> (analog zum Leitner-System): Lernrichtung (A→B, B→A oder gemischt) und Timer in Minuten — beide gelten nur für diese eine Session und werden nicht dauerhaft gespeichert.</li>
+                        <li><strong>Vor dem Start wählbar</strong> (analog zum Leitner-System): Lernrichtung (A→B, B→A, gemischt oder Zufall — Zufall ist voreingestellt und wählt bei jeder Session neu eine der drei anderen Richtungen) und Timer in Minuten — beide gelten nur für diese eine Session und werden nicht dauerhaft gespeichert.</li>
                         <li>Bei <?= $drill_mastery ?>× richtiger Antwort <strong>in Folge</strong> gilt eine Karte als <strong>gemeistert</strong> und wechselt danach automatisch ins Leitner-System (ein einzelner Fehler setzt diese Zählung zurück auf 0).</li>
                         <li>Bei einem Fehler kommt nur diese eine Karte ans Ende der aktuellen Runde — nicht die ganze Runde von vorne.</li>
                         <li>Wird eine Karte <?= $drill_too_hard ?>× als "musste nachdenken" bewertet, wird sie für den Rest dieser Session pausiert und taucht erst am nächsten Tag wieder auf.</li>
