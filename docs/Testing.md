@@ -289,11 +289,22 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 ## 26. Listen bearbeiten: klare Abgrenzung zu "Neue Liste erstellen" _(v3.3.14)_
 
 [ ] `lists.php` normal aufrufen (kein `?edit=`) → Karte "Neue Liste erstellen" ist wie gewohnt sichtbar. _(v3.3.14)_
-[ ] Klick auf "Bearbeiten" bei einer Liste → Karte "Neue Liste erstellen" verschwindet, solange das Bearbeiten-Formular offen ist. _(v3.3.14)_
+[ ] Klick auf "Liste bearbeiten" bei einer Liste → Karte "Neue Liste erstellen" verschwindet, solange das Bearbeiten-Formular offen ist. _(v3.3.15)_
 [ ] Der bearbeitete Listeneintrag ist optisch hervorgehoben (blauer Rahmen) und trägt die Überschrift "Liste bearbeiten: <Name>" über dem Formular. _(v3.3.14)_
 [ ] Bearbeitet man gezielt die **unterste** Liste einer langen Übersicht → die Seite scrollt nach dem Laden automatisch zu diesem Eintrag (smooth scroll, mittig im sichtbaren Bereich), kein manuelles Suchen/Scrollen nötig. _(v3.3.14)_
 [ ] Das Namensfeld im Bearbeiten-Formular ist nach dem Laden automatisch fokussiert (Cursor blinkt dort, Tippen ist sofort möglich). _(v3.3.14)_
 [ ] "Abbrechen" im Bearbeiten-Formular → zurück zu `lists.php` ohne `?edit=`, "Neue Liste erstellen" erscheint wieder normal. _(v3.3.14)_
 [ ] Speichern der Änderungen funktioniert weiterhin unverändert (Name, Beschreibung, Sprachen, Öffentlich-Flag, Aussprache-Sprachcode). _(v3.3.14)_
+
+---
+
+## 27. Icons und neue Reihenfolge der Aktionsleiste auf "Meine Listen" _(v3.3.15)_
+
+[ ] Pro Liste erscheinen die sechs Buttons in dieser Reihenfolge, jeweils mit Icon vor dem Text: "Liste bearbeiten" (`bi-pencil`), "Karten bearbeiten" (`bi-pencil-square`), "Import" (`bi-upload`), "Migrieren" (`bi-box-arrow-right`), "Export" (`bi-download`), "Löschen" (`bi-trash`). _(v3.3.15)_
+[ ] "Liste bearbeiten" führt weiterhin zu `lists.php?edit=X` (Inline-Formular, siehe Abschnitt 26), "Karten bearbeiten" weiterhin zu `edit.php?list_id=X`. _(v3.3.15)_
+[ ] "Migrieren" fehlt weiterhin, wenn nur eine einzige eigene Liste existiert — Reihenfolge der übrigen fünf Buttons bleibt dabei unverändert (kein Lücken-Sprung). _(v3.3.15)_
+[ ] Auf schmalem Viewport (iPhone) brechen die Buttons sauber um (`flex-wrap`), keine horizontale Scrollbar auf "Meine Listen". _(v3.3.15)_
+[ ] Farben unverändert: "Karten bearbeiten" weiterhin blau hervorgehoben (`btn-outline-primary`), "Löschen" weiterhin rot (`btn-outline-danger`), restliche Buttons grau (`btn-outline-secondary`). _(v3.3.15)_
+[ ] Alle sechs Buttons funktional unverändert — reine Icon-/Reihenfolge-/Beschriftungsänderung, kein neues Verhalten. _(v3.3.15)_
 
 ---

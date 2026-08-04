@@ -291,19 +291,19 @@ if ($edit_id) {
                     </span>
                 </div>
                 <div class="d-flex flex-wrap gap-1 ms-2">
-                    <a href="edit.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-primary">Karten</a>
-                    <a href="import.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary">Import</a>
-                    <a href="export.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary">Export</a>
-                    <a href="lists.php?edit=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary">Bearbeiten</a>
+                    <a href="lists.php?edit=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil me-1"></i>Liste bearbeiten</a>
+                    <a href="edit.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-square me-1"></i>Karten bearbeiten</a>
+                    <a href="import.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-upload me-1"></i>Import</a>
                     <?php if (count($lists) > 1): ?>
                     <button type="button" class="btn btn-sm btn-outline-secondary"
                             data-bs-toggle="modal" data-bs-target="#migrateModal<?= $list['id'] ?>">
-                        Migrieren
+                        <i class="bi bi-box-arrow-right me-1"></i>Migrieren
                     </button>
                     <?php endif; ?>
+                    <a href="export.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-download me-1"></i>Export</a>
                     <button type="button" class="btn btn-sm btn-outline-danger"
                             onclick="confirmDelete(<?= $list['id'] ?>, <?= htmlspecialchars(json_encode($list['name'])) ?>)">
-                        Löschen
+                        <i class="bi bi-trash me-1"></i>Löschen
                     </button>
                 </div>
             </div>

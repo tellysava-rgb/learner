@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.15] - 2026-08-04
+
+### Verbessert
+- **Aktionsleiste auf "Meine Listen" mit Icons und neu sortiert.** Die sechs Buttons pro Liste hatten bisher teils Icons, teils reinen Text, in wechselnder Reihenfolge. Jetzt einheitlich mit Icon + Text, in dieser Reihenfolge: Liste bearbeiten (`bi-pencil`), Karten bearbeiten (`bi-pencil-square`), Import (`bi-upload`), Migrieren (`bi-box-arrow-right`), Export (`bi-download`), Löschen (`bi-trash`). Der bisherige Button "Bearbeiten" heisst jetzt "Liste bearbeiten", "Karten" heisst jetzt "Karten bearbeiten" — deckt sich mit der Begriffsklärung aus Release 3.3.14.
+
+---
+
 ## [3.3.14] - 2026-08-04
 
 ### Verbessert
