@@ -704,7 +704,7 @@ $lang_b = $preset_list ? htmlspecialchars($preset_list['language_b']) : 'B';
             </div>
             <div class="form-check">
                 <input class="form-check-input" type="radio" name="direction" id="dir_random" value="random" checked>
-                <label class="form-check-label" for="dir_random">Zufall <span class="text-muted small">(wählt bei jeder Session neu eine der drei obigen Richtungen)</span></label>
+                <label class="form-check-label" for="dir_random">Zufall</label>
             </div>
         </div>
     </div>

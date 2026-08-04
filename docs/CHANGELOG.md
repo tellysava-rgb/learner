@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.12] - 2026-08-04
+
+### Verbessert
+- **Überflüssigen Erklärungstext neben "Zufall" entfernt** (Leitner-/Drill-Setup) — die Beschriftung war unnötig, das Verhalten selbst (einmal pro Session, nicht pro Karte) ist unverändert und weiterhin in `docs/ANFORDERUNGEN.md` sowie `help.php` dokumentiert.
+
+---
+
 ## [3.3.11] - 2026-08-04
 
 ### Neu
