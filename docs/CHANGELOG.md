@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.14] - 2026-08-04
+
+### Verbessert
+- **"Meine Listen": Bearbeiten klar von "Neue Liste erstellen" abgegrenzt.** Bisher blieb beim Bearbeiten einer Liste die Karte "Neue Liste erstellen" oben unverändert sichtbar, obwohl sie nichts mit dem separaten Inline-Bearbeiten-Formular weiter unten zu tun hatte — beide zeigen dieselben Felder, was leicht zu Verwechslungen führte. Die Karte wird jetzt ausgeblendet, solange ein Bearbeiten-Formular offen ist. Zusätzlich: der bearbeitete Eintrag ist farblich hervorgehoben und trägt die Überschrift "Liste bearbeiten: <Name>", die Seite scrollt automatisch dorthin und fokussiert das Namensfeld — vor allem bei vielen Listen (z.B. ganz unten in der Übersicht) war bisher unklar, wohin man eigentlich schauen soll.
+
+---
+
 ## [3.3.13] - 2026-08-04
 
 ### Neu

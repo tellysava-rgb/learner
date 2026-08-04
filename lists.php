@@ -171,7 +171,9 @@ if ($edit_id) {
         <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
     <?php endif; ?>
 
-    <!-- Neue Liste erstellen -->
+    <!-- Neue Liste erstellen: während des Bearbeitens ausgeblendet, um nicht mit dem
+         Bearbeiten-Formular weiter unten verwechselt zu werden (beide haben dieselben Felder). -->
+    <?php if (!$edit_list): ?>
     <div class="card mb-4">
         <div class="card-header">Neue Liste erstellen</div>
         <div class="card-body">
@@ -211,6 +213,7 @@ if ($edit_id) {
             </form>
         </div>
     </div>
+    <?php endif; ?>
 
     <datalist id="speech-lang-options">
         <?php foreach ($speech_lang_options as $code): ?>
@@ -223,17 +226,19 @@ if ($edit_id) {
         <p class="text-muted">Noch keine Listen vorhanden.</p>
     <?php else: ?>
     <div class="list-group">
-        <?php foreach ($lists as $list): ?>
-        <div class="list-group-item">
+        <?php foreach ($lists as $list): $is_editing = $edit_list && $edit_list['id'] === $list['id']; ?>
+        <div class="list-group-item<?= $is_editing ? ' border-primary border-2' : '' ?>"
+             <?= $is_editing ? 'id="edit-form"' : '' ?>>
 
-            <?php if ($edit_list && $edit_list['id'] === $list['id']): ?>
+            <?php if ($is_editing): ?>
             <!-- Bearbeitungsformular inline -->
+            <div class="fw-semibold text-primary mb-2">Liste bearbeiten: <?= htmlspecialchars($list['name']) ?></div>
             <form method="post" class="row g-2">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="list_id" value="<?= $list['id'] ?>">
                 <div class="col-md-5">
-                    <input type="text" name="name" class="form-control form-control-sm"
+                    <input type="text" name="name" id="edit-name-field" class="form-control form-control-sm"
                            value="<?= htmlspecialchars($list['name']) ?>" required maxlength="200">
                 </div>
                 <div class="col-md-5">
@@ -375,6 +380,18 @@ function confirmMigrate(form) {
     }
     return true;
 }
+
+<?php if ($edit_list): ?>
+// Bearbeiten-Formular kann bei vielen Listen weit unten stehen — ohne dieses Scrollen/Fokussieren
+// bliebe nach dem Klick auf "Bearbeiten" unklar, welcher Eintrag sich geöffnet hat.
+(function () {
+    var editForm = document.getElementById('edit-form');
+    if (!editForm) return;
+    editForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    var nameField = document.getElementById('edit-name-field');
+    if (nameField) nameField.focus({ preventScroll: true });
+})();
+<?php endif; ?>
 </script>
 </body>
 </html>

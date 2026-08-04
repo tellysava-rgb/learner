@@ -126,6 +126,7 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 - **Besitzer:** Die Person die eine Liste erstellt ist automatisch Besitzer — keine Übertragung möglich
 - **Nur der Besitzer** kann seine Liste bearbeiten, umbenennen, löschen, importieren und exportieren
 - **Privat-Flag** pro Liste — private Listen sind für andere Personen nicht sichtbar
+- **Bearbeiten-Formular klar von "Neue Liste erstellen" abgegrenzt** _(v3.3.14)_: Klick auf "Bearbeiten" (`lists.php?edit=X`) öffnet ein Inline-Formular direkt beim jeweiligen Listeneintrag. Die Karte "Neue Liste erstellen" oben wird währenddessen ausgeblendet, da sie dieselben Felder zeigt und sonst mit dem Bearbeiten-Formular verwechselt werden kann. Der bearbeitete Eintrag ist zusätzlich farblich hervorgehoben (blauer Rahmen) und trägt die Überschrift "Liste bearbeiten: <Name>"; die Seite scrollt beim Laden automatisch zu diesem Eintrag und fokussiert das Namensfeld — wichtig bei vielen Listen, wenn der bearbeitete Eintrag weit unten steht.
 
 ### Liste migrieren _(v2.1.0)_
 - Auf **Meine Listen** steht pro Liste ein Button **"Migrieren"** zwischen "Bearbeiten" und "Löschen" — ausgeblendet wenn keine weitere eigene Liste existiert

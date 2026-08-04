@@ -285,3 +285,15 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Nach dem Kopieren der Liste erscheint dieselbe Lautschrift unverändert in der eigenen Kartenübersicht — reine Vorschau-Ergänzung, kein neues Verhalten beim Kopieren selbst (das gab es schon vorher). _(v3.3.13)_
 
 ---
+
+## 26. Listen bearbeiten: klare Abgrenzung zu "Neue Liste erstellen" _(v3.3.14)_
+
+[ ] `lists.php` normal aufrufen (kein `?edit=`) → Karte "Neue Liste erstellen" ist wie gewohnt sichtbar. _(v3.3.14)_
+[ ] Klick auf "Bearbeiten" bei einer Liste → Karte "Neue Liste erstellen" verschwindet, solange das Bearbeiten-Formular offen ist. _(v3.3.14)_
+[ ] Der bearbeitete Listeneintrag ist optisch hervorgehoben (blauer Rahmen) und trägt die Überschrift "Liste bearbeiten: <Name>" über dem Formular. _(v3.3.14)_
+[ ] Bearbeitet man gezielt die **unterste** Liste einer langen Übersicht → die Seite scrollt nach dem Laden automatisch zu diesem Eintrag (smooth scroll, mittig im sichtbaren Bereich), kein manuelles Suchen/Scrollen nötig. _(v3.3.14)_
+[ ] Das Namensfeld im Bearbeiten-Formular ist nach dem Laden automatisch fokussiert (Cursor blinkt dort, Tippen ist sofort möglich). _(v3.3.14)_
+[ ] "Abbrechen" im Bearbeiten-Formular → zurück zu `lists.php` ohne `?edit=`, "Neue Liste erstellen" erscheint wieder normal. _(v3.3.14)_
+[ ] Speichern der Änderungen funktioniert weiterhin unverändert (Name, Beschreibung, Sprachen, Öffentlich-Flag, Aussprache-Sprachcode). _(v3.3.14)_
+
+---
