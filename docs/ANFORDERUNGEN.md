@@ -422,10 +422,13 @@ Zusätzlich zur automatischen Karten-Auswahl kann jede Karte einzeln manuell "f�
 werden — umschaltbar an zwei Stellen:
 - Kartenübersicht `edit.php`: Pin-Icon oben links auf der Karte in der Kartenansicht (Direktlink
   `edit.php?...&highlight=<id>`)
-- **Direkt während einer laufenden Leitner-Session** _(v3.2.41)_: derselbe runde Pin-Button oben
+- **Direkt während einer laufenden Leitner-Session** _(v3.2.41, per Fetch statt Seiten-Reload seit v3.3.10)_: derselbe runde Pin-Button oben
   links auf der Lernkarte in `learn.php`, ausgefüllt wenn vorgemerkt. Klick schaltet die Vormerkung
   sofort um, ohne die laufende Session zu unterbrechen (Queue/Fortschritt/Statistik bleiben
-  unverändert, dieselbe Karte wird danach weiterhin angezeigt). In `drill.php` bleibt das Symbol
+  unverändert, dieselbe Karte wird danach weiterhin angezeigt). Läuft über `fetch()` statt eines
+  normalen Form-Submits, damit ein bereits aufgedeckter Kartenstatus (rein clientseitig über
+  `flipCard()`) beim Umschalten **nicht** zurückgesetzt wird — ein normaler Seiten-Reload hätte die
+  sichtbare Übersetzung sonst wieder versteckt (Bugfix v3.3.10). In `drill.php` bleibt das Symbol
   bewusst rein anzeigend (nicht klickbar), da man dort bereits mitten im Drill ist.
 
 - Eigenes Feld `drill_pinned_correct` — **unabhängig von `drill_mastery`**. Grund: `drill_mastery`

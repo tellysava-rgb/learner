@@ -152,11 +152,14 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Debug-Panel zeigt in diesem Fall "Fach 4→4" (keine Änderung) statt einer Rückstufung. _(v3.2.38)_
 [ ] Normalfall weiterhin korrekt: komplett neue Karte (`drill_mastery = 0`, `leitner_box = 1`) wird im Drill gemeistert → steigt wie gewohnt auf Fach 2 (bzw. 3 bei der zweiten, 4 bei der dritten Meisterung), da das Ziel-Fach dort höher ist als das aktuelle. _(v3.2.38)_
 
-## 13. Vormerken direkt in der Leitner-Session _(v3.2.41)_
+## 13. Vormerken direkt in der Leitner-Session _(v3.2.41, Bugfix aufgedeckte Karte v3.3.10)_
 
 [ ] Laufende Leitner-Session: oben links auf der Karte erscheint ein runder, **klickbarer** Pin-Button (nicht nur ein Symbol). _(v3.2.41)_
 [ ] Klick auf den Pin-Button → Karte wird "für Drill vorgemerkt" (Icon wird ausgefüllt), dieselbe Karte bleibt weiterhin angezeigt, Fortschritt/Position in der Session bleibt unverändert. _(v3.2.41)_
 [ ] Erneuter Klick → Vormerkung wird wieder entfernt (Icon wird zum Umriss). _(v3.2.41)_
+[ ] **Karte antippen, sodass die Übersetzung/Lösung aufgedeckt ist, dann den Pin-Button klicken** → die Kartenanzeige ändert sich dabei NICHT, die Lösung bleibt sichtbar (kein Zurückspringen auf die zugeklappte Vorderseite). Gilt in beide Richtungen (Vormerken wie Entfernen). _(v3.3.10, Bugfix — vorher löste der Klick einen vollen Seiten-Reload aus, der den rein clientseitigen "aufgedeckt"-Zustand zurücksetzte)_
+[ ] Pin-Button-Klick bei zugeklappter Karte (Lösung noch nicht aufgedeckt) → Karte bleibt weiterhin zugeklappt, kein unerwartetes Aufdecken durch den Klick selbst. _(v3.3.10)_
+[ ] Netzwerkfehler/CSRF-Fehler beim Umschalten (z.B. Session inzwischen abgelaufen) → Icon/Button-Zustand ändert sich NICHT optisch, wenn die Anfrage fehlschlägt (kein optimistisches Update ohne Erfolg). _(v3.3.10)_
 [ ] Das Vormerken/Entfernen zählt **nicht** als Antwort — Zähler "Gewusst/Nicht gewusst/Aufgestiegen" sowie die Fortschrittsanzeige bleiben unverändert. _(v3.2.41)_
 [ ] Klick auf den Pin-Button klappt die Karte NICHT um (kein versehentliches Aufdecken der Antwort). _(v3.2.41)_
 [ ] Manuell gesendeter POST mit `card_id` einer NICHT aktuell angezeigten Karte → wird ignoriert, kein `card_progress`-Eintrag entsteht/ändert sich. _(v3.2.41)_

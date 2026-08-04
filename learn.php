@@ -558,7 +558,7 @@ $is_retry  = isset($state['answered'][$current['id']]);
 <div class="learn-card mx-auto mb-4 position-relative"
      id="learn-card" style="max-width:540px; cursor:pointer;" onclick="flipCard()">
     <?php $is_pinned = $current['drill_pinned_correct'] !== null; ?>
-    <form method="post" class="position-absolute" style="top:8px; left:8px; z-index:2;">
+    <form method="post" id="pin-form" class="position-absolute" style="top:8px; left:8px; z-index:2;">
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="toggle_pin">
         <input type="hidden" name="card_id" value="<?= $current['id'] ?>">
@@ -767,6 +767,27 @@ window.addEventListener('pageshow', function (e) {
     });
     document.getElementById('confirmLeave').addEventListener('click', function () {
         if (target) window.location.href = 'learn.php?action=setup&to=' + encodeURIComponent(target);
+    });
+})();
+
+// Vormerken per Fetch statt normalem Form-Submit — ein voller Seiten-Reload würde die
+// aufgedeckte Antwort (rein clientseitiger Zustand, siehe flipCard()) wieder verstecken.
+(function () {
+    var form = document.getElementById('pin-form');
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var btn  = form.querySelector('button');
+        var icon = btn.querySelector('i');
+        fetch('learn.php', { method: 'POST', body: new FormData(form) }).then(function (res) {
+            if (!res.ok) return;
+            var wasPinned = icon.classList.contains('bi-pin-angle-fill');
+            icon.classList.toggle('bi-pin-angle-fill', !wasPinned);
+            icon.classList.toggle('bi-pin-angle', wasPinned);
+            btn.classList.toggle('btn-primary', !wasPinned);
+            btn.classList.toggle('btn-outline-secondary', wasPinned);
+            btn.title = wasPinned ? 'Für Drill vormerken' : 'Vormerkung entfernen';
+        });
     });
 })();
 <?php endif; ?>

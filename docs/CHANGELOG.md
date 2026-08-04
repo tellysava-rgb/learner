@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.10] - 2026-08-04
+
+### Behoben
+- **"Für Drill vormerken" in der Leitner-Session klappte eine bereits aufgedeckte Karte wieder zu.** Der Pin-Button war ein normaler Formular-Button — ein Klick löste einen vollen Seiten-Reload aus, der den rein clientseitigen "aufgedeckt"-Zustand (`flipCard()`) zurücksetzte, egal ob die Lösung schon sichtbar war. Der Klick läuft jetzt per `fetch()` statt eines normalen Form-Submits; die Kartenanzeige (auf- oder zugeklappt) ändert sich beim Vormerken/Entfernen nicht mehr.
+
+---
+
 ## [3.3.9] - 2026-08-03
 
 ### Neu
