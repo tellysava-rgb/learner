@@ -308,3 +308,16 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Alle sechs Buttons funktional unverändert — reine Icon-/Reihenfolge-/Beschriftungsänderung, kein neues Verhalten. _(v3.3.15)_
 
 ---
+
+## 28. Kartenübersicht: klare Abgrenzung Bearbeiten vs. "Neue Karte hinzufügen" _(v3.3.16)_
+
+[ ] `edit.php?list_id=X` normal aufrufen (kein `?edit=`) → Karte "Neue Karte hinzufügen" ist wie gewohnt sichtbar. _(v3.3.16)_
+[ ] Klick auf das Stift-Icon "Bearbeiten" einer Karte → "Neue Karte hinzufügen" verschwindet, solange die Zeile bearbeitet wird; die Zeile bleibt wie bisher gelb hervorgehoben. _(v3.3.16)_
+[ ] Bearbeitet man gezielt eine Karte weit unten in einer langen Liste (z.B. bei "Alle" mit 100+ Karten) → die Seite springt beim Laden direkt zur bearbeiteten Zeile, kein manuelles Suchen/Scrollen. _(v3.3.16)_
+[ ] Das erste Feld (Sprache A) der Bearbeiten-Zeile ist nach dem Laden automatisch fokussiert. _(v3.3.16)_
+[ ] "Abbrechen" in der Bearbeiten-Zeile → zurück zur Normalansicht, Seite springt zur selben Zeile (jetzt nicht mehr hervorgehoben), "Neue Karte hinzufügen" erscheint wieder. _(v3.3.16)_
+[ ] "Speichern" → Änderungen werden übernommen, Seite springt nach dem Neuladen zur gespeicherten Zeile in der Normalansicht (nicht an eine falsche/verschobene Position, da "Neue Karte hinzufügen" jetzt wieder eingeblendet ist). _(v3.3.16)_
+[ ] Archivieren/Reaktivieren/Löschen einer Karte (ausserhalb des Bearbeiten-Modus) verhalten sich weiterhin wie bisher: Seite kehrt ungefähr an dieselbe Scroll-Position zurück (bestehender Pixel-Restore-Mechanismus, unverändert). _(v3.3.16)_
+[ ] "Karte ansehen" (Augen-Icon) und das Modal dahinter funktionieren unverändert. _(v3.3.16)_
+
+---

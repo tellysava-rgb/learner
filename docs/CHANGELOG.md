@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.16] - 2026-08-04
+
+### Verbessert
+- **Kartenübersicht (`edit.php`): "Neue Karte hinzufügen" nicht mehr verwechselbar mit dem Bearbeiten-Formular.** Analog zu Release 3.3.14 bei `lists.php`: Beim Bearbeiten einer Karte (Stift-Icon) blieb bisher die Karte "Neue Karte hinzufügen" oben unverändert sichtbar, obwohl sie nichts mit der separaten, gelb hervorgehobenen Bearbeiten-Zeile weiter unten in der Tabelle zu tun hatte. Sie wird jetzt ausgeblendet, solange eine Zeile bearbeitet wird. Zusätzlich springt die Seite jetzt per URL-Fragment präzise zur betroffenen Zeile (Bearbeiten öffnen, Abbrechen, Speichern) und fokussiert beim Öffnen automatisch das erste Feld — bisher beruhte das Zurückspringen auf einer gemerkten Pixel-Scrollposition, die durch das neue Ein-/Ausblenden von "Neue Karte hinzufügen" nicht mehr zuverlässig auf die richtige Zeile gezeigt hätte.
+
+---
+
 ## [3.3.15] - 2026-08-04
 
 ### Verbessert

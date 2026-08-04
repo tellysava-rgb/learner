@@ -99,7 +99,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->prepare("UPDATE cards SET word_a=?, word_b=?, desc_a=?, desc_b=?, phonetic_b=? WHERE id=? AND list_id=?");
                 $stmt->execute([$word_a, $word_b, $desc_a ?: null, $desc_b ?: null, $phonetic_b ?: null, $card_id, $list_id]);
                 $_SESSION['flash_success'] = 'Karte gespeichert.';
-                header("Location: edit.php?list_id={$list_id}&filter={$filter}");
+                // Fragment statt sessionStorage-Restore: nach dem Speichern ist "Neue Karte
+                // hinzufügen" wieder sichtbar (Layout wird höher), ein per Pixel gemerktes scrollY
+                // würde daher nicht mehr auf die richtige Zeile zeigen.
+                header("Location: edit.php?list_id={$list_id}&filter={$filter}#card-row-{$card_id}");
                 exit;
             }
         }
@@ -269,7 +272,9 @@ if (str_starts_with($filter, 'box')) {
         <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
     <?php endif; ?>
 
-    <!-- Neue Karte hinzufügen -->
+    <!-- Neue Karte hinzufügen: während des Bearbeitens ausgeblendet, um nicht mit dem
+         Bearbeiten-Formular in der Tabelle weiter unten verwechselt zu werden (siehe lists.php). -->
+    <?php if (!$edit_card_id): ?>
     <div class="card mb-4">
         <div class="card-header">Neue Karte hinzufügen</div>
         <div class="card-body">
@@ -305,6 +310,7 @@ if (str_starts_with($filter, 'box')) {
             </form>
         </div>
     </div>
+    <?php endif; ?>
 
     <!-- Filter -->
     <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
@@ -350,7 +356,7 @@ if (str_starts_with($filter, 'box')) {
             <tbody>
             <?php foreach ($filtered_cards as $card): ?>
                 <?php if ($edit_card_id === $card['id']): ?>
-                <tr class="table-warning">
+                <tr class="table-warning" id="edit-card-row">
                     <td colspan="4">
                         <form method="post" class="row g-2 py-1 align-items-start">
                             <?= csrf_field() ?>
@@ -358,7 +364,7 @@ if (str_starts_with($filter, 'box')) {
                             <input type="hidden" name="list_id" value="<?= $list_id ?>">
                             <input type="hidden" name="card_id" value="<?= $card['id'] ?>">
                             <div class="col">
-                                <input type="text" name="word_a" class="form-control form-control-sm"
+                                <input type="text" name="word_a" id="edit-card-field" class="form-control form-control-sm"
                                        value="<?= htmlspecialchars($card['word_a']) ?>" required>
                             </div>
                             <div class="col">
@@ -382,15 +388,14 @@ if (str_starts_with($filter, 'box')) {
                             <div class="col-auto d-flex gap-1">
                                 <button type="submit" class="btn btn-sm btn-success"
                                         data-bs-toggle="tooltip" title="Speichern"><i class="bi bi-check-lg"></i></button>
-                                <a href="edit.php?list_id=<?= $list_id ?>&filter=<?= $filter ?>" class="btn btn-sm btn-outline-secondary"
-                                   onclick="sessionStorage.setItem('edit_scroll_<?= $list_id ?>', window.scrollY)"
+                                <a href="edit.php?list_id=<?= $list_id ?>&filter=<?= $filter ?>#card-row-<?= $card['id'] ?>" class="btn btn-sm btn-outline-secondary"
                                    data-bs-toggle="tooltip" title="Abbrechen"><i class="bi bi-x-lg"></i></button>
                             </div>
                         </form>
                     </td>
                 </tr>
                 <?php else: ?>
-                <tr>
+                <tr id="card-row-<?= $card['id'] ?>">
                     <td>
                         <strong><?= htmlspecialchars($card['word_a']) ?></strong>
                         <?php if ($card['desc_a']): ?>
@@ -430,9 +435,8 @@ if (str_starts_with($filter, 'box')) {
                                class="btn btn-sm btn-outline-secondary"
                                data-bs-toggle="tooltip" title="Karte ansehen"><i class="bi bi-eye"></i></a>
 
-                            <a href="edit.php?list_id=<?= $list_id ?>&edit=<?= $card['id'] ?>&filter=<?= $filter ?>"
+                            <a href="edit.php?list_id=<?= $list_id ?>&edit=<?= $card['id'] ?>&filter=<?= $filter ?>#edit-card-row"
                                class="btn btn-sm btn-outline-primary"
-                               onclick="sessionStorage.setItem('edit_scroll_<?= $list_id ?>', window.scrollY)"
                                data-bs-toggle="tooltip" title="Bearbeiten"><i class="bi bi-pencil"></i></a>
 
                             <?php if ($card['status'] !== 'archived'): ?>
@@ -548,13 +552,25 @@ document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
     const _key = 'edit_scroll_<?= $list_id ?>';
     const saved = sessionStorage.getItem(_key);
     if (saved !== null) {
-        window.scrollTo(0, parseInt(saved, 10));
         sessionStorage.removeItem(_key);
+        // Ein URL-Fragment (#card-row-X / #edit-card-row) positioniert bereits präzise und
+        // bleibt auch bei geänderter Seitenhöhe korrekt — der grobe Pixel-Restore würde das
+        // in diesem Fall nur wieder verfälschen, siehe Kommentar beim "update"-Redirect.
+        if (!window.location.hash) {
+            window.scrollTo(0, parseInt(saved, 10));
+        }
     }
     document.addEventListener('submit', function() {
         sessionStorage.setItem(_key, window.scrollY);
     });
 })();
+
+<?php if ($edit_card_id): ?>
+// Erstes Feld der Bearbeiten-Zeile fokussieren — die Position selbst übernimmt bereits der
+// #edit-card-row-Anker in der URL, hier nur noch der Cursor fürs sofortige Tippen.
+var editField = document.getElementById('edit-card-field');
+if (editField) editField.focus({ preventScroll: true });
+<?php endif; ?>
 
 function confirmDelete(id) {
     if (confirm('Karte wirklich löschen? Der Lernfortschritt dieser Karte geht verloren.')) {
