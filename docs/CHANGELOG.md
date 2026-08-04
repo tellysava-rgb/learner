@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.13] - 2026-08-04
+
+### Neu
+- **Lautschrift in der Entdecken-Vorschau:** Beim Vorschauen einer öffentlichen Liste (`discover.php?list_id=X`) vor dem Kopieren wird jetzt auch die hinterlegte Lautschrift angezeigt (z.B. `cinquante-neuf [sɛ̃kˈɑ̃tnˈœf]`) — gleiche Darstellung wie in der eigenen Kartenübersicht. Mitkopiert wurde sie schon vorher, war in der Vorschau davor aber nicht sichtbar.
+
+---
+
 ## [3.3.12] - 2026-08-04
 
 ### Verbessert

@@ -90,7 +90,7 @@ if ($preview_list_id) {
     $preview_list = $stmt->fetch();
 
     if ($preview_list) {
-        $stmt = $pdo->prepare("SELECT word_a, word_b, desc_a, desc_b FROM cards WHERE list_id = ? ORDER BY created_at LIMIT 200");
+        $stmt = $pdo->prepare("SELECT word_a, word_b, desc_a, desc_b, phonetic_b FROM cards WHERE list_id = ? ORDER BY created_at LIMIT 200");
         $stmt->execute([$preview_list_id]);
         $preview_cards = $stmt->fetchAll();
     }
@@ -169,6 +169,9 @@ if ($preview_list_id) {
                         </td>
                         <td>
                             <?= htmlspecialchars($card['word_b']) ?>
+                            <?php if ($card['phonetic_b']): ?>
+                            <span class="text-muted small">[<?= htmlspecialchars($card['phonetic_b']) ?>]</span>
+                            <?php endif; ?>
                             <?php if ($card['desc_b']): ?>
                             <br><span class="text-muted"><?= htmlspecialchars($card['desc_b']) ?></span>
                             <?php endif; ?>

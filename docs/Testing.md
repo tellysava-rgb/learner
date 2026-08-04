@@ -276,3 +276,12 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] `help.php`: Erwähnungen der Lernrichtung (Abschnitte "Aufbau einer Lernkarte", "Leitner-Modus", "Drill-Modus") listen jetzt alle vier Optionen inkl. Zufall als Default. _(v3.3.11)_
 
 ---
+
+## 25. Lautschrift in der Entdecken-Vorschau _(v3.3.13)_
+
+[ ] `discover.php?list_id=X` einer öffentlichen Liste mit Karten, die eine Lautschrift (`phonetic_b`) hinterlegt haben → Vorschau-Tabelle zeigt die Lautschrift in eckigen Klammern direkt hinter dem Begriff in Sprache B, z.B. `cinquante-neuf [sɛ̃kˈɑ̃tnˈœf]`. _(v3.3.13)_
+[ ] Karten ohne Lautschrift zeigen weiterhin nur den Begriff (Sprache B), keine leeren eckigen Klammern. _(v3.3.13)_
+[ ] Darstellung (Farbe, Grösse, Position) entspricht der Lautschrift-Anzeige in der Kartenübersicht (`edit.php`). _(v3.3.13)_
+[ ] Nach dem Kopieren der Liste erscheint dieselbe Lautschrift unverändert in der eigenen Kartenübersicht — reine Vorschau-Ergänzung, kein neues Verhalten beim Kopieren selbst (das gab es schon vorher). _(v3.3.13)_
+
+---

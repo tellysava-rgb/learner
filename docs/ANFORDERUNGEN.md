@@ -162,7 +162,7 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 - Startseite zeigt zwei Bereiche:
   - **Oben:** eigene Listen
   - **Unten:** öffentliche Listen anderer Personen (Name, Beschreibung, Besitzer, Sprachen, Anzahl Karten)
-- Öffentliche Liste anklicken → öffnet `discover.php?list_id=X` mit **Vorschau** aller Karten (Sprache A + Sprache B)
+- Öffentliche Liste anklicken → öffnet `discover.php?list_id=X` mit **Vorschau** aller Karten (Sprache A + Sprache B). Vorhandene Lautschrift (`phonetic_b`) wird dabei bereits in der Vorschau angezeigt (in eckigen Klammern hinter dem Begriff, z.B. `cinquante-neuf [sɛ̃kˈɑ̃tnˈœf]`) — gleiche Darstellung wie in der Kartenübersicht (`edit.php`) _(v3.3.13)_
 - Button **"Kopieren"** → Liste wird als eigene unabhängige Kopie übernommen
 - `discover.php` ohne `list_id` → Weiterleitung zur Startseite (kein eigener Überblick)
 - Alle kopierten Karten erhalten `status = queued` — Tageslimit gilt wie bei CSV-Import
