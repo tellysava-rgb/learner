@@ -887,10 +887,11 @@ function adjustCards(delta) {
 
 <?php if (!$state && $all_lists): ?>
 // Verfügbarkeits-Hinweis (Infobox unter "Kartenanzahl") — summiert über alle ausgewählten Listen
-// (Preset: das einzelne versteckte Feld; Checkbox-Auswahl: alle angehakten). Macht das Tageslimit
-// für neue Karten aus der Warteschlange (DAILY_CARD_LIMIT) sichtbar, statt dass eine kleiner als
-// gewünscht ausfallende Session wie ein Fehler wirkt. Erscheint nur, wenn die eingestellte
-// Kartenanzahl tatsächlich mehr verlangt, als heute verfügbar ist — sonst bleibt sie unnötig.
+// (Preset: das einzelne versteckte Feld; Checkbox-Auswahl: alle angehakten). Macht sichtbar, warum
+// eine Session kleiner als gewünscht ausfallen kann, statt dass es wie ein Fehler wirkt — dafür gibt
+// es zwei unabhängige Gründe: das Tageslimit für neue Karten (DAILY_CARD_LIMIT) oder schlicht eine
+// zu kleine Warteschlange. Erscheint nur, wenn die eingestellte Kartenanzahl tatsächlich mehr
+// verlangt, als heute verfügbar ist — sonst bleibt sie unnötig.
 const DAILY_CARD_LIMIT = <?= (int) DAILY_CARD_LIMIT ?>;
 
 function updateAvailabilityHint() {
@@ -917,9 +918,21 @@ function updateAvailabilityHint() {
     }
 
     hint.classList.remove('d-none');
-    hint.innerHTML = 'Pro Liste werden maximal ' + DAILY_CARD_LIMIT + ' neue Karten pro Tag aus der Warteschlange aktiviert'
-        + (activated > 0 ? ' — heute wurden davon bereits ' + activated + ' genutzt' : '') + '. '
-        + 'Die Session enthält daher <strong>' + maxAvailable + '</strong> Karten: '
+
+    // Zwei mögliche Gründe, warum weniger als das Tageslimit aus der Warteschlange kommt: entweder
+    // ist das Tageslimit selbst der Engpass, oder die Warteschlange hat schlicht nicht genug Karten.
+    // min(queued, remaining) verrät, welcher der beiden Fälle tatsächlich zutrifft.
+    var reason;
+    if (queued <= remaining) {
+        reason = queued === 0
+            ? 'Die Warteschlange ist leer.'
+            : 'In der Warteschlange ' + (inputs.length > 1 ? 'der ausgewählten Listen sind' : 'dieser Liste ist') + ' nur noch ' + queued + ' Karte' + (queued !== 1 ? 'n' : '') + ' übrig.';
+    } else {
+        reason = 'Pro Liste werden maximal ' + DAILY_CARD_LIMIT + ' neue Karten pro Tag aus der Warteschlange aktiviert'
+            + (activated > 0 ? ' — heute wurden davon bereits ' + activated + ' genutzt' : '') + '.';
+    }
+
+    hint.innerHTML = reason + ' Die Session enthält daher <strong>' + maxAvailable + '</strong> Karten: '
         + due + ' heute fällig + ' + willActivate + ' neu aus der Warteschlange.';
 }
 

@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.24] - 2026-08-04
+
+### Behoben
+- **Verfügbarkeits-Infobox nannte immer das Tageslimit als Grund, auch wenn eigentlich die Warteschlange zu klein war.** War z.B. nur noch 1 Karte in der Warteschlange (aber das Tageslimit noch gar nicht ausgeschöpft), stand trotzdem "Pro Liste werden maximal 10 neue Karten pro Tag aus der Warteschlange aktiviert" da — irreführend, denn nicht das Limit war die Ursache. Die Box benennt jetzt den tatsächlich zutreffenden Engpass: "In der Warteschlange dieser Liste ist nur noch N Karte(n) übrig." (bzw. "Die Warteschlange ist leer.") wenn die Warteschlange selbst der Engpass ist, sonst weiterhin die Tageslimit-Formulierung.
+
+---
+
 ## [3.3.23] - 2026-08-04
 
 ### Neu
