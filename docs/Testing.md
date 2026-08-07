@@ -326,14 +326,15 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 
 ---
 
-## 29. Verfügbarkeits-Hinweis auf der Leitner-Setup-Seite _(v3.3.18, als Infobox mit neuem Text v3.3.20)_
+## 29. Verfügbarkeits-Hinweis auf der Leitner-Setup-Seite _(v3.3.18, als Infobox v3.3.20, Tageslimit-Verbrauch ergänzt v3.3.21)_
 
 [ ] Unter "Kartenanzahl" erscheint eine echte Infobox (`alert alert-info`, wie andere Meldungen in der App, z.B. beim CSV-Import) — nicht mehr nur gedämpfter Text ohne Rahmen/Hintergrund. _(v3.3.20)_
-[ ] Liste mit grosser Warteschlange (z.B. 100+) und 0 bereits fälligen Karten → Infobox zeigt "Es werden pro Liste maximal 10 neue Karten aus der Warteschlange genommen und mit den heute fälligen Karten kombiniert. Daher sind in der Session 10 Karten enthalten (0 heute fällig und 10 aus der Warteschlange)." (Zahlen je nach `DAILY_CARD_LIMIT`-Einstellung). _(v3.3.20)_
+[ ] Liste mit grosser Warteschlange (z.B. 100+) und 0 bereits fälligen/aktivierten Karten → Infobox zeigt "Pro Liste werden maximal 10 neue Karten pro Tag aus der Warteschlange aktiviert. Die Session enthält daher 10 Karten: 0 heute fällig + 10 neu aus der Warteschlange." — ohne "heute wurden davon bereits …"-Satzteil, da noch nichts vom Tageslimit verbraucht wurde. _(v3.3.21)_
+[ ] Liste mit bereits teilweise verbrauchtem Tageslimit (z.B. 7 von 10) → Infobox zeigt zusätzlich "— heute wurden davon bereits 7 genutzt" und danach "7 heute fällig + 3 neu aus der Warteschlange" — erklärt explizit, warum nicht die vollen 10 aus der Warteschlange kommen. _(v3.3.21)_
 [ ] Die Box ändert sich NICHT mehr, wenn nur die Kartenanzahl (nicht die Listenauswahl) geändert wird — der Text bezieht sich rein auf das Tageslimit, nicht auf den eingestellten Wunschwert. _(v3.3.20)_
 [ ] Vorausgewählte Liste (Klick auf "Leitner" bei einer einzelnen Liste von der Startseite) → Infobox erscheint sofort beim Laden, ohne Interaktion nötig. _(v3.3.18)_
 [ ] Listenübergreifende Auswahl (Checkboxen): Infobox aktualisiert sich beim An-/Abwählen einer Liste live (Summe über alle aktuell angehakten Listen), ohne Neuladen der Seite. _(v3.3.18)_
-[ ] Zweite Session am selben Tag mit derselben Liste (bereits 10 heute aktiviert) → Infobox zeigt "0 aus der Warteschlange", auch wenn die Warteschlange noch nicht leer ist. _(v3.3.18)_
+[ ] Zweite Session am selben Tag mit derselben Liste (bereits 10 heute aktiviert) → Infobox zeigt "heute wurden davon bereits 10 genutzt" und "0 neu aus der Warteschlange", auch wenn die Warteschlange noch nicht leer ist. _(v3.3.21)_
 [ ] Zwei Listen NACHEINANDER in getrennten Sessions gelernt (je eigene Session) → jede Liste bekommt ihr eigenes 10er-Tageskontingent (zusammen bis zu 20 neue Karten). Beide Listen GEMEINSAM in einer Session ausgewählt → sie teilen sich ein Kontingent von 10, die Infobox-Zahl ist entsprechend niedriger. _(v3.3.20)_
 [ ] Liste ganz ohne `card_progress`-Einträge (neu angelegt, noch nie gelernt) → Infobox zeigt 0/0/0 statt eines Fehlers oder fehlender Zahl. _(v3.3.18)_
 [ ] Tatsächlich gestartete Session enthält so viele Karten wie in der Infobox angegeben (sofern die eingestellte Kartenanzahl ≥ diesem Wert war) — Infobox und reales Verhalten stimmen überein. _(v3.3.18)_

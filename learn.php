@@ -898,9 +898,10 @@ function updateAvailabilityHint() {
     const willActivate  = Math.min(queued, remaining);
     const maxAvailable  = due + willActivate;
 
-    hint.innerHTML = 'Es werden pro Liste maximal ' + DAILY_CARD_LIMIT + ' neue Karten aus der Warteschlange genommen '
-        + 'und mit den heute fälligen Karten kombiniert. Daher sind in der Session <strong>' + maxAvailable + '</strong> Karten '
-        + 'enthalten (' + due + ' heute fällig und ' + willActivate + ' aus der Warteschlange).';
+    hint.innerHTML = 'Pro Liste werden maximal ' + DAILY_CARD_LIMIT + ' neue Karten pro Tag aus der Warteschlange aktiviert'
+        + (activated > 0 ? ' — heute wurden davon bereits ' + activated + ' genutzt' : '') + '. '
+        + 'Die Session enthält daher <strong>' + maxAvailable + '</strong> Karten: '
+        + due + ' heute fällig + ' + willActivate + ' neu aus der Warteschlange.';
 }
 
 document.querySelectorAll('input[name="list_ids[]"]').forEach(cb => {

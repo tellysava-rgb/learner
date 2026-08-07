@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.21] - 2026-08-04
+
+### Behoben
+- **Verfügbarkeits-Infobox erklärte nicht, warum weniger als das Tageslimit aus der Warteschlange kommt.** Bei bereits teilweise verbrauchtem Tageslimit (z.B. 7 von 10 Karten heute schon aktiviert) zeigte die Box zwar korrekt "3 neu aus der Warteschlange", aber ohne ersichtlichen Grund, warum nicht die vollen 10 — wirkte dadurch selbst wieder wie ein Fehler. Neuer Satzteil "— heute wurden davon bereits X genutzt" (nur wenn X > 0) stellt den Zusammenhang jetzt explizit her.
+
+---
+
 ## [3.3.20] - 2026-08-04
 
 ### Verbessert
