@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.20] - 2026-08-04
+
+### Verbessert
+- **Verfügbarkeits-Hinweis auf der Leitner-Setup-Seite jetzt als Infobox.** Statt gedämpftem Text ohne Rahmen (`form-text`) jetzt eine echte Infobox (`alert alert-info`), wie andere Meldungen in der App. Text ebenfalls neu formuliert: "Es werden pro Liste maximal N neue Karten aus der Warteschlange genommen und mit den heute fälligen Karten kombiniert. Daher sind in der Session X Karten enthalten (Y heute fällig und Z aus der Warteschlange)." Kein Bezug mehr auf die eingestellte Wunsch-Kartenanzahl (keine Hervorhebung bei Über-/Unterschreitung mehr) — die Box beschreibt jetzt unabhängig davon, was das Tageslimit tatsächlich hergibt.
+
+---
+
 ## [3.3.19] - 2026-08-04
 
 ### Verbessert

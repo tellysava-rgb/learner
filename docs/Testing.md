@@ -326,16 +326,16 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 
 ---
 
-## 29. Verfügbarkeits-Hinweis auf der Leitner-Setup-Seite _(v3.3.18)_
+## 29. Verfügbarkeits-Hinweis auf der Leitner-Setup-Seite _(v3.3.18, als Infobox mit neuem Text v3.3.20)_
 
-[ ] Liste mit grosser Warteschlange (z.B. 100+) und 0 bereits fälligen Karten, Kartenanzahl auf 25 gestellt → Hinweis unter "Kartenanzahl" zeigt "Heute maximal 10 Karten verfügbar (es besteht ein Tageslimit für neue Karten). 0 sind heute fällig + bis zu 10 aus der Warteschlange." (Zahlen je nach `DAILY_CARD_LIMIT`-Einstellung). _(v3.3.19)_
-[ ] In diesem Fall ist der Hinweistext farblich hervorgehoben (`text-warning`), weil die eingestellte Kartenanzahl (25) über der tatsächlich verfügbaren Zahl (10) liegt. _(v3.3.18)_
-[ ] Kartenanzahl manuell auf einen Wert ≤ der verfügbaren Zahl setzen (z.B. 5) → Hervorhebung verschwindet wieder (normale, gedämpfte Schrift). _(v3.3.18)_
-[ ] Genug bereits fällige Karten vorhanden, um die eingestellte Kartenanzahl zu erreichen → Hinweis zeigt die korrekte Zahl, keine Hervorhebung, Session startet tatsächlich mit der vollen eingestellten Anzahl. _(v3.3.18)_
-[ ] Vorausgewählte Liste (Klick auf "Leitner" bei einer einzelnen Liste von der Startseite) → Hinweis erscheint sofort beim Laden, ohne Interaktion nötig. _(v3.3.18)_
-[ ] Listenübergreifende Auswahl (Checkboxen): Hinweis aktualisiert sich beim An-/Abwählen einer Liste live (Summe über alle aktuell angehakten Listen), ohne Neuladen der Seite. _(v3.3.18)_
-[ ] Zweite Session am selben Tag mit derselben Liste (bereits 10 heute aktiviert) → Hinweis zeigt "0 neu aus der Warteschlange" und "davon heute schon 10 genutzt", auch wenn die Warteschlange noch nicht leer ist. _(v3.3.18)_
-[ ] Liste ganz ohne `card_progress`-Einträge (neu angelegt, noch nie gelernt) → Hinweis zeigt 0/0/0 statt eines Fehlers oder fehlender Zahl. _(v3.3.18)_
-[ ] Tatsächlich gestartete Session enthält so viele Karten wie im Hinweis als "maximal verfügbar" angegeben (sofern Kartenanzahl ≥ diesem Wert eingestellt war) — Hinweis und reales Verhalten stimmen überein. _(v3.3.18)_
+[ ] Unter "Kartenanzahl" erscheint eine echte Infobox (`alert alert-info`, wie andere Meldungen in der App, z.B. beim CSV-Import) — nicht mehr nur gedämpfter Text ohne Rahmen/Hintergrund. _(v3.3.20)_
+[ ] Liste mit grosser Warteschlange (z.B. 100+) und 0 bereits fälligen Karten → Infobox zeigt "Es werden pro Liste maximal 10 neue Karten aus der Warteschlange genommen und mit den heute fälligen Karten kombiniert. Daher sind in der Session 10 Karten enthalten (0 heute fällig und 10 aus der Warteschlange)." (Zahlen je nach `DAILY_CARD_LIMIT`-Einstellung). _(v3.3.20)_
+[ ] Die Box ändert sich NICHT mehr, wenn nur die Kartenanzahl (nicht die Listenauswahl) geändert wird — der Text bezieht sich rein auf das Tageslimit, nicht auf den eingestellten Wunschwert. _(v3.3.20)_
+[ ] Vorausgewählte Liste (Klick auf "Leitner" bei einer einzelnen Liste von der Startseite) → Infobox erscheint sofort beim Laden, ohne Interaktion nötig. _(v3.3.18)_
+[ ] Listenübergreifende Auswahl (Checkboxen): Infobox aktualisiert sich beim An-/Abwählen einer Liste live (Summe über alle aktuell angehakten Listen), ohne Neuladen der Seite. _(v3.3.18)_
+[ ] Zweite Session am selben Tag mit derselben Liste (bereits 10 heute aktiviert) → Infobox zeigt "0 aus der Warteschlange", auch wenn die Warteschlange noch nicht leer ist. _(v3.3.18)_
+[ ] Zwei Listen NACHEINANDER in getrennten Sessions gelernt (je eigene Session) → jede Liste bekommt ihr eigenes 10er-Tageskontingent (zusammen bis zu 20 neue Karten). Beide Listen GEMEINSAM in einer Session ausgewählt → sie teilen sich ein Kontingent von 10, die Infobox-Zahl ist entsprechend niedriger. _(v3.3.20)_
+[ ] Liste ganz ohne `card_progress`-Einträge (neu angelegt, noch nie gelernt) → Infobox zeigt 0/0/0 statt eines Fehlers oder fehlender Zahl. _(v3.3.18)_
+[ ] Tatsächlich gestartete Session enthält so viele Karten wie in der Infobox angegeben (sofern die eingestellte Kartenanzahl ≥ diesem Wert war) — Infobox und reales Verhalten stimmen überein. _(v3.3.18)_
 
 ---
