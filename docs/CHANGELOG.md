@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.23] - 2026-08-04
+
+### Neu
+- **Leitner-Debug-Panel zeigt beim Aufsteigen jetzt das verwendete Intervall.** Bisher liess sich aus der Meldung "Fach X→Y, fällig A→B" nicht direkt nachvollziehen, ob das neue Fälligkeitsdatum korrekt berechnet wurde — man musste dazu den Code lesen. Neue Zusatzzeile "Intervall Fach Y: Z Tage, Basis: A" beim Aufsteigen (1. Versuch richtig) macht die Rechnung (Basis + Intervall = neues Fälligkeitsdatum) direkt am Bildschirm nachvollziehbar.
+
+---
+
 ## [3.3.22] - 2026-08-04
 
 ### Verbessert

@@ -274,11 +274,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
 
         if ($debug_enabled) {
             $versuch = $is_retry ? '2. Versuch' : '1. Versuch';
-            $_SESSION['debug_last_answer'] = [
+            $debug_lines = [
                 debug_card_label($pdo, $card_id),
                 "richtig ({$versuch})",
                 "Fach {$current_box}→{$new_box}, fällig " . debug_format_date($due_before) . '→' . debug_format_date($due),
             ];
+            // Nur beim Aufsteigen (1. Versuch) wird das Intervall aus LEITNER_INTERVALS nachgeschlagen —
+            // zeigen, welches Fach/Intervall/Basisdatum konkret verwendet wurde, damit sich das neue
+            // next_due_date direkt nachrechnen lässt, ohne den Code lesen zu müssen.
+            if (!$is_retry) {
+                $debug_lines[] = "Intervall Fach {$new_box}: {$interval} Tag" . ($interval !== 1 ? 'e' : '') . ', Basis: ' . debug_format_date($today);
+            }
+            $_SESSION['debug_last_answer'] = $debug_lines;
         }
 
     } else {

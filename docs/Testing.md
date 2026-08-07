@@ -121,6 +121,8 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 
 [ ] Einstellungen → Debug: Schalter "Debug-Modus aktiv" lässt sich unabhängig vom grossen Einstellungs-Formular speichern, andere Einstellungen bleiben dabei unverändert. _(v3.2.34)_
 [ ] Debug-Modus aktiv, als Admin eingeloggt: nach einer Leitner-Antwort erscheint ein Info-Panel mit Fach- und Fälligkeits-Änderung der beantworteten Karte, bevor die neue Karte gezeigt wird. _(v3.2.34)_
+[ ] Leitner, 1. Versuch richtig (Karte steigt auf, z.B. Fach 1→2) → Panel zeigt zusätzliche Zeile "Intervall Fach X: Y Tage, Basis: Z" — Basis + Intervall ergibt rechnerisch exakt das angezeigte neue Fälligkeitsdatum. _(v3.3.23)_
+[ ] Leitner, 2. Versuch richtig (Karte bleibt in Fach 1) → KEINE Intervall-Zusatzzeile, da hier fest mit +1 Tag gerechnet wird statt einem Tabellen-Lookup. _(v3.3.23)_
 [ ] Leitner und Drill: das Debug-Panel klebt fix am unteren Bildschirmrand (`position: fixed`) statt im normalen Textfluss zu stehen — sichtbar ohne Scrollen, unabhängig davon wie lang die Karte/Seite ist. _(v3.2.44)_
 [ ] Auf dem iPhone überlappt das fixierte Panel NICHT die Statusleiste/Home-Indicator-Leiste am unteren Rand (sichtbarer Abstand durch `safe-area-inset-bottom`). _(v3.2.44)_
 [ ] Ungewöhnlich lange Karte (z.B. langer Beispielsatz) → das fixierte Panel kann dabei die Antwort-Buttons überlagern — dagegen der Schliessen-Button (siehe unten). _(v3.2.44)_
