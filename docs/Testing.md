@@ -328,7 +328,7 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 
 ## 29. Verfügbarkeits-Hinweis auf der Leitner-Setup-Seite _(v3.3.18)_
 
-[ ] Liste mit grosser Warteschlange (z.B. 100+) und 0 bereits fälligen Karten, Kartenanzahl auf 25 gestellt → Hinweis unter "Kartenanzahl" zeigt "Heute maximal 10 Karten verfügbar — 0 bereits fällig + bis zu 10 neu aus der Warteschlange (Tageslimit 10/Tag, davon heute schon 0 genutzt)" (Zahlen je nach `DAILY_CARD_LIMIT`-Einstellung). _(v3.3.18)_
+[ ] Liste mit grosser Warteschlange (z.B. 100+) und 0 bereits fälligen Karten, Kartenanzahl auf 25 gestellt → Hinweis unter "Kartenanzahl" zeigt "Heute maximal 10 Karten verfügbar (es besteht ein Tageslimit für neue Karten). 0 sind heute fällig + bis zu 10 aus der Warteschlange." (Zahlen je nach `DAILY_CARD_LIMIT`-Einstellung). _(v3.3.19)_
 [ ] In diesem Fall ist der Hinweistext farblich hervorgehoben (`text-warning`), weil die eingestellte Kartenanzahl (25) über der tatsächlich verfügbaren Zahl (10) liegt. _(v3.3.18)_
 [ ] Kartenanzahl manuell auf einen Wert ≤ der verfügbaren Zahl setzen (z.B. 5) → Hervorhebung verschwindet wieder (normale, gedämpfte Schrift). _(v3.3.18)_
 [ ] Genug bereits fällige Karten vorhanden, um die eingestellte Kartenanzahl zu erreichen → Hinweis zeigt die korrekte Zahl, keine Hervorhebung, Session startet tatsächlich mit der vollen eingestellten Anzahl. _(v3.3.18)_

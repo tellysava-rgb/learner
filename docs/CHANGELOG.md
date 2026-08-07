@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.19] - 2026-08-04
+
+### Verbessert
+- **Verfügbarkeits-Hinweis auf der Leitner-Setup-Seite einfacher formuliert.** Statt "X bereits fällig + bis zu Y neu aus der Warteschlange (Tageslimit Z/Tag, davon heute schon W genutzt)" jetzt zweigeteilt und knapper: "Heute maximal N Karten verfügbar (es besteht ein Tageslimit für neue Karten). X sind heute fällig + bis zu Y aus der Warteschlange."
+
+---
+
 ## [3.3.18] - 2026-08-04
 
 ### Neu

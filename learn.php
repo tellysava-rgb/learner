@@ -898,9 +898,8 @@ function updateAvailabilityHint() {
     const willActivate  = Math.min(queued, remaining);
     const maxAvailable  = due + willActivate;
 
-    hint.innerHTML = 'Heute maximal <strong>' + maxAvailable + '</strong> Karten verfügbar — '
-        + due + ' bereits fällig + bis zu ' + willActivate + ' neu aus der Warteschlange '
-        + '(Tageslimit ' + DAILY_CARD_LIMIT + '/Tag, davon heute schon ' + activated + ' genutzt).';
+    hint.innerHTML = 'Heute maximal <strong>' + maxAvailable + '</strong> Karten verfügbar (es besteht ein Tageslimit für neue Karten). '
+        + due + ' sind heute fällig + bis zu ' + willActivate + ' aus der Warteschlange.';
 
     const cardLimitInput = document.getElementById('card_limit');
     const requested = cardLimitInput ? parseInt(cardLimitInput.value || '0', 10) : 0;
