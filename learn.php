@@ -39,6 +39,42 @@ $stmt = $pdo->prepare("
 $stmt->execute([$person_id]);
 $all_lists = $stmt->fetchAll();
 
+// Verfügbarkeit pro Liste für den Setup-Hinweis ("Heute maximal N Karten verfügbar", siehe unten):
+// bereits fällige Karten + wie viele neue Karten das Tageslimit (DAILY_CARD_LIMIT) für diese Liste
+// aus der Warteschlange noch zulassen würde. Ohne diese Zahlen wirkt eine kleiner als gewünscht
+// ausgefallene Session wie ein Fehler, obwohl sie beabsichtigt gedrosselt ist.
+$list_availability = [];
+if ($all_lists) {
+    $list_ids_all = array_column($all_lists, 'id');
+    $ph = implode(',', array_fill(0, count($list_ids_all), '?'));
+    $today_str = today();
+    $stmt = $pdo->prepare("
+        SELECT c.list_id,
+               SUM(CASE WHEN cp.status = 'queued' THEN 1 ELSE 0 END) AS queued,
+               SUM(CASE WHEN cp.status = 'active' AND cp.next_due_date <= ? THEN 1 ELSE 0 END) AS due_today,
+               SUM(CASE WHEN cp.status = 'active' AND cp.next_due_date = ? AND cp.leitner_box = 1 THEN 1 ELSE 0 END) AS already_activated
+        FROM card_progress cp
+        JOIN cards c ON c.id = cp.card_id
+        WHERE cp.person_id = ? AND c.list_id IN ($ph)
+        GROUP BY c.list_id
+    ");
+    $stmt->execute(array_merge([$today_str, $today_str, $person_id], $list_ids_all));
+    foreach ($stmt->fetchAll() as $row) {
+        $list_availability[(int)$row['list_id']] = [
+            'queued'    => (int) $row['queued'],
+            'due_today' => (int) $row['due_today'],
+            'already_activated' => (int) $row['already_activated'],
+        ];
+    }
+    // Listen ohne card_progress-Zeilen (z.B. gerade erst angelegt, noch nie gelernt) fehlen
+    // oben in der Abfrage komplett — mit Nullen auffüllen statt sie stillschweigend zu überspringen.
+    foreach ($list_ids_all as $lid) {
+        if (!isset($list_availability[$lid])) {
+            $list_availability[$lid] = ['queued' => 0, 'due_today' => 0, 'already_activated' => 0];
+        }
+    }
+}
+
 // Vorausgewählte Liste aus URL (von home.php)
 $preset_list_id = intval($_GET['list_id'] ?? 0);
 $preset_list    = null;
@@ -661,9 +697,17 @@ $lang_b = $preset_list ? htmlspecialchars($preset_list['language_b']) : 'B';
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="begin">
 
+    <?php
+    // data-Attribute für den Verfügbarkeits-Hinweis unten (Kartenanzahl) — dieselben Zahlen für
+    // Preset- und Checkbox-Auswahl, damit eine einzige JS-Funktion beide Fälle bedienen kann.
+    $avail_attrs = function (int $list_id) use ($list_availability): string {
+        $a = $list_availability[$list_id] ?? ['due_today' => 0, 'queued' => 0, 'already_activated' => 0];
+        return 'data-due="' . $a['due_today'] . '" data-queued="' . $a['queued'] . '" data-activated="' . $a['already_activated'] . '"';
+    };
+    ?>
     <?php if ($preset_list): ?>
     <!-- Vorausgewählte Liste (von Startseite) -->
-    <input type="hidden" name="list_ids[]" value="<?= $preset_list['id'] ?>">
+    <input type="hidden" name="list_ids[]" value="<?= $preset_list['id'] ?>" <?= $avail_attrs($preset_list['id']) ?>>
     <div class="mb-4">
         <div class="fw-semibold mb-1">Liste</div>
         <div class="text-muted"><?= htmlspecialchars($preset_list['name']) ?> <span class="small">(<?= $lang_a ?> / <?= $lang_b ?>)</span></div>
@@ -676,6 +720,7 @@ $lang_b = $preset_list ? htmlspecialchars($preset_list['language_b']) : 'B';
         <div class="form-check">
             <input class="form-check-input" type="checkbox" name="list_ids[]"
                    value="<?= $list['id'] ?>" id="list_<?= $list['id'] ?>"
+                   <?= $avail_attrs($list['id']) ?>
                    <?= $list['id'] === ($all_lists[0]['id'] ?? 0) ? 'checked' : '' ?>>
             <label class="form-check-label" for="list_<?= $list['id'] ?>">
                 <?= htmlspecialchars($list['name']) ?>
@@ -718,6 +763,7 @@ $lang_b = $preset_list ? htmlspecialchars($preset_list['language_b']) : 'B';
             <button type="button" class="btn btn-outline-secondary" onclick="adjustCards(5)">+5</button>
         </div>
         <div class="form-text">App zeigt alle fälligen Karten. Du kannst die Zahl anpassen.</div>
+        <div class="form-text" id="availability-hint"></div>
     </div>
 
     <button type="submit" class="btn btn-primary btn-lg">Session starten</button>
@@ -828,7 +874,47 @@ function flipCard() {
 function adjustCards(delta) {
     const el = document.getElementById('card_limit');
     if (el) el.value = Math.max(1, parseInt(el.value || 20) + delta);
+    updateAvailabilityHint();
 }
+
+<?php if (!$state && $all_lists): ?>
+// Verfügbarkeits-Hinweis ("Heute maximal N Karten verfügbar") — summiert über alle ausgewählten
+// Listen (Preset: das einzelne versteckte Feld; Checkbox-Auswahl: alle angehakten). Macht das
+// Tageslimit für neue Karten aus der Warteschlange (DAILY_CARD_LIMIT) sichtbar, statt dass eine
+// kleiner als gewünscht ausfallende Session wie ein Fehler wirkt.
+const DAILY_CARD_LIMIT = <?= (int) DAILY_CARD_LIMIT ?>;
+
+function updateAvailabilityHint() {
+    const hint = document.getElementById('availability-hint');
+    if (!hint) return;
+    const inputs = document.querySelectorAll('input[name="list_ids[]"]:checked, input[name="list_ids[]"][type="hidden"]');
+    let due = 0, queued = 0, activated = 0;
+    inputs.forEach(function (el) {
+        due       += parseInt(el.dataset.due || '0', 10);
+        queued    += parseInt(el.dataset.queued || '0', 10);
+        activated += parseInt(el.dataset.activated || '0', 10);
+    });
+    const remaining     = Math.max(0, DAILY_CARD_LIMIT - activated);
+    const willActivate  = Math.min(queued, remaining);
+    const maxAvailable  = due + willActivate;
+
+    hint.innerHTML = 'Heute maximal <strong>' + maxAvailable + '</strong> Karten verfügbar — '
+        + due + ' bereits fällig + bis zu ' + willActivate + ' neu aus der Warteschlange '
+        + '(Tageslimit ' + DAILY_CARD_LIMIT + '/Tag, davon heute schon ' + activated + ' genutzt).';
+
+    const cardLimitInput = document.getElementById('card_limit');
+    const requested = cardLimitInput ? parseInt(cardLimitInput.value || '0', 10) : 0;
+    hint.classList.toggle('text-warning', requested > maxAvailable);
+    hint.classList.toggle('text-muted', requested <= maxAvailable);
+}
+
+document.querySelectorAll('input[name="list_ids[]"]').forEach(cb => {
+    cb.addEventListener('change', updateAvailabilityHint);
+});
+const cardLimitField = document.getElementById('card_limit');
+if (cardLimitField) cardLimitField.addEventListener('input', updateAvailabilityHint);
+updateAvailabilityHint();
+<?php endif; ?>
 
 <?php if (!$preset_list && $all_lists): ?>
 // Richtungs-Labels bei Mehrfach-Listenauswahl dynamisch aktualisieren

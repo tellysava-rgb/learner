@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.18] - 2026-08-04
+
+### Neu
+- **Verfügbarkeits-Hinweis auf der Leitner-Setup-Seite.** Das tägliche Aktivierungslimit für neue Karten aus der Warteschlange (`DAILY_CARD_LIMIT`, Standard 10/Tag) war bisher unsichtbar — eine Session mit z.B. 25 eingestellten Karten konnte dadurch mit nur 10 Karten starten, ohne erkennbaren Grund (wirkte wie ein Fehler). Unter "Kartenanzahl" steht jetzt live, wie viele Karten heute tatsächlich verfügbar sind, aufgeschlüsselt nach bereits fälligen und neu aus der Warteschlange aktivierbaren Karten, inkl. Stand des Tageslimits. Bei listenübergreifender Auswahl aktualisiert sich der Hinweis automatisch beim An-/Abwählen einer Liste (Summe über alle ausgewählten Listen, ohne Nachladen). Liegt die eingestellte Kartenanzahl über der tatsächlich verfügbaren Zahl, wird der Hinweis hervorgehoben. Die Mechanik selbst (Drosselung neuer Karten) bleibt bewusst unverändert — es geht ausschliesslich um Transparenz.
+
+---
+
 ## [3.3.17] - 2026-08-04
 
 ### Verbessert
