@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.22] - 2026-08-04
+
+### Verbessert
+- **Verfügbarkeits-Infobox auf der Leitner-Setup-Seite erscheint jetzt nur noch, wenn sie wirklich relevant ist.** Bisher stand sie immer da, auch wenn genug Karten für die volle gewünschte Kartenanzahl verfügbar waren. Jetzt bleibt sie unsichtbar, solange die eingestellte Kartenanzahl nicht über der tatsächlich verfügbaren Zahl liegt — reagiert live auf Änderungen der Kartenanzahl (Eingabefeld und ±5-Buttons) und der Listenauswahl.
+
+---
+
 ## [3.3.21] - 2026-08-04
 
 ### Behoben

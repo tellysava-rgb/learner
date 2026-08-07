@@ -765,7 +765,7 @@ $lang_b = $preset_list ? htmlspecialchars($preset_list['language_b']) : 'B';
         <div class="form-text">App zeigt alle fälligen Karten. Du kannst die Zahl anpassen.</div>
     </div>
 
-    <div class="alert alert-info small" id="availability-hint"></div>
+    <div class="alert alert-info small d-none" id="availability-hint"></div>
 
     <button type="submit" class="btn btn-primary btn-lg">Session starten</button>
 </form>
@@ -875,13 +875,15 @@ function flipCard() {
 function adjustCards(delta) {
     const el = document.getElementById('card_limit');
     if (el) el.value = Math.max(1, parseInt(el.value || 20) + delta);
+    updateAvailabilityHint();
 }
 
 <?php if (!$state && $all_lists): ?>
 // Verfügbarkeits-Hinweis (Infobox unter "Kartenanzahl") — summiert über alle ausgewählten Listen
 // (Preset: das einzelne versteckte Feld; Checkbox-Auswahl: alle angehakten). Macht das Tageslimit
 // für neue Karten aus der Warteschlange (DAILY_CARD_LIMIT) sichtbar, statt dass eine kleiner als
-// gewünscht ausfallende Session wie ein Fehler wirkt.
+// gewünscht ausfallende Session wie ein Fehler wirkt. Erscheint nur, wenn die eingestellte
+// Kartenanzahl tatsächlich mehr verlangt, als heute verfügbar ist — sonst bleibt sie unnötig.
 const DAILY_CARD_LIMIT = <?= (int) DAILY_CARD_LIMIT ?>;
 
 function updateAvailabilityHint() {
@@ -898,6 +900,16 @@ function updateAvailabilityHint() {
     const willActivate  = Math.min(queued, remaining);
     const maxAvailable  = due + willActivate;
 
+    const cardLimitInput = document.getElementById('card_limit');
+    const requested = cardLimitInput ? parseInt(cardLimitInput.value || '0', 10) : 0;
+
+    if (requested <= maxAvailable) {
+        hint.classList.add('d-none');
+        hint.innerHTML = '';
+        return;
+    }
+
+    hint.classList.remove('d-none');
     hint.innerHTML = 'Pro Liste werden maximal ' + DAILY_CARD_LIMIT + ' neue Karten pro Tag aus der Warteschlange aktiviert'
         + (activated > 0 ? ' — heute wurden davon bereits ' + activated + ' genutzt' : '') + '. '
         + 'Die Session enthält daher <strong>' + maxAvailable + '</strong> Karten: '
@@ -907,6 +919,8 @@ function updateAvailabilityHint() {
 document.querySelectorAll('input[name="list_ids[]"]').forEach(cb => {
     cb.addEventListener('change', updateAvailabilityHint);
 });
+const cardLimitField = document.getElementById('card_limit');
+if (cardLimitField) cardLimitField.addEventListener('input', updateAvailabilityHint);
 updateAvailabilityHint();
 <?php endif; ?>
 
