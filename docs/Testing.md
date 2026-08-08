@@ -141,9 +141,9 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 
 ## 11. help.php-Ergänzungen und MCP-Server-Regeln _(v3.2.37)_
 
-[ ] `help.php`: neue Einleitung direkt unter dem Titel listet die Grundfunktionen der App auf (Wortlisten lernen/erstellen/kopieren, Leitner/Drill, 1×1, Audioaussprache). _(v3.2.37)_
-[ ] `help.php`, Abschnitt "Leitner-Modus": neuer Hinweis zum ausgefüllten Pin-Symbol, inkl. sichtbarem Icon in der Erklärung selbst. _(v3.2.37)_
-[ ] `help.php`, Abschnitt "Drill-Modus": Hinweis auf "in der Aktionsleiste" entfernt (Button existiert seit v3.2.31 nicht mehr), stattdessen korrekt auf die Kartenansicht verwiesen. _(v3.2.37)_
+[ ] `help.php`: Einleitungstext direkt unter dem Titel fasst die App in ein bis zwei Sätzen zusammen (kein eigener Accordion-Abschnitt mehr — siehe Abschnitt 32 für die aktuelle Struktur). _(v3.2.37, Struktur geändert v3.5.0)_
+[ ] `help.php`, Abschnitt "Leitner-Modus" (Grundlagen): kein Pin-Hinweis mehr direkt im Abschnitt, stattdessen ein Verweis-Link auf den eigenständigen Abschnitt "Karten gezielt für Drill vormerken" (Fortgeschritten), der das ausgefüllte Pin-Symbol samt Icon erklärt. _(v3.2.37, ausgelagert v3.5.0)_
+[ ] `help.php`, Abschnitt "Drill-Modus" (Grundlagen): die ausführliche Vormerken-Erklärung wurde komplett in den neuen Abschnitt "Karten gezielt für Drill vormerken" (Fortgeschritten) ausgelagert — im Drill-Modus-Abschnitt selbst steht nur noch ein kurzer Verweis-Link dorthin. _(v3.2.37, ausgelagert v3.5.0)_
 [ ] MCP-Server: Karte mit deutschem Begriff, der ein "ß" enthalten würde (z.B. "Straße") → Agent schreibt stattdessen "Strasse" (de-CH). _(v3.2.37)_
 [ ] MCP-Server: Liste mit Sprache A = Deutsch, Sprache B = Fremdsprache, `speech_lang_b` gesetzt → Agent fragt NICHT explizit nach der Muttersprache, sondern nimmt Sprache A als gegeben an. _(v3.2.37)_
 [ ] MCP-Server: Liste bei der beide Sprachen für den User erkennbar fremd sind (z.B. im Gespräch erwähnt) → Agent fragt in diesem Fall doch explizit nach der Muttersprache, bevor `phonetik_b` befüllt wird. _(v3.2.37)_
@@ -199,10 +199,10 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 
 ## 17. Hilfe-Abschnitt "Aufbau einer Lernkarte" _(v3.3.2)_
 
-[ ] `help.php`: neuer Abschnitt "Aufbau einer Lernkarte" erscheint an dritter Position im Accordion, zwischen "Wörter hinzufügen" und "Leitner-Modus". _(v3.3.2)_
+[ ] `help.php`: Abschnitt "Aufbau einer Lernkarte" liegt weiterhin zwischen "Wörter hinzufügen" und "Leitner-Modus", jetzt als 4. von 6 Abschnitten innerhalb der Gruppe "Grundlagen". _(v3.3.2, Gruppierung v3.5.0)_
 [ ] Screenshot (`img/learner-karte.png`) wird angezeigt, ist scharf/nicht verzerrt und bleibt auf schmalem Viewport (iPhone) innerhalb der Seitenbreite. _(v3.3.2)_
-[ ] Alle nachfolgenden Accordion-Abschnitte (Leitner-Modus bis "Für Technik-Fans …") lassen sich weiterhin einzeln auf-/zuklappen, keine zwei Abschnitte öffnen gleichzeitig durch die ID-Verschiebung. _(v3.3.2)_
-[ ] Als Nicht-Admin eingeloggt: 9 Abschnitte sichtbar (kein Admin-/MCP-Abschnitt), als Admin: 11 Abschnitte — siehe Abschnitt 22 für die aktuelle Zählung inkl. "Einleitung". _(v3.3.9)_
+[ ] Accordion-Abschnitte lassen sich unabhängig voneinander auf-/zuklappen — anders als bisher bleibt ein bereits geöffneter Abschnitt offen, wenn ein weiterer geöffnet wird (kein gemeinsames `data-bs-parent` mehr, bewusste Änderung). _(v3.3.2, Verhalten geändert v3.5.0)_
+[ ] Als Nicht-Admin eingeloggt: 11 Abschnitte sichtbar (kein Admin-/MCP-Abschnitt), als Admin: 13 Abschnitte — siehe Abschnitt 32 für die aktuelle Struktur/Zählung. _(v3.3.9, Zählung aktualisiert v3.5.0)_
 
 ---
 
@@ -250,18 +250,18 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Alle vier neuen Bilder sind scharf, nicht verzerrt, zentriert bzw. korrekt ausgerichtet und bleiben auf schmalem Viewport (iPhone) innerhalb der Seitenbreite. _(v3.3.9)_
 [ ] Bildstil (Rahmen, Schatten, abgerundete Ecken, Bildunterschrift in gedämpfter Schrift) ist einheitlich mit dem bereits vorhandenen Screenshot `learner-karte.png` im Abschnitt "Aufbau einer Lernkarte". _(v3.3.8)_
 
-## 22. Hilfeseite: eigener Einleitungs-Abschnitt _(v3.3.9)_
+## 22. Hilfeseite: Einleitung als Fliesstext statt eigener Abschnitt _(v3.3.9, abgelöst v3.5.0)_
 
-[ ] `help.php` öffnet mit dem Accordion-Abschnitt "Einleitung" standardmässig aufgeklappt — enthält die Grundfunktionen-Liste (Wortlisten erstellen, öffentliche Listen kopieren, Leitner/Drill, 1×1, Audioaussprache). _(v3.3.9)_
-[ ] Alle anderen Abschnitte, inkl. des vormals ersten ("Login & Person"), sind beim Laden der Seite eingeklappt. _(v3.3.9)_
-[ ] Der Abschnitt, der bisher "Einstieg: Login & Person" hiess, heisst jetzt nur noch "Login & Person" — Inhalt selbst unverändert (Login-Ablauf, Passwort/E-Mail-Verwaltung, Admin-Hinweis). _(v3.3.9)_
-[ ] Als Nicht-Admin eingeloggt: 9 Abschnitte sichtbar (inkl. neuer "Einleitung", ohne Admin-/MCP-Abschnitt), als Admin: 11 Abschnitte. _(v3.3.9)_
-[ ] Querverweis im Admin-Abschnitt ("Für Admins …") auf "Login & Person" verwendet den neuen Namen, kein toter Verweis auf "Einstieg: Login & Person" mehr. _(v3.3.9)_
-[ ] Auf-/Zuklappen jedes Abschnitts funktioniert weiterhin einzeln (Bootstrap-Accordion, `data-bs-parent`) — kein gleichzeitiges Öffnen zweier Abschnitte durch die ID-Verschiebung. _(v3.3.9)_
+[ ] `help.php` zeigt die Einleitung als kurzen Fliesstext-Absatz direkt unter der Überschrift "Hilfe & Handbuch" — kein eigener, auf-/zuklappbarer Accordion-Abschnitt "Einleitung" mehr (ersetzt durch die Schnellstart-Kachel darunter, siehe Abschnitt 32). _(v3.5.0)_
+[ ] Alle Accordion-Abschnitte (inkl. "Login & Person") sind beim Laden der Seite eingeklappt. _(v3.3.9)_
+[ ] Der Abschnitt heisst weiterhin schlicht "Login & Person" — Inhalt inhaltlich unverändert (Login-Ablauf, Passwort/E-Mail-Verwaltung, Admin-Hinweis), Formulierung des ersten Satzes leicht präzisiert (Karten werden nie zwischen Personen geteilt). _(v3.3.9, Formulierung präzisiert v3.5.0)_
+[ ] Als Nicht-Admin eingeloggt: 11 Abschnitte sichtbar, als Admin: 13 Abschnitte — siehe Abschnitt 32. _(v3.3.9, Zählung aktualisiert v3.5.0)_
+[ ] Querverweis im Admin-Abschnitt ("Für Admins …") auf "Login & Person" verwendet weiterhin den korrekten Namen. _(v3.3.9)_
+[ ] Auf-/Zuklappen jedes Abschnitts funktioniert weiterhin einzeln — mehrere Abschnitte können jetzt aber gleichzeitig offen sein, siehe Abschnitt 17. _(v3.3.9, Verhalten geändert v3.5.0)_
 
 ## 23. Hilfeseite: Hinweis auf mobile Heatmap-Anpassung _(v3.3.9)_
 
-[ ] `help.php`, Abschnitt "Statistik & Streak": neuer Punkt in der Aufzählung erwähnt, dass sich die Heatmap der Bildschirmbreite anpasst (Handy: kürzerer Zeitraum, Desktop: alle 52 Wochen). _(v3.3.9)_
+[ ] `help.php`, Abschnitt "Statistik & Heatmap im Detail" _(hiess bis v3.4.1 "Statistik & Streak")_: Punkt in der Aufzählung erwähnt, dass sich die Heatmap der Bildschirmbreite anpasst (Handy: kürzerer Zeitraum, Desktop: alle 52 Wochen). _(v3.3.9, Abschnittsname geändert v3.5.0)_
 [ ] Text widerspricht nicht der bereits bestehenden, ausführlicheren technischen Beschreibung in `docs/ANFORDERUNGEN.md` (Abschnitt "Statistik-Dashboard") — reine Ergänzung auf der Hilfeseite, keine Verhaltensänderung an `stats.php` selbst. _(v3.3.9)_
 
 ---
@@ -375,6 +375,23 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Die 2 bereits bestehenden, über den Mathe-Generator erzeugten Listen sind davon ebenfalls betroffen: Bearbeiten-Formular zeigt für sie jetzt ebenfalls gesperrte Sprachfelder (vorher frei editierbar). _(v3.4.0)_
 [ ] Wortlisten (Typ nicht "Aufgabe") sind vom Bearbeiten-Formular unberührt — Sprache A/B und Aussprache-Sprachcode bleiben normal editierbar wie vor diesem Release. _(v3.4.0)_
 [ ] Speichern einer Wortliste ohne inhaltliche Änderung (z.B. sofort auf "Speichern" klicken) → zeigt jetzt korrekt "Liste gespeichert." statt fälschlich "Liste nicht gefunden oder keine Berechtigung." (Nebenkorrektur: die Erfolgsmeldung hing bisher an der Anzahl geänderter Datenbankzeilen, nicht an der eigentlichen Berechtigungsprüfung). _(v3.4.0)_
-[ ] `help.php`, Abschnitt "Wortlisten verwalten": neuer Aufzählungspunkt "Listentyp — Wortliste oder Aufgabe" erklärt beide Typen sowie die Abgrenzung zum separaten Mathe-Generator; der Aussprache-Dialekt-Punkt erwähnt zusätzlich, dass er bei Aufgabe-Listen nicht verfügbar ist. _(v3.4.1)_
+[ ] `help.php`, Abschnitt "Wortlisten erstellen & verwalten": Aufzählungspunkt "Listentyp — Wortliste oder Aufgabe" erklärt beide Typen sowie die Abgrenzung zum separaten Mathe-Generator. Der Hinweis, dass Aufgabe-Listen kein Aussprache-Feld haben, steht seit v3.5.0 im separaten Abschnitt "Aussprache: Audio & Lautschrift" (Fortgeschritten) statt hier. _(v3.4.1, umorganisiert v3.5.0)_
+
+---
+
+## 32. Hilfeseite neu strukturiert: Schnellstart, Sprungmarken, Grundlagen/Fortgeschritten _(v3.5.0)_
+
+[ ] `help.php`: direkt unter der Überschrift steht eine hervorgehobene Kachel "Neu hier? So geht's los" mit 4 nummerierten Schritten (Anmelden, Liste wählen, Wörter ergänzen, Losdrillen) sowie den Buttons "Zur Startseite" und "Meine Listen" — immer sichtbar, ohne dass ein Accordion-Abschnitt geöffnet werden muss. _(v3.5.0)_
+[ ] Buttons "Zur Startseite" / "Meine Listen" in der Kachel führen tatsächlich zu `home.php` bzw. `lists.php`. _(v3.5.0)_
+[ ] Darunter zwei nebeneinanderliegende Kästchen "Grundlagen" und "Fortgeschritten & mehr entdecken", jeweils mit einer Liste anklickbarer Themen-Links; als Admin enthält das zweite Kästchen zusätzlich die Links "Für Admins: Einstellungen & Benutzerverwaltung" und "Für Technik-Fans: Karten per KI-Agent verwalten". _(v3.5.0)_
+[ ] Klick auf einen Themen-Link → der zugehörige Accordion-Abschnitt weiter unten öffnet sich automatisch (falls eingeklappt) und die Seite scrollt dorthin. _(v3.5.0)_
+[ ] Klick auf einen Themen-Link zu einem bereits geöffneten Abschnitt → springt direkt dorthin, ohne den Abschnitt zu schliessen. _(v3.5.0)_
+[ ] Die Hilfe-Abschnitte sind sichtbar in zwei Gruppen mit eigener Überschrift aufgeteilt: "Grundlagen" (Login & Person, Wortlisten erstellen & verwalten, Wörter hinzufügen, Aufbau einer Lernkarte, Leitner-Modus, Drill-Modus — 6 Abschnitte) und "Fortgeschritten & mehr entdecken" (Aussprache: Audio & Lautschrift, Karten gezielt für Drill vormerken, Listen migrieren & organisieren, CSV-Import & KI-Prompt im Detail, Statistik & Heatmap im Detail — 5 Abschnitte, als Admin zusätzlich 2 weitere). _(v3.5.0)_
+[ ] Als Nicht-Admin: 11 Abschnitte sichtbar; als Admin: 13 Abschnitte. _(v3.5.0)_
+[ ] Neuer Abschnitt "Karten gezielt für Drill vormerken" (Fortgeschritten) bündelt die komplette Erklärung (Umschaltbar über Kartenübersicht und laufende Leitner-Session, Priorität aus den Einstellungen, automatisches Entfernen der Vormerkung, archivierte Karten ausgeschlossen) inkl. neuem Hinweis: eine vorgemerkte Karte wird bei "musste nachdenken" NICHT als "zu schwer für heute" pausiert, anders als eine normale Karte. _(v3.5.0)_
+[ ] Neuer Abschnitt "Listen migrieren & organisieren" (Fortgeschritten) erklärt neben dem bereits bekannten Migrieren (inkl. Hinweis: keine Duplikat-Prüfung dabei, Button nur bei ≥2 eigenen Listen sichtbar) auch das Aktiv-/Inaktiv-Setzen einer Liste — mit korrektem Hinweis, dass der Umschalt-Button dafür auf der Startseite sitzt, nicht unter "Meine Listen". _(v3.5.0)_
+[ ] Neuer Abschnitt "CSV-Import & KI-Prompt im Detail" (Fortgeschritten) erklärt zusätzlich zum CSV-Format: dass der KI-Prompt ohne hinterlegten Aussprache-Dialekt die KI anweist, nachzufragen; dass bei Englisch ohne Dialekt-Angabe britisches Englisch der Standard ist; sowie die drei Optionen beim erneuten Import einer bereits archivierten Karte (archiviert lassen / reaktivieren / als neue Karte importieren). _(v3.5.0)_
+[ ] Auf schmalem Viewport (iPhone, 430 px): Schnellstart-Kachel bricht von 4 auf 2 Spalten um, die beiden Sprungmarken-Kästchen stehen untereinander statt nebeneinander — keine Seite lässt sich horizontal wegschieben. _(v3.5.0)_
+[ ] Browser-Konsole zeigt beim Laden der Seite sowie beim Klicken der Sprungmarken keine JavaScript-Fehler. _(v3.5.0)_
 
 ---

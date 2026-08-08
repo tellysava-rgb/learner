@@ -5,6 +5,17 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.5.0] - 2026-08-09
+
+### Neu
+- **Hilfeseite komplett neu strukturiert, ausgerichtet auf zwei Personas (Einsteiger/Geübte, siehe `docs/Personas.md`).** Direkt unter der Überschrift eine immer sichtbare Schnellstart-Kachel "Neu hier? So geht's los" mit 4 nummerierten Schritten und Direktlinks zu Startseite/Meine Listen. Darunter eine Sprungmarken-Navigation (zwei Kästchen "Grundlagen" / "Fortgeschritten & mehr entdecken") — ein Klick öffnet den passenden Accordion-Abschnitt weiter unten automatisch und scrollt dorthin. Die bisher flache Liste von Accordion-Abschnitten ist in diese zwei Gruppen aufgeteilt; Abschnitte lassen sich neu unabhängig voneinander öffnen (mehrere gleichzeitig sichtbar, statt sich gegenseitig zu schliessen).
+- **Drei neue/aufgeteilte Hilfe-Abschnitte** ("Fortgeschritten"): "Karten gezielt für Drill vormerken" (bündelt die bisher auf Leitner-/Drill-Abschnitt verteilte Erklärung, ergänzt um den Hinweis, dass eine vorgemerkte Karte bei "musste nachdenken" nicht der "zu schwer für heute"-Sperre unterliegt), "Listen migrieren & organisieren" (bisheriges Migrieren plus neu das bisher auf der Hilfeseite gar nicht erklärte Aktiv-/Inaktiv-Setzen einer Liste), "CSV-Import & KI-Prompt im Detail" (ergänzt um KI-Prompt-Verhalten ohne hinterlegten Dialekt, Standard-Dialekt Englisch, sowie die drei Optionen beim Reimport einer archivierten Karte).
+
+### Verbessert
+- **Mehrere ungenaue Formulierungen auf der Hilfeseite präzisiert:** Login-Erklärung stellt jetzt klar, dass Karten nie zwischen Personen geteilt werden; der Aussprache-Abschnitt erwähnt wieder (war beim Umbau kurz verloren gegangen), dass Aufgabe-Listen kein Aussprache-Feld haben.
+
+---
+
 ## [3.4.1] - 2026-08-08
 
 ### Verbessert
