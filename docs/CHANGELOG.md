@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.4.1] - 2026-08-08
+
+### Verbessert
+- **Hilfeseite beschreibt den Listentyp "Wortliste"/"Aufgabe" und die Lernrichtungs-Einschränkung bei Mathe-Listen.** Abschnitt "Wortlisten verwalten" erklärt jetzt beide Listentypen und grenzt "Aufgabe" gegen den separaten Mathe-Generator ab; "Leitner-Modus" und "Drill-Modus" erwähnen zusätzlich, dass bei Aufgabe-Listen nur "Aufgabe → Ergebnis" als Lernrichtung verfügbar ist (Verhalten selbst unverändert, war bisher nur in `ANFORDERUNGEN.md` dokumentiert, nicht auf der Hilfeseite).
+
+---
+
 ## [3.4.0] - 2026-08-08
 
 ### Neu

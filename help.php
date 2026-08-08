@@ -90,9 +90,10 @@ $pin_ratio        = DRILL_PIN_RATIO;
                 <div class="accordion-body">
                     <p>Eine <strong>Liste</strong> bündelt Karten zu einem Sprachenpaar (z.B. Deutsch/Englisch) und legt fest, welche Seite welche Sprache ist. Unter <em>Meine Listen</em> kannst du Listen erstellen, umbenennen, öffentlich stellen und löschen.</p>
                     <ul class="mb-2">
+                        <li><strong>Listentyp — Wortliste oder Aufgabe:</strong> Beim Erstellen wählst du zwischen <strong>Wortliste</strong> (Sprache A und Sprache B frei wählbar, z.B. Deutsch/Englisch — der Normalfall) und <strong>Aufgabe</strong> für Mathe-Karten. Bei "Aufgabe" sind die Sprachen fest auf "Aufgabe" → "Ergebnis" gesetzt und lassen sich danach nicht mehr ändern, da bei Rechenaufgaben nur eine Lernrichtung sinnvoll ist (siehe "Leitner-Modus"). Für automatisch erzeugte Multiplikations-/Divisionstabellen gibt es zusätzlich den separaten <strong>Mathe-Generator</strong> (Button auf <em>Meine Listen</em>); der Listentyp "Aufgabe" eignet sich dagegen für einzeln von Hand erfasste Rechenaufgaben.</li>
                         <li><strong>Öffentlich vs. privat:</strong> Öffentliche Listen erscheinen bei anderen Personen unter <em>Entdecken</em> und können dort kopiert werden.</li>
                         <li><strong>Liste migrieren:</strong> Karten (inkl. Lernfortschritt) lassen sich in eine andere eigene Liste verschieben, z.B. um zwei Listen zusammenzulegen.</li>
-                        <li><strong>Aussprache-Dialekt:</strong> Optional lässt sich pro Liste ein Dialekt für Sprache B hinterlegen (z.B. <code>en-GB</code>) — aktiviert den 🔊-Ausspracheknopf und Lautschrift, siehe unten.</li>
+                        <li><strong>Aussprache-Dialekt:</strong> Optional lässt sich pro Liste ein Dialekt für Sprache B hinterlegen (z.B. <code>en-GB</code>) — aktiviert den 🔊-Ausspracheknopf und Lautschrift, siehe unten. Bei Aufgabe-Listen nicht verfügbar.</li>
                     </ul>
                     <p class="mb-0">Auf der Startseite zeigt jede Liste zusätzlich, wie viele Karten aktuell in der <strong>Warteschlange</strong> warten und wie viele heute im Leitner-System fällig sind.</p>
                 </div>
@@ -163,7 +164,7 @@ $pin_ratio        = DRILL_PIN_RATIO;
                     </div>
                     <ul class="mb-2">
                         <li><strong>Warteschlange:</strong> Neue Karten werden nicht alle auf einmal aktiv — aktuell werden pro Tag <?= $daily_limit ?> Karten aus der Warteschlange in Fach 1 aufgenommen (in den Einstellungen anpassbar).</li>
-                        <li><strong>Session:</strong> Eine Lernrunde zeigt standardmässig bis zu <?= $default_cards ?> fällige Karten (beim Start der Session anpassbar), aus einer oder mehreren ausgewählten Listen gemischt; Sprachrichtung ist wählbar (A→B, B→A, gemischt oder Zufall — Zufall ist voreingestellt und wählt bei jeder Session neu eine der drei anderen Richtungen, damit man nicht einseitig immer in dieselbe Richtung lernt).</li>
+                        <li><strong>Session:</strong> Eine Lernrunde zeigt standardmässig bis zu <?= $default_cards ?> fällige Karten (beim Start der Session anpassbar), aus einer oder mehreren ausgewählten Listen gemischt; Sprachrichtung ist wählbar (A→B, B→A, gemischt oder Zufall — Zufall ist voreingestellt und wählt bei jeder Session neu eine der drei anderen Richtungen, damit man nicht einseitig immer in dieselbe Richtung lernt). Bei Aufgabe-Listen (Mathe) ist nur "Aufgabe → Ergebnis" verfügbar, die anderen Optionen werden ausgeblendet.</li>
                         <li><strong>Fach 5:</strong> gilt als "gut gelernt", wird aber weiterhin alle <?= $li[5] ?> Tage zur Auffrischung gezeigt.</li>
                         <li>Oben links auf jeder Karte lässt sich über das runde Pin-Symbol (<i class="bi bi-pin-angle"></i> / ausgefüllt <i class="bi bi-pin-angle-fill"></i>) die Karte direkt "für Drill vormerken" — ein Klick schaltet um, ohne die laufende Session zu unterbrechen. Betrifft nur den Drill-Modus, der Leitner-Ablauf hier läuft davon völlig unberührt normal weiter (siehe Abschnitt "Drill-Modus").</li>
                     </ul>
@@ -188,7 +189,7 @@ $pin_ratio        = DRILL_PIN_RATIO;
                         <p class="small mt-1 mb-0"><strong>Tipp:</strong> Der Timer sollte mindestens <strong>5 Minuten</strong> laufen. Bei weniger Zeit sieht man dieselbe Karte meist nicht oft genug, um sie wirklich zu lernen.</p>
                     </div>
                     <ul class="mb-2">
-                        <li><strong>Vor dem Start wählbar</strong> (analog zum Leitner-System): Lernrichtung (A→B, B→A, gemischt oder Zufall — Zufall ist voreingestellt und wählt bei jeder Session neu eine der drei anderen Richtungen) und Timer in Minuten — beide gelten nur für diese eine Session und werden nicht dauerhaft gespeichert.</li>
+                        <li><strong>Vor dem Start wählbar</strong> (analog zum Leitner-System): Lernrichtung (A→B, B→A, gemischt oder Zufall — Zufall ist voreingestellt und wählt bei jeder Session neu eine der drei anderen Richtungen; bei Aufgabe-Listen nur "Aufgabe → Ergebnis" verfügbar) und Timer in Minuten — beide gelten nur für diese eine Session und werden nicht dauerhaft gespeichert.</li>
                         <li>Bei <?= $drill_mastery ?>× richtiger Antwort <strong>in Folge</strong> gilt eine Karte als <strong>gemeistert</strong> und wechselt danach automatisch ins Leitner-System (ein einzelner Fehler setzt diese Zählung zurück auf 0).</li>
                         <li>Bei einem Fehler kommt nur diese eine Karte ans Ende der aktuellen Runde — nicht die ganze Runde von vorne.</li>
                         <li>Wird eine Karte <?= $drill_too_hard ?>× als "musste nachdenken" bewertet, wird sie für den Rest dieser Session pausiert und taucht erst am nächsten Tag wieder auf.</li>

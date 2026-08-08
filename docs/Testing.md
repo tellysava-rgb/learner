@@ -357,6 +357,7 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Manuell gesendeter POST mit `direction=b_to_a` (oder `mixed`/`random`) bei einer ausschliesslich aus Mathe-Listen bestehenden Auswahl (z.B. manipuliertes Formular) → Server erzwingt trotzdem `a_to_b`, keine Karte erscheint mit "Ergebnis" oben. Gilt für Leitner UND Drill. _(v3.3.25)_
 [ ] Gilt identisch in Leitner (`learn.php`) und Drill (`drill.php`) — gleiches Verhalten in beiden Modi. _(v3.3.25)_
 [ ] Wortlisten (kein `language_a = 'Aufgabe'`) sind von alldem unberührt — Verhalten und alle vier Lernrichtungs-Optionen wie vor diesem Release. _(v3.3.25)_
+[ ] `help.php`, Abschnitte "Leitner-Modus" und "Drill-Modus": Sätze zur Lernrichtung erwähnen jetzt zusätzlich, dass bei Aufgabe-Listen nur "Aufgabe → Ergebnis" verfügbar ist. _(v3.4.1)_
 
 ---
 
@@ -374,5 +375,6 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Die 2 bereits bestehenden, über den Mathe-Generator erzeugten Listen sind davon ebenfalls betroffen: Bearbeiten-Formular zeigt für sie jetzt ebenfalls gesperrte Sprachfelder (vorher frei editierbar). _(v3.4.0)_
 [ ] Wortlisten (Typ nicht "Aufgabe") sind vom Bearbeiten-Formular unberührt — Sprache A/B und Aussprache-Sprachcode bleiben normal editierbar wie vor diesem Release. _(v3.4.0)_
 [ ] Speichern einer Wortliste ohne inhaltliche Änderung (z.B. sofort auf "Speichern" klicken) → zeigt jetzt korrekt "Liste gespeichert." statt fälschlich "Liste nicht gefunden oder keine Berechtigung." (Nebenkorrektur: die Erfolgsmeldung hing bisher an der Anzahl geänderter Datenbankzeilen, nicht an der eigentlichen Berechtigungsprüfung). _(v3.4.0)_
+[ ] `help.php`, Abschnitt "Wortlisten verwalten": neuer Aufzählungspunkt "Listentyp — Wortliste oder Aufgabe" erklärt beide Typen sowie die Abgrenzung zum separaten Mathe-Generator; der Aussprache-Dialekt-Punkt erwähnt zusätzlich, dass er bei Aufgabe-Listen nicht verfügbar ist. _(v3.4.1)_
 
 ---
