@@ -359,3 +359,20 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Wortlisten (kein `language_a = 'Aufgabe'`) sind von alldem unberührt — Verhalten und alle vier Lernrichtungs-Optionen wie vor diesem Release. _(v3.3.25)_
 
 ---
+
+## 31. Listentyp "Wortliste" / "Aufgabe" beim Erstellen _(v3.4.0)_
+
+[ ] "Neue Liste erstellen": neues Feld "Listentyp" mit zwei Radio-Buttons "Wortliste" (vorausgewählt) und "Aufgabe (Mathe)", direkt unter Name/Beschreibung. _(v3.4.0)_
+[ ] "Wortliste" ausgewählt (Standard) → Formular verhält sich exakt wie bisher: Felder Sprache A, Sprache B und Aussprache-Sprachcode sichtbar und wie gewohnt nutzbar. _(v3.4.0)_
+[ ] "Aufgabe (Mathe)" ausgewählt → Felder Sprache A, Sprache B und Aussprache-Sprachcode verschwinden live, stattdessen erscheint der Hinweistext "Bei 'Aufgabe' sind die Sprachen fix (Aufgabe → Ergebnis) und können später nicht mehr geändert werden." _(v3.4.0)_
+[ ] Liste mit Typ "Aufgabe" erstellen und speichern → neue Liste erscheint in "Meine Listen" mit "Aufgabe → Ergebnis" als Sprachpaar, 0 Karten (keine automatisch generierten Karten wie beim Mathe-Generator). _(v3.4.0)_
+[ ] Manuell gesendeter POST mit `list_type=math`, aber abweichenden Werten für `language_a`/`language_b` (manipuliertes Formular) → Server ignoriert die übermittelten Werte, Liste wird trotzdem mit "Aufgabe"/"Ergebnis" angelegt. _(v3.4.0)_
+[ ] Karten zur neu erstellten Aufgabe-Liste manuell über `edit.php` hinzufügen → funktioniert wie bei jeder anderen Liste (kein Unterschied im Karten-Formular). _(v3.4.0)_
+[ ] "Liste bearbeiten" bei einer Aufgabe-Liste (egal ob über den neuen Listentyp oder über den Mathe-Generator entstanden) → Sprache A und Sprache B werden als gesperrte (ausgegraute) Felder angezeigt statt als Eingabefelder, Aussprache-Sprachcode-Feld ist durch den Text "– kein Aussprache-Feld –" ersetzt. Überschrift zeigt zusätzlich "(Aufgabe-Liste — Sprachen sind fix)". _(v3.4.0)_
+[ ] Bei einer Aufgabe-Liste im Bearbeiten-Formular bleiben Name, Beschreibung und Öffentlich/Privat normal editierbar und lassen sich speichern. _(v3.4.0)_
+[ ] Manuell gesendeter POST mit `action=update` und geänderten `language_a`/`language_b`-Werten für eine bestehende Aufgabe-Liste (manipuliertes Formular, z.B. `language_a=Deutsch`) → Server ignoriert die Werte, Sprache A/B bleiben unverändert "Aufgabe"/"Ergebnis". _(v3.4.0)_
+[ ] Die 2 bereits bestehenden, über den Mathe-Generator erzeugten Listen sind davon ebenfalls betroffen: Bearbeiten-Formular zeigt für sie jetzt ebenfalls gesperrte Sprachfelder (vorher frei editierbar). _(v3.4.0)_
+[ ] Wortlisten (Typ nicht "Aufgabe") sind vom Bearbeiten-Formular unberührt — Sprache A/B und Aussprache-Sprachcode bleiben normal editierbar wie vor diesem Release. _(v3.4.0)_
+[ ] Speichern einer Wortliste ohne inhaltliche Änderung (z.B. sofort auf "Speichern" klicken) → zeigt jetzt korrekt "Liste gespeichert." statt fälschlich "Liste nicht gefunden oder keine Berechtigung." (Nebenkorrektur: die Erfolgsmeldung hing bisher an der Anzahl geänderter Datenbankzeilen, nicht an der eigentlichen Berechtigungsprüfung). _(v3.4.0)_
+
+---

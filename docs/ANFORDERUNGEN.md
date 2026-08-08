@@ -143,10 +143,18 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 |---|---|
 | Name | ✅ |
 | Beschreibung (z.B. "Französisch Vokabeln Klasse 2a") | optional |
-| Sprache A | ✅ |
-| Sprache B | ✅ |
+| Listentyp (Wortliste / Aufgabe) | ✅ (nur beim Erstellen) |
+| Sprache A | ✅ (bei Aufgabe fix, siehe unten) |
+| Sprache B | ✅ (bei Aufgabe fix, siehe unten) |
 | Öffentlich / Privat | ✅ |
-| Aussprache-Sprachcode (Sprache B) | optional |
+| Aussprache-Sprachcode (Sprache B) | optional (bei Aufgabe nicht verfügbar) |
+
+### Listentyp: Wortliste / Aufgabe _(v3.4.0)_
+- Beim **Erstellen** einer Liste (`lists.php`) wählt man zusätzlich zu Name/Beschreibung den Listentyp: **Wortliste** (Standard, wie bisher — Sprache A/B frei eingebbar) oder **Aufgabe** (Mathe)
+- Bei Typ **Aufgabe**: Sprache A/B werden **automatisch und fix** auf "Aufgabe"/"Ergebnis" gesetzt (derselbe Marker, den auch der Mathe-Generator setzt, siehe `is_math_list()`) — die entsprechenden Formularfelder werden ausgeblendet, ebenso das Aussprache-Sprachcode-Feld (bei Rechenaufgaben kein 🔊 sinnvoll)
+- **Danach nicht mehr änderbar:** Ist eine Liste als Mathe-Liste erkannt (`language_a === 'Aufgabe'`) — egal ob über diesen Listentyp oder über den Mathe-Generator entstanden —, zeigt das Bearbeiten-Formular (`lists.php?edit=X`) Sprache A/B nur noch als gesperrte (disabled) Felder und blendet das Aussprache-Feld aus. Serverseitig werden abweichende POST-Werte für diese Felder ignoriert (bleiben auf den gespeicherten Werten), unabhängig vom übermittelten Formularinhalt — verhindert, dass die Lernrichtungs-Sperre bei Mathe-Listen (siehe "Lernrichtung bei Mathe-Listen") durch Umbenennen ausgehebelt wird
+- Name, Beschreibung und Öffentlich/Privat bleiben bei Mathe-Listen normal editierbar
+- Eine über den Listentyp "Aufgabe" erstellte Liste ist zunächst **leer** (keine automatisch generierten Karten wie beim Mathe-Generator) — Karten werden wie bei jeder Liste manuell über `edit.php` oder per CSV-Import hinzugefügt
 
 ### Aussprache (Audio) _(v2.2.0)_
 - Pro Liste kann ein **Sprachcode für die Aussprache** hinterlegt werden — ausschliesslich für **Sprache B** (die Fremdsprache), nicht für Sprache A

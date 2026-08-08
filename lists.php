@@ -18,11 +18,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'create') {
         $name        = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
-        $language_a  = trim($_POST['language_a'] ?? '');
-        $language_b  = trim($_POST['language_b'] ?? '');
         $is_public   = isset($_POST['is_public']) ? 1 : 0;
-        $speech_raw  = trim($_POST['speech_lang_b'] ?? '');
-        $speech_lang_b = $speech_raw !== '' ? normalize_speech_lang($speech_raw) : null;
+        $is_math     = ($_POST['list_type'] ?? '') === 'math';
+
+        if ($is_math) {
+            // Aufgabe-Liste: Sprachen sind fix (siehe is_math_list()) — unabhängig vom
+            // übermittelten Formularwert gesetzt. Das Formular blendet die Felder bei diesem Typ
+            // zwar aus, das ersetzt aber keine serverseitige Erzwingung. Kein Aussprache-Feld,
+            // da bei Rechenaufgaben kein 🔊 sinnvoll ist.
+            $language_a    = 'Aufgabe';
+            $language_b    = 'Ergebnis';
+            $speech_lang_b = null;
+            $speech_raw    = '';
+        } else {
+            $language_a  = trim($_POST['language_a'] ?? '');
+            $language_b  = trim($_POST['language_b'] ?? '');
+            $speech_raw  = trim($_POST['speech_lang_b'] ?? '');
+            $speech_lang_b = $speech_raw !== '' ? normalize_speech_lang($speech_raw) : null;
+        }
 
         if ($name === '' || $language_a === '' || $language_b === '') {
             $error = 'Name und beide Sprachen sind Pflichtfelder.';
@@ -45,11 +58,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $list_id     = intval($_POST['list_id'] ?? 0);
         $name        = trim($_POST['name'] ?? '');
         $description = trim($_POST['description'] ?? '');
-        $language_a  = trim($_POST['language_a'] ?? '');
-        $language_b  = trim($_POST['language_b'] ?? '');
         $is_public   = isset($_POST['is_public']) ? 1 : 0;
-        $speech_raw  = trim($_POST['speech_lang_b'] ?? '');
-        $speech_lang_b = $speech_raw !== '' ? normalize_speech_lang($speech_raw) : null;
+
+        // Bestehende Liste laden — bei Mathe-Listen (is_math_list(), egal ob per Mathe-Generator
+        // oder über das Erstellen-Formular entstanden) sind Sprachen und Aussprache-Sprachcode
+        // gesperrt und bleiben unabhängig vom übermittelten Formularwert unverändert, damit die
+        // Lernrichtungs-Sperre aus v3.3.25 nicht durch Umbenennen ausgehebelt werden kann.
+        $existing_stmt = $pdo->prepare("SELECT language_a, language_b FROM lists WHERE id = ? AND person_id = ?");
+        $existing_stmt->execute([$list_id, $person_id]);
+        $existing = $existing_stmt->fetch();
+
+        if (!$existing) {
+            $_SESSION['flash_error'] = 'Liste nicht gefunden oder keine Berechtigung.';
+            header('Location: lists.php');
+            exit;
+        }
+
+        if (is_math_list($existing)) {
+            $language_a    = $existing['language_a'];
+            $language_b    = $existing['language_b'];
+            $speech_lang_b = null;
+            $speech_raw    = '';
+        } else {
+            $language_a  = trim($_POST['language_a'] ?? '');
+            $language_b  = trim($_POST['language_b'] ?? '');
+            $speech_raw  = trim($_POST['speech_lang_b'] ?? '');
+            $speech_lang_b = $speech_raw !== '' ? normalize_speech_lang($speech_raw) : null;
+        }
 
         if ($name === '' || $language_a === '' || $language_b === '') {
             $error = 'Name und beide Sprachen sind Pflichtfelder.';
@@ -58,11 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $stmt = $pdo->prepare("UPDATE lists SET name=?, description=?, language_a=?, language_b=?, is_public=?, speech_lang_b=? WHERE id=? AND person_id=?");
             $stmt->execute([$name, $description ?: null, $language_a, $language_b, $is_public, $speech_lang_b, $list_id, $person_id]);
-            if ($stmt->rowCount() === 0) {
-                $_SESSION['flash_error'] = 'Liste nicht gefunden oder keine Berechtigung.';
-            } else {
-                $_SESSION['flash_success'] = 'Liste gespeichert.';
-            }
+            $_SESSION['flash_success'] = 'Liste gespeichert.';
             header('Location: lists.php');
             exit;
         }
@@ -188,13 +219,24 @@ if ($edit_id) {
                     <label class="form-label">Beschreibung</label>
                     <input type="text" name="description" class="form-control" maxlength="500">
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Sprache A <span class="text-danger">*</span></label>
-                    <input type="text" name="language_a" class="form-control" required maxlength="100" placeholder="z.B. Deutsch">
+                <div class="col-12">
+                    <label class="form-label d-block">Listentyp</label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="list_type" id="create_type_wortliste" value="wortliste" checked>
+                        <label class="form-check-label" for="create_type_wortliste">Wortliste</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="list_type" id="create_type_math" value="math">
+                        <label class="form-check-label" for="create_type_math">Aufgabe (Mathe)</label>
+                    </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4" id="create-lang-a-wrap">
+                    <label class="form-label">Sprache A <span class="text-danger">*</span></label>
+                    <input type="text" name="language_a" id="create-lang-a" class="form-control" required maxlength="100" placeholder="z.B. Deutsch">
+                </div>
+                <div class="col-md-4" id="create-lang-b-wrap">
                     <label class="form-label">Sprache B <span class="text-danger">*</span></label>
-                    <input type="text" name="language_b" class="form-control" required maxlength="100" placeholder="z.B. Englisch">
+                    <input type="text" name="language_b" id="create-lang-b" class="form-control" required maxlength="100" placeholder="z.B. Englisch">
                 </div>
                 <div class="col-md-4 d-flex align-items-end">
                     <div class="form-check mb-2">
@@ -202,11 +244,12 @@ if ($edit_id) {
                         <label class="form-check-label" for="create_public">Öffentlich</label>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3" id="create-speech-wrap">
                     <label class="form-label">Aussprache-Sprachcode (Sprache B)</label>
                     <input type="text" name="speech_lang_b" class="form-control" list="speech-lang-options" maxlength="10" placeholder="z.B. en-US">
                     <div class="form-text">BCP-47, z.B. <code>en-US</code>. Optional — aktiviert den 🔊-Button beim Lernen.</div>
                 </div>
+                <p class="text-muted small mb-0 col-12 d-none" id="create-math-hint">Bei "Aufgabe" sind die Sprachen fix (Aufgabe → Ergebnis) und können später nicht mehr geändert werden.</p>
                 <div class="col-12">
                     <button type="submit" class="btn btn-primary">Liste erstellen</button>
                 </div>
@@ -230,9 +273,14 @@ if ($edit_id) {
         <div class="list-group-item<?= $is_editing ? ' border-primary border-2' : '' ?>"
              <?= $is_editing ? 'id="edit-form"' : '' ?>>
 
-            <?php if ($is_editing): ?>
+            <?php if ($is_editing): $editing_is_math = is_math_list($list); ?>
             <!-- Bearbeitungsformular inline -->
-            <div class="fw-semibold text-primary mb-2">Liste bearbeiten: <?= htmlspecialchars($list['name']) ?></div>
+            <div class="fw-semibold text-primary mb-2">
+                Liste bearbeiten: <?= htmlspecialchars($list['name']) ?>
+                <?php if ($editing_is_math): ?>
+                <span class="text-muted small fw-normal">(Aufgabe-Liste — Sprachen sind fix)</span>
+                <?php endif; ?>
+            </div>
             <form method="post" class="row g-2">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="update">
@@ -246,12 +294,20 @@ if ($edit_id) {
                            value="<?= htmlspecialchars($list['description'] ?? '') ?>" maxlength="500" placeholder="Beschreibung">
                 </div>
                 <div class="col-md-3">
+                    <?php if ($editing_is_math): ?>
+                    <input type="text" class="form-control form-control-sm" value="<?= htmlspecialchars($list['language_a']) ?>" disabled>
+                    <?php else: ?>
                     <input type="text" name="language_a" class="form-control form-control-sm"
                            value="<?= htmlspecialchars($list['language_a']) ?>" required maxlength="100">
+                    <?php endif; ?>
                 </div>
                 <div class="col-md-3">
+                    <?php if ($editing_is_math): ?>
+                    <input type="text" class="form-control form-control-sm" value="<?= htmlspecialchars($list['language_b']) ?>" disabled>
+                    <?php else: ?>
                     <input type="text" name="language_b" class="form-control form-control-sm"
                            value="<?= htmlspecialchars($list['language_b']) ?>" required maxlength="100">
+                    <?php endif; ?>
                 </div>
                 <div class="col-md-2 d-flex align-items-center">
                     <div class="form-check">
@@ -261,9 +317,13 @@ if ($edit_id) {
                     </div>
                 </div>
                 <div class="col-md-2">
+                    <?php if ($editing_is_math): ?>
+                    <span class="text-muted small">– kein Aussprache-Feld –</span>
+                    <?php else: ?>
                     <input type="text" name="speech_lang_b" class="form-control form-control-sm"
                            list="speech-lang-options" maxlength="10" placeholder="z.B. en-US"
                            value="<?= htmlspecialchars($list['speech_lang_b'] ?? '') ?>">
+                    <?php endif; ?>
                 </div>
                 <div class="col-md-4 d-flex gap-2">
                     <button type="submit" class="btn btn-sm btn-success">Speichern</button>
@@ -394,6 +454,24 @@ function confirmMigrate(form) {
     }
     return true;
 }
+
+<?php if (!$edit_list): ?>
+// Listentyp "Aufgabe" im Erstellen-Formular: Sprachfelder und Aussprache-Feld sind dabei bedeutungslos
+// (Sprachen werden serverseitig ohnehin fix auf "Aufgabe"/"Ergebnis" gesetzt) und werden ausgeblendet.
+function updateCreateListTypeUI() {
+    var isMath = document.getElementById('create_type_math').checked;
+    document.getElementById('create-lang-a-wrap').classList.toggle('d-none', isMath);
+    document.getElementById('create-lang-b-wrap').classList.toggle('d-none', isMath);
+    document.getElementById('create-speech-wrap').classList.toggle('d-none', isMath);
+    document.getElementById('create-math-hint').classList.toggle('d-none', !isMath);
+    document.getElementById('create-lang-a').required = !isMath;
+    document.getElementById('create-lang-b').required = !isMath;
+}
+document.querySelectorAll('input[name="list_type"]').forEach(function (r) {
+    r.addEventListener('change', updateCreateListTypeUI);
+});
+updateCreateListTypeUI();
+<?php endif; ?>
 
 <?php if ($edit_list): ?>
 // Bearbeiten-Formular kann bei vielen Listen weit unten stehen — ohne dieses Scrollen/Fokussieren

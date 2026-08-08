@@ -5,6 +5,16 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.4.0] - 2026-08-08
+
+### Neu
+- **Listentyp "Wortliste" / "Aufgabe" beim Erstellen einer Liste.** Auf "Meine Listen" wählt man beim Erstellen jetzt zusätzlich den Listentyp. Bei "Aufgabe" werden Sprache A/B automatisch und fix auf "Aufgabe"/"Ergebnis" gesetzt (derselbe Marker wie beim Mathe-Generator) — die Sprachfelder und das Aussprache-Sprachcode-Feld werden dafür ausgeblendet, da sie bei Rechenaufgaben keinen Sinn ergeben. Damit lassen sich auch manuell einzelne Rechenaufgaben erfassen, nicht nur über den automatisch generierten Mathe-Generator.
+
+### Verbessert
+- **Sprachen von Mathe-Listen sind im Bearbeiten-Formular nicht mehr änderbar.** Betrifft sowohl neu über den Listentyp "Aufgabe" erstellte als auch bereits bestehende, über den Mathe-Generator erzeugte Listen — verhindert, dass die mit v3.3.25 eingeführte Lernrichtungs-Sperre bei Mathe-Listen durch nachträgliches Umbenennen der Sprachen ausgehebelt wird. Name, Beschreibung und Öffentlich/Privat bleiben weiterhin normal editierbar.
+
+---
+
 ## [3.3.25] - 2026-08-08
 
 ### Verbessert
