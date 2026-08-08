@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.3.25] - 2026-08-08
+
+### Verbessert
+- **Lernrichtung bei Mathe-Listen auf "Aufgabe → Ergebnis" beschränkt.** Die mit v3.3.11 eingeführte Richtungswahl (A→B, B→A, Gemischt, Zufall) ist bei Mathe-Listen (Multiplikation/Division aus dem Mathe-Generator) unpassend — nur "Aufgabe → Ergebnis" ergibt Sinn. Ist auf der Konfigurationsseite (Leitner und Drill) ausschliesslich eine oder mehrere Mathe-Listen ausgewählt, werden die drei anderen Optionen ausgeblendet und "Aufgabe → Ergebnis" fest vorausgewählt, mit erklärendem Hinweistext. Wird zusätzlich eine Wortliste dazugewählt, bleiben alle vier Optionen verfügbar. Serverseitig zusätzlich erzwungen, unabhängig vom übermittelten Formularwert.
+
+---
+
 ## [3.3.24] - 2026-08-04
 
 ### Behoben

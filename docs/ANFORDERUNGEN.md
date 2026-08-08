@@ -202,6 +202,11 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 - Radio-Buttons stehen untereinander (nicht mehr nebeneinander in einer Zeile) — Reihenfolge von oben nach unten: A→B, B→A, Gemischt, Zufall
 - Die tatsächlich ausgewürfelte Richtung wird nirgends separat angezeigt (kein Debug- oder Info-Hinweis) — für den User macht sich das nur darin bemerkbar, welche Sprache auf der jeweiligen Karte oben bzw. unten erscheint
 
+### Lernrichtung bei Mathe-Listen _(v3.3.25)_
+- Bei Mathe-Listen (siehe "Mathe-Generator") ist nur "Aufgabe → Ergebnis" sinnvoll — die drei anderen Richtungen (Ergebnis→Aufgabe, Gemischt, Zufall) ergeben bei Rechenaufgaben keinen Sinn und werden auf der Konfigurationsseite (Leitner **und** Drill) ausgeblendet, sobald **ausschliesslich** Mathe-Listen ausgewählt sind — "Aufgabe → Ergebnis" ist dann fest vorausgewählt, dazu ein Hinweistext. Wird zusätzlich mindestens eine Wortliste ausgewählt (Listen mischen), bleiben alle vier Optionen verfügbar
+- Erkennung einer Mathe-Liste: `language_a === 'Aufgabe'` (Marker, den `math.php` beim Erstellen setzt) — kein eigenes DB-Feld, bewusst einfach gehalten, da `math.php` aktuell die einzige Stelle ist, die solche Listen erzeugt (`is_math_list()` in `includes/auth.php`)
+- Serverseitig zusätzlich erzwungen (nicht nur im Formular ausgeblendet): Ist die tatsächlich ausgewählte Listen-Kombination beim Session-Start ausschliesslich Mathe, wird die Richtung unabhängig vom übermittelten Formularwert auf `a_to_b` gesetzt
+
 ### Karten-Identität
 - Jede Karte erhält beim Erstellen eine **stabile `card_id`** in der Datenbank
 - Jede Person lernt nur mit **eigenen Karten** — entweder selbst erstellt oder als Kopie einer öffentlichen Liste

@@ -197,14 +197,22 @@ function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_p
 
 function start_drill_session(PDO $pdo, int $person_id, array $list_ids, string $direction, int $session_seconds): void {
     $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
-    $stmt = $pdo->prepare("SELECT id FROM lists WHERE id IN ($placeholders) AND person_id = ?");
+    $stmt = $pdo->prepare("SELECT id, language_a FROM lists WHERE id IN ($placeholders) AND person_id = ?");
     $stmt->execute(array_merge($list_ids, [$person_id]));
-    $valid_ids = array_column($stmt->fetchAll(), 'id');
+    $valid_rows = $stmt->fetchAll();
+    $valid_ids = array_column($valid_rows, 'id');
 
     if (!$valid_ids) {
         $_SESSION['flash_error'] = 'Keine gültige Liste ausgewählt.';
         header('Location: drill.php');
         exit;
+    }
+
+    // Besteht die Auswahl ausschliesslich aus Mathe-Listen, ist nur "Aufgabe → Ergebnis" sinnvoll —
+    // unabhängig vom Formularwert erzwingen (Formular blendet die anderen Optionen zwar aus, das
+    // ersetzt aber keine serverseitige Prüfung).
+    if (!array_filter($valid_rows, fn($r) => !is_math_list($r))) {
+        $direction = 'a_to_b';
     }
 
     $today = today();
@@ -666,6 +674,9 @@ $default_drill_minutes = (int) round(DRILL_SESSION_SECONDS / 60);
 <?php
 $lang_a = $preset_list ? htmlspecialchars($preset_list['language_a']) : 'A';
 $lang_b = $preset_list ? htmlspecialchars($preset_list['language_b']) : 'B';
+// Bei Mathe-Listen (siehe is_math_list()) ist nur "Aufgabe → Ergebnis" sinnvoll — die anderen
+// Richtungen werden ausgeblendet und a_to_b fest vorausgewählt.
+$is_math_preset = $preset_list && is_math_list($preset_list);
 ?>
 <form method="post">
     <?= csrf_field() ?>
@@ -701,21 +712,24 @@ $lang_b = $preset_list ? htmlspecialchars($preset_list['language_b']) : 'B';
         <label class="form-label fw-semibold">Lernrichtung</label>
         <div>
             <div class="form-check">
-                <input class="form-check-input" type="radio" name="direction" id="dir_ab" value="a_to_b">
+                <input class="form-check-input" type="radio" name="direction" id="dir_ab" value="a_to_b" <?= $is_math_preset ? 'checked' : '' ?>>
                 <label class="form-check-label" for="dir_ab" id="label_ab"><?= $lang_a ?> → <?= $lang_b ?></label>
             </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="direction" id="dir_ba" value="b_to_a">
-                <label class="form-check-label" for="dir_ba" id="label_ba"><?= $lang_b ?> → <?= $lang_a ?></label>
+            <div id="dir-other-options" class="<?= $is_math_preset ? 'd-none' : '' ?>">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="direction" id="dir_ba" value="b_to_a">
+                    <label class="form-check-label" for="dir_ba" id="label_ba"><?= $lang_b ?> → <?= $lang_a ?></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="direction" id="dir_mix" value="mixed">
+                    <label class="form-check-label" for="dir_mix">Gemischt</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="direction" id="dir_random" value="random" <?= $is_math_preset ? '' : 'checked' ?>>
+                    <label class="form-check-label" for="dir_random">Zufall</label>
+                </div>
             </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="direction" id="dir_mix" value="mixed">
-                <label class="form-check-label" for="dir_mix">Gemischt</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="direction" id="dir_random" value="random" checked>
-                <label class="form-check-label" for="dir_random">Zufall</label>
-            </div>
+            <p class="text-muted small mb-0 <?= $is_math_preset ? '' : 'd-none' ?>" id="dir-math-hint">Bei Mathe-Listen ist nur "Aufgabe → Ergebnis" sinnvoll.</p>
         </div>
     </div>
 
@@ -790,14 +804,24 @@ function adjustMinutes(delta) {
 // Richtungs-Labels bei Mehrfach-Listenauswahl dynamisch aktualisieren
 const langMap = <?= json_encode(array_combine(
     array_column($all_lists, 'id'),
-    array_map(fn($l) => ['a' => $l['language_a'], 'b' => $l['language_b']], $all_lists)
+    array_map(fn($l) => ['a' => $l['language_a'], 'b' => $l['language_b'], 'math' => is_math_list($l)], $all_lists)
 ), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 
 function updateDirLabels() {
-    const first = document.querySelector('input[name="list_ids[]"]:checked');
+    const checked = Array.from(document.querySelectorAll('input[name="list_ids[]"]:checked'));
+    const first = checked[0];
     const langs = first && langMap[first.value] ? langMap[first.value] : {a: 'A', b: 'B'};
     document.getElementById('label_ab').textContent = langs.a + ' → ' + langs.b;
     document.getElementById('label_ba').textContent = langs.b + ' → ' + langs.a;
+
+    // Nur wenn AUSSCHLIESSLICH Mathe-Listen ausgewählt sind, ist "Aufgabe → Ergebnis" die einzig
+    // sinnvolle Richtung — bei Mischauswahl mit Wortlisten bleiben alle Optionen verfügbar.
+    const allMath = checked.length > 0 && checked.every(cb => langMap[cb.value] && langMap[cb.value].math);
+    document.getElementById('dir-other-options').classList.toggle('d-none', allMath);
+    document.getElementById('dir-math-hint').classList.toggle('d-none', !allMath);
+    if (allMath) {
+        document.getElementById('dir_ab').checked = true;
+    }
 }
 
 document.querySelectorAll('input[name="list_ids[]"]').forEach(cb => {

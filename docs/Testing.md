@@ -346,3 +346,16 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Tatsächlich gestartete Session enthält so viele Karten wie in der Infobox angegeben (sofern sichtbar) bzw. die volle eingestellte Anzahl (sofern die Infobox nicht sichtbar war) — Infobox und reales Verhalten stimmen überein. _(v3.3.18)_
 
 ---
+
+## 30. Lernrichtung bei Mathe-Listen eingeschränkt _(v3.3.25)_
+
+[ ] Vorausgewählte Mathe-Liste (Klick auf "Leitner" bzw. "Drill" bei einer Multiplikations-/Divisionsliste von der Startseite, `list_id` in der URL) → Konfigurationsseite zeigt nur noch die Option "Aufgabe → Ergebnis", fest angehakt; die drei anderen Radio-Buttons (Ergebnis→Aufgabe, Gemischt, Zufall) sind nicht sichtbar, stattdessen der Hinweistext "Bei Mathe-Listen ist nur 'Aufgabe → Ergebnis' sinnvoll." _(v3.3.25)_
+[ ] Vorausgewählte Wortliste (nicht Mathe) → Verhalten unverändert, alle vier Optionen sichtbar wie bisher. _(v3.3.25)_
+[ ] Checkbox-Auswahl mehrerer Listen: nur Mathe-Listen angehakt (z.B. Multiplikation + Division gemeinsam) → beim Anhaken wechselt die Ansicht live auf nur "Aufgabe → Ergebnis" (fest angehakt) + Hinweistext, ohne Neuladen der Seite. Eine Wortliste zusätzlich anhaken → alle vier Optionen erscheinen live wieder. _(v3.3.25)_
+[ ] Checkbox-Auswahl mit Mathe-Liste als Erstes vorausgewählt (Standard: erste Liste in der Sortierung ist angehakt) → Konfigurationsseite zeigt beim ersten Laden bereits korrekt nur "Aufgabe → Ergebnis" (kein kurzes Aufblitzen aller vier Optionen). _(v3.3.25)_
+[ ] Session mit einer reinen Mathe-Listen-Auswahl tatsächlich starten → Karten erscheinen durchgehend mit "Aufgabe" oben und "Ergebnis" unten, nie umgekehrt und nie gemischt. _(v3.3.25)_
+[ ] Manuell gesendeter POST mit `direction=b_to_a` (oder `mixed`/`random`) bei einer ausschliesslich aus Mathe-Listen bestehenden Auswahl (z.B. manipuliertes Formular) → Server erzwingt trotzdem `a_to_b`, keine Karte erscheint mit "Ergebnis" oben. Gilt für Leitner UND Drill. _(v3.3.25)_
+[ ] Gilt identisch in Leitner (`learn.php`) und Drill (`drill.php`) — gleiches Verhalten in beiden Modi. _(v3.3.25)_
+[ ] Wortlisten (kein `language_a = 'Aufgabe'`) sind von alldem unberührt — Verhalten und alle vier Lernrichtungs-Optionen wie vor diesem Release. _(v3.3.25)_
+
+---

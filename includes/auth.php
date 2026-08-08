@@ -478,6 +478,14 @@ function get_question_answer(array $card, string $direction): array {
     ];
 }
 
+// Erkennt Mathe-Listen (math.php) anhand des dort gesetzten Markers language_a === 'Aufgabe' — es
+// gibt bewusst kein eigenes DB-Feld dafür, da math.php aktuell die einzige Stelle ist, die solche
+// Listen erzeugt. Genutzt von learn.php/drill.php, um bei Mathe-Listen nur "Aufgabe → Ergebnis" als
+// Lernrichtung zuzulassen (die anderen drei Richtungen ergeben bei Rechenaufgaben keinen Sinn).
+function is_math_list(array $list): bool {
+    return ($list['language_a'] ?? '') === 'Aufgabe';
+}
+
 // Löst die Lernrichtungs-Auswahl vom Setup-Formular (learn.php/drill.php) auf. 'random' ist kein
 // eigener Kartenmodus für get_question_answer(), sondern wird hier einmalig pro Session in eine
 // der drei echten Richtungen aufgelöst — die Session läuft danach durchgehend mit dieser einen
