@@ -149,7 +149,7 @@ function tool_add_cards(PDO $pdo, array $args): array {
         return tool_error('Maximal 50 Karten pro Aufruf erlaubt');
     }
 
-    $stmt = $pdo->prepare("SELECT id, name, language_a, language_b, speech_lang_b FROM lists WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT id, person_id, name, language_a, language_b, speech_lang_b FROM lists WHERE id = ?");
     $stmt->execute([$list_id]);
     $list = $stmt->fetch();
     if (!$list) {
@@ -165,6 +165,13 @@ function tool_add_cards(PDO $pdo, array $args): array {
     }
 
     $insert = $pdo->prepare("INSERT INTO cards (list_id, word_a, word_b, desc_a, desc_b, phonetic_b) VALUES (?,?,?,?,?,?)");
+    // Ohne diesen Eintrag würde die Karte in edit.php als "Warteschlange" angezeigt (COALESCE-Default),
+    // aber nie über activate_daily_cards() aktiviert und nie in home.php mitgezählt (dort INNER JOIN).
+    $insert_progress = $pdo->prepare("
+        INSERT INTO card_progress (person_id, card_id, status)
+        VALUES (?, ?, 'queued')
+        ON DUPLICATE KEY UPDATE status = status
+    ");
 
     $results = [];
     foreach ($cards as $i => $card) {
@@ -204,6 +211,8 @@ function tool_add_cards(PDO $pdo, array $args): array {
         }
 
         $insert->execute([$list_id, $wa, $wb, $da !== '' ? $da : null, $db !== '' ? $db : null, $ph !== '' ? $ph : null]);
+        $card_id = (int) $pdo->lastInsertId();
+        $insert_progress->execute([(int) $list['person_id'], $card_id]);
         $existing[$key] = ['word_a' => $wa, 'word_b' => $wb];
         $results[] = ['index' => $i, 'status' => 'inserted', 'card' => ['sprache_a_begriff' => $wa, 'sprache_b_begriff' => $wb]];
     }

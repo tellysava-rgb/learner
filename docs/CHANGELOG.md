@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.5.1] - 2026-08-12
+
+### Behoben
+- **MCP `add_cards` liess neue Karten ohne `card_progress`-Eintrag zurück.** Betroffene Karten wurden auf der Kartenübersicht (`edit.php`) fälschlich als "Warteschlange" angezeigt, tauchten aber auf der Startseite (`home.php`, andere Zähl-Abfrage) nicht auf und wurden von der täglichen Warteschlangen-Aktivierung nie berücksichtigt — sie wären also nie in einer Leitner-Session erschienen. `tool_add_cards()` legt jetzt beim Einfügen direkt einen `card_progress`-Eintrag (`status = 'queued'`) für die Besitzer:in der Liste an, wie es die übrigen Einfüge-Wege (`edit.php`, `import.php`, `discover.php`, Mathe-Generator) bereits tun. Zusätzlich per Migration rückwirkend für alle bereits betroffenen Bestandskarten nachgeholt.
+
+---
+
 ## [3.5.0] - 2026-08-09
 
 ### Neu

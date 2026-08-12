@@ -395,3 +395,12 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Browser-Konsole zeigt beim Laden der Seite sowie beim Klicken der Sprungmarken keine JavaScript-Fehler. _(v3.5.0)_
 
 ---
+
+## 33. Bugfix: MCP `add_cards` legte keinen `card_progress`-Eintrag an _(v3.5.1)_
+
+[ ] Über den MCP-Agenten (`add_cards`) eine neue Karte in eine Liste einfügen → auf `home.php` erscheint die Liste sofort mit "⏳ 1 in Warteschlange" (nicht "Keine in Warteschlange"). _(v3.5.1)_
+[ ] Dieselbe Karte auf `edit.php` → Status-Badge "Warteschlange", Filter "Warteschlange" zeigt die Karte. _(v3.5.1)_
+[ ] Eine Leitner-Session für diese Liste starten (Tageslimit noch nicht ausgeschöpft) → die per MCP eingefügte Karte wird als eine der täglich aktivierten Karten berücksichtigt (`leitner_box = 1`, `next_due_date = heute`). _(v3.5.1)_
+[ ] Bereits vor diesem Fix per MCP eingefügte Bestandskarten (fehlender `card_progress`-Eintrag): nach dem Deploy einmal eine beliebige Seite aufrufen (löst die Migration aus) → Karten erscheinen danach korrekt in der Warteschlange auf `home.php`. _(v3.5.1)_
+
+---
