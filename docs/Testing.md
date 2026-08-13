@@ -135,14 +135,14 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Drill, normale Karte (nicht vorgemerkt): Panel zeigt bei einer normalen Antwort BEIDE Zähler gleichzeitig ("Mastery-Zähler X/3" und "Zu-schwer-Zähler X/5", je auf eigener Zeile); wird die Karte in diesem Schritt gemeistert oder als zu schwer markiert, zeigt das Panel stattdessen nur die Fach-Änderung bzw. den Hinweis "als zu schwer markiert". _(v3.2.42)_
 [ ] Drill, vorgemerkte Karte: Panel zeigt den Vormerk-Zähler; wird die Vormerkung in diesem Schritt entfernt, vermerkt das Panel das explizit — Fach bleibt dabei laut Panel unverändert. _(v3.2.34)_
 [ ] War die beantwortete Karte die letzte der Drill-Session → Panel erscheint auf dem Abschluss-Screen. _(v3.2.34)_
-[ ] Drill, jede Antwort (alle Varianten oben): Panel zeigt als feste zweite Zeile "Karten der Session: T total · D im Deck · R Reserve · G gemeistert · P pausiert". _(v3.7.5)_
-[ ] **T = D+G+P** (OHNE Reserve): Sessionstart mit grosser Liste (z.B. 266 Karten), 5 Minuten, Standardwerte → Zeile zeigt "5 total · 5 im Deck · 261 Reserve · 0 gemeistert · 0 pausiert" — NICHT "266 total". _(v3.7.6 — Korrektur: in v3.7.5 zeigte T die ganze Listengrösse)_
+[ ] Drill, jede Antwort (alle Varianten oben): Panel zeigt als feste zweite Zeile "Karten der Session: T total · D im Deck · G gemeistert · P pausiert · R Reserve" (Reserve am Ende). _(v3.7.7)_
+[ ] **T = D+G+P** (OHNE Reserve): Sessionstart mit grosser Liste (z.B. 266 Karten), 5 Minuten, Standardwerte → Zeile zeigt "5 total · 5 im Deck · 0 gemeistert · 0 pausiert · 261 Reserve" — NICHT "266 total". _(v3.7.6 — Korrektur: in v3.7.5 zeigte T die ganze Listengrösse; Reihenfolge v3.7.7)_
 [ ] Gleiche Liste, 10 Minuten Timer → "10 total · 10 im Deck …" — T unterscheidet sich sichtbar je nach gewählter Timer-Länge. _(v3.7.6)_
 [ ] Karte wird gemeistert (3× richtig in Folge) → G steigt um 1, R sinkt um 1 (Nachschub), D bleibt konstant, **T wächst um 1**. _(v3.7.6)_
 [ ] Karte wird als zu schwer markiert (5× "musste nachdenken") → P steigt um 1, R sinkt um 1, D bleibt konstant, T wächst um 1. _(v3.7.6)_
 [ ] Reserve komplett aufgebraucht (R = 0), weitere Karte wird gemeistert/pausiert → D sinkt jetzt sichtbar, T bleibt in diesem Fall unverändert (keine neue Karte rückt mehr nach). _(v3.7.6)_
-[ ] Session mit mindestens einer vorgemerkten Karte → Zeile endet mit "· N vorgemerkt"; N zählt NICHT in T mit (Vormerkungen laufen ausserhalb der Rechnung). _(v3.7.5)_
-[ ] Session ganz ohne vorgemerkte Karten → KEIN "vorgemerkt"-Teil in der Zeile. _(v3.7.5)_
+[ ] Session mit mindestens einer vorgemerkten Karte → Zeile endet mit dem eigenständigen Zusatz "· (mit Pin: N)"; N zählt NICHT in T mit (Vormerkungen laufen ausserhalb der Rechnung). _(v3.7.7)_
+[ ] Session ganz ohne vorgemerkte Karten → KEIN "(mit Pin: …)"-Teil in der Zeile. _(v3.7.7)_
 [ ] Wird die Vormerkung einer Karte während der Session entfernt (Pin-Button oder automatisch nach 3× richtig), sinkt N entsprechend — T, D, R, G, P bleiben davon unberührt. _(v3.7.5)_
 [ ] Debug-Modus aktiv, aber als NICHT-Admin eingeloggt (z.B. andere Person im selben Haushalt): kein Panel sichtbar, keinerlei Unterschied zum ausgeschalteten Zustand. _(v3.2.34)_
 [ ] Debug-Modus deaktiviert: kein Panel sichtbar, auch nicht für Admins. _(v3.2.34)_

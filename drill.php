@@ -260,20 +260,21 @@ function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_p
 }
 
 // Baut die Deckgrössen-Zeile des Debug-Panels:
-//   "Karten der Session: T total · D im Deck · R Reserve · G gemeistert · P pausiert [· N vorgemerkt]"
+//   "Karten der Session: T total · D im Deck · G gemeistert · P pausiert · R Reserve [· (mit Pin: N)]"
 // T = D+G+P — die Karten, die diese Session tatsächlich in der Rotation hatte: startet bei der
 // Deckgrösse (Timer-Minuten × DRILL_CARDS_PER_MINUTE, min. DRILL_MIN_ACTIVE_CARDS) und wächst mit
 // jeder gemeisterten/pausierten Karte, für die eine neue aus der Reserve nachrückt. Bewusst OHNE
 // die Reserve (Korrektur v3.7.6): bei grossen Listen ist die riesig (ganze Liste minus Deck) und
 // machte T zu einer statischen, Timer-unabhängigen Zahl ohne Aussagekraft für die Session — die
-// Reserve steht als eigene Zahl daneben. Vorgemerkte Karten laufen ausserhalb dieser Rechnung
-// (eigener Topf ohne Begrenzung) und erscheinen nur, wenn welche vorhanden sind.
+// Reserve steht als eigene Zahl am Ende der Aufzählung. Vorgemerkte Karten laufen ausserhalb
+// dieser Rechnung (eigener Topf ohne Begrenzung, rotiert immer aktiv mit) und erscheinen als
+// eigenständiger "(mit Pin: N)"-Zusatz ganz am Schluss — nur, wenn welche vorhanden sind.
 function debug_deck_line(array $deck): string {
     $total = $deck['deck'] + $deck['mastered'] + $deck['paused'];
-    $line  = "Karten der Session: {$total} total · {$deck['deck']} im Deck · {$deck['reserve']} Reserve"
-           . " · {$deck['mastered']} gemeistert · {$deck['paused']} pausiert";
+    $line  = "Karten der Session: {$total} total · {$deck['deck']} im Deck"
+           . " · {$deck['mastered']} gemeistert · {$deck['paused']} pausiert · {$deck['reserve']} Reserve";
     if ($deck['pinned'] > 0) {
-        $line .= " · {$deck['pinned']} vorgemerkt";
+        $line .= " · (mit Pin: {$deck['pinned']})";
     }
     return $line;
 }

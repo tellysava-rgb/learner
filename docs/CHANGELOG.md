@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.7.7] - 2026-08-13
+
+### Verbessert
+- **Debug-Zeile umsortiert: Reserve ans Ende, Pin-Angabe als eigenständiger Zusatz.** Neues Format: "Karten der Session: 36 total · 10 im Deck · 26 gemeistert · 0 pausiert · 230 Reserve · (mit Pin: 2)" — die Session-Zahlen (total/Deck/gemeistert/pausiert) stehen jetzt zusammen vorn, der Listen-Vorrat (Reserve) dahinter, und vorgemerkte Karten erscheinen als "(mit Pin: N)" ganz am Schluss (nur wenn vorhanden).
+
+---
+
 ## [3.7.6] - 2026-08-13
 
 ### Behoben
