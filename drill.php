@@ -155,6 +155,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
 }
 
 // -------------------------------------------------------
+// POST: "Für Drill vormerken" umschalten (während Session) — analog zum Pin-Toggle in learn.php.
+// Nur die aktuell angezeigte Karte darf umgeschaltet werden (verhindert Manipulation fremder
+// Karten über eine gefälschte card_id). Rührt Queue/Stats der laufenden Session nicht an, ausser
+// dem pool_pinned-Zustand: eine Karte gehört exklusiv zu genau einem Pool (siehe load_drill_pool),
+// daher beim Vormerken zusätzlich aus pool_known/pool_new entfernen. Beim Aufheben bleibt die Karte
+// analog zum automatischen Unpin in pin_progress_correct() ausserhalb aller Pools für den Rest der
+// Session — sie taucht in einer künftigen Session über load_drill_pool() wieder als bekannte Karte auf.
+// -------------------------------------------------------
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggle_pin' && isset($_SESSION['drill'])) {
+    csrf_validate();
+
+    $state   = &$_SESSION['drill'];
+    $card_id = intval($_POST['card_id'] ?? 0);
+
+    if ($card_id !== ($state['current_card_id'] ?? null)) {
+        header('Location: drill.php');
+        exit;
+    }
+
+    $stmt = $pdo->prepare("SELECT drill_pinned_correct FROM card_progress WHERE person_id = ? AND card_id = ?");
+    $stmt->execute([$person_id, $card_id]);
+    $is_pinned = $stmt->fetchColumn() !== null;
+
+    if ($is_pinned) {
+        $stmt = $pdo->prepare("UPDATE card_progress SET drill_pinned_correct = NULL WHERE person_id = ? AND card_id = ?");
+        $stmt->execute([$person_id, $card_id]);
+        $state['pool_pinned'] = array_values(array_filter($state['pool_pinned'], fn($id) => $id !== $card_id));
+    } else {
+        $stmt = $pdo->prepare("UPDATE card_progress SET drill_pinned_correct = 0 WHERE person_id = ? AND card_id = ?");
+        $stmt->execute([$person_id, $card_id]);
+        $state['pool_known'] = array_values(array_filter($state['pool_known'], fn($id) => $id !== $card_id));
+        $state['pool_new']   = array_values(array_filter($state['pool_new'], fn($id) => $id !== $card_id));
+        if (!in_array($card_id, $state['pool_pinned'], true)) {
+            $state['pool_pinned'][] = $card_id;
+        }
+    }
+
+    header('Location: drill.php');
+    exit;
+}
+
+// -------------------------------------------------------
 // Hilfsfunktionen
 // -------------------------------------------------------
 
@@ -593,10 +635,17 @@ $default_drill_minutes = (int) round(DRILL_SESSION_SECONDS / 60);
 <!-- ==================== KARTE ==================== -->
 
 <div class="learn-card mx-auto mb-4 position-relative" id="flip-card" style="max-width:540px; cursor:pointer;" onclick="flipCard()">
-    <?php if ($card_data['drill_pinned_correct'] !== null): ?>
-    <span class="position-absolute btn btn-sm btn-primary rounded-circle" style="top:8px; left:8px; z-index:2;"
-          title="Für Drill vorgemerkt"><i class="bi bi-pin-angle-fill"></i></span>
-    <?php endif; ?>
+    <?php $is_pinned = $card_data['drill_pinned_correct'] !== null; ?>
+    <form method="post" id="pin-form" class="position-absolute" style="top:8px; left:8px; z-index:2;">
+        <?= csrf_field() ?>
+        <input type="hidden" name="action" value="toggle_pin">
+        <input type="hidden" name="card_id" value="<?= (int)$card_data['id'] ?>">
+        <button type="submit" class="btn btn-sm <?= $is_pinned ? 'btn-primary' : 'btn-outline-secondary' ?> rounded-circle"
+                onclick="event.stopPropagation();"
+                title="<?= $is_pinned ? 'Vormerkung entfernen' : 'Für Drill vormerken' ?>">
+            <i class="bi <?= $is_pinned ? 'bi-pin-angle-fill' : 'bi-pin-angle' ?>"></i>
+        </button>
+    </form>
     <div class="text-center p-5" style="min-height:280px;">
         <p class="text-muted small mb-2"><?= htmlspecialchars($qa['q_lang']) ?></p>
         <div class="fw-bold fs-2 mb-1">
@@ -779,8 +828,26 @@ window.addEventListener('pageshow', function (e) {
     if (e.persisted) window.location.reload();
 });
 
+// speechSynthesis spielt auf iOS/Android sonst nur über Kopfhörer bzw. den Ohrhörer statt über den
+// Lautsprecher, weil die Audio-Session des Geräts dafür nicht aktiviert ist. Trick: einmalig (im
+// selben Klick-Handler, iOS verlangt eine User-Geste) ein kurzes stummes <audio>-Element abspielen —
+// das zwingt die Audio-Session auf die Kategorie "playback", danach läuft speechSynthesis normal
+// über den Lautsprecher. Auf Desktop-Browsern tritt das Problem nicht auf, dort bleibt es beim
+// bisherigen Verhalten.
+var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+var isAndroid = /Android/i.test(navigator.userAgent);
+var audioSessionUnlocked = false;
+
+function unlockAudioSession() {
+    if (audioSessionUnlocked) return;
+    audioSessionUnlocked = true;
+    var silence = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=');
+    silence.play().catch(function () {});
+}
+
 function speakWord(btn) {
     if (!('speechSynthesis' in window)) return;
+    if (isIOS || isAndroid) unlockAudioSession();
     var text = btn.dataset.speak;
     var lang = btn.dataset.lang;
     var u = new SpeechSynthesisUtterance(text);
@@ -860,6 +927,27 @@ function flipCard() {
     });
     document.getElementById('confirmLeave').addEventListener('click', function () {
         if (target) window.location.href = 'drill.php?action=abort&to=' + encodeURIComponent(target);
+    });
+})();
+
+// Vormerken per Fetch statt normalem Form-Submit — ein voller Seiten-Reload würde die aufgedeckte
+// Antwort (rein clientseitiger Zustand, siehe flipCard()) wieder verstecken. Analog zu learn.php.
+(function () {
+    var form = document.getElementById('pin-form');
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var btn  = form.querySelector('button');
+        var icon = btn.querySelector('i');
+        fetch('drill.php', { method: 'POST', body: new FormData(form) }).then(function (res) {
+            if (!res.ok) return;
+            var wasPinned = icon.classList.contains('bi-pin-angle-fill');
+            icon.classList.toggle('bi-pin-angle-fill', !wasPinned);
+            icon.classList.toggle('bi-pin-angle', wasPinned);
+            btn.classList.toggle('btn-primary', !wasPinned);
+            btn.classList.toggle('btn-outline-secondary', wasPinned);
+            btn.title = wasPinned ? 'Für Drill vormerken' : 'Vormerkung entfernen';
+        });
     });
 })();
 <?php endif; ?>

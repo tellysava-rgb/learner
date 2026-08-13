@@ -861,8 +861,26 @@ window.addEventListener('pageshow', function (e) {
 })();
 <?php endif; ?>
 
+// speechSynthesis spielt auf iOS/Android sonst nur über Kopfhörer bzw. den Ohrhörer statt über den
+// Lautsprecher, weil die Audio-Session des Geräts dafür nicht aktiviert ist. Trick: einmalig (im
+// selben Klick-Handler, iOS verlangt eine User-Geste) ein kurzes stummes <audio>-Element abspielen —
+// das zwingt die Audio-Session auf die Kategorie "playback", danach läuft speechSynthesis normal
+// über den Lautsprecher. Auf Desktop-Browsern tritt das Problem nicht auf, dort bleibt es beim
+// bisherigen Verhalten.
+var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+var isAndroid = /Android/i.test(navigator.userAgent);
+var audioSessionUnlocked = false;
+
+function unlockAudioSession() {
+    if (audioSessionUnlocked) return;
+    audioSessionUnlocked = true;
+    var silence = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=');
+    silence.play().catch(function () {});
+}
+
 function speakWord(btn) {
     if (!('speechSynthesis' in window)) return;
+    if (isIOS || isAndroid) unlockAudioSession();
     var text = btn.dataset.speak;
     var lang = btn.dataset.lang;
     var u = new SpeechSynthesisUtterance(text);

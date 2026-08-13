@@ -41,7 +41,7 @@ Referenzgerät: iPhone 15 Pro Max (430 px Breite), gegengeprüft bei 375 px. Ans
 - **E-Mail-Format serverseitig validiert** — auch im „Konto"-Modal (`change_own_email`), nicht nur in `users.php`: der Wert wird später als Empfänger an `mail()` übergeben
 - **Redirect-Ziele auf die eigene Anwendung begrenzt** (`safe_redirect_target()` in `auth.php`, genutzt für die Rücksprung-URL der Navbar-Aktionen) — absolute und protokoll-relative Ziele sowie CR/LF werden verworfen, gleiche Absicherung wie in `learn.php`/`drill.php`
 - **Kartenbesitz auch bei Fortschritts-Aktionen geprüft** (`edit.php`, Archivieren/Reaktivieren): die `card_id` muss zur geprüften Liste gehören, sonst liessen sich eigene `card_progress`-Einträge für fremde Karten anlegen
-- **`stats.php`** akzeptiert nur eigene `list_id` — eine fremde/unbekannte ID leitet auf die erste eigene Liste um (statt in einen „alle Listen"-Modus zu fallen, den es nicht gibt)
+- **`stats.php`** akzeptiert nur eigene `list_id` — eine fremde/unbekannte ID leitet auf die globale Ansicht (ohne `list_id`) um
 
 ---
 
@@ -163,6 +163,7 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 - **Validierung beim Speichern:** Sprachteil gegen ISO-639-1, Regionsteil gegen ISO-3166-1 geprüft (z.B. `en-UK` wird abgelehnt, da "UK" kein gültiger ISO-3166-1-Code ist — korrekt ist `en-GB`). Gross-/Kleinschreibung wird automatisch normalisiert (z.B. `EN-gb` → `en-GB`)
 - Keine serverseitige Prüfung ob die Kombination Sprache+Region "sinnvoll" ist (z.B. `ja-DE` wäre technisch gültig, aber unüblich) — reine Formatprüfung
 - **Wiedergabe:** Auf Leitner- und Drill-Karten erscheint ein 🔊-Button überall dort, wo der Begriff in Sprache B angezeigt wird (Frage- oder Antwortseite, je nach Lernrichtung) — nutzt die browsereigene **Web Speech API** (`speechSynthesis`), liest den vorhandenen Kartentext (Sprache B) mit dem hinterlegten Code vor
+- **Lautsprecher-Fix für iOS/Android** _(v3.6.0)_: `speechSynthesis` spielt auf iOS/Android sonst nur über Kopfhörer bzw. Ohrhörer statt über den Lautsprecher, da die Audio-Session des Geräts dafür nicht aktiviert ist. Fix in `learn.php`/`drill.php`: vor der ersten Sprachausgabe wird — nur auf erkanntem iOS/Android (`navigator.userAgent`), nicht auf Desktop — einmalig ein kurzes stummes `<audio>`-Element abgespielt, das die Audio-Session auf die Kategorie "playback" zwingt. Betrifft nicht den Ausprobieren-Button auf der Hilfeseite (`help.php`) — dort bewusst unverändert, da reine Demo ausserhalb der eigentlichen Lernmodi.
 - Button erscheint **nur**, wenn die Liste einen Aussprache-Code hinterlegt hat — sonst kein Button
 - Bestehende Listen ohne Code: Button bleibt einfach aus, bis der Besitzer den Code einmalig über "Bearbeiten" nachträgt
 - Beim Kopieren einer öffentlichen Liste ("Entdecken") wird der Aussprache-Code der Quellliste automatisch mitkopiert
@@ -454,14 +455,19 @@ Zusätzlich zur automatischen Karten-Auswahl kann jede Karte einzeln manuell "f�
 werden — umschaltbar an zwei Stellen:
 - Kartenübersicht `edit.php`: Pin-Icon oben links auf der Karte in der Kartenansicht (Direktlink
   `edit.php?...&highlight=<id>`)
-- **Direkt während einer laufenden Leitner-Session** _(v3.2.41, per Fetch statt Seiten-Reload seit v3.3.10)_: derselbe runde Pin-Button oben
-  links auf der Lernkarte in `learn.php`, ausgefüllt wenn vorgemerkt. Klick schaltet die Vormerkung
-  sofort um, ohne die laufende Session zu unterbrechen (Queue/Fortschritt/Statistik bleiben
-  unverändert, dieselbe Karte wird danach weiterhin angezeigt). Läuft über `fetch()` statt eines
-  normalen Form-Submits, damit ein bereits aufgedeckter Kartenstatus (rein clientseitig über
-  `flipCard()`) beim Umschalten **nicht** zurückgesetzt wird — ein normaler Seiten-Reload hätte die
-  sichtbare Übersetzung sonst wieder versteckt (Bugfix v3.3.10). In `drill.php` bleibt das Symbol
-  bewusst rein anzeigend (nicht klickbar), da man dort bereits mitten im Drill ist.
+- **Direkt während einer laufenden Leitner- oder Drill-Session** _(v3.2.41, per Fetch statt
+  Seiten-Reload seit v3.3.10; in `drill.php` nachgezogen v3.6.0 — vorher dort nur rein anzeigend,
+  Vormerkung liess sich innerhalb einer laufenden Drill-Session nicht aufheben)_: derselbe runde
+  Pin-Button oben links auf der Lernkarte in `learn.php` bzw. `drill.php`, ausgefüllt wenn
+  vorgemerkt. Klick schaltet die Vormerkung sofort um, ohne die laufende Session zu unterbrechen
+  (Queue/Fortschritt/Statistik bleiben unverändert, dieselbe Karte wird danach weiterhin gezeigt).
+  Läuft über `fetch()` statt eines normalen Form-Submits, damit ein bereits aufgedeckter
+  Kartenstatus (rein clientseitig über `flipCard()`) beim Umschalten **nicht** zurückgesetzt wird —
+  ein normaler Seiten-Reload hätte die sichtbare Übersetzung sonst wieder versteckt (Bugfix
+  v3.3.10, analog in `drill.php` seit v3.6.0). In `drill.php` wird eine neu vorgemerkte Karte dabei
+  zusätzlich serverseitig aus dem laufenden `pool_known`/`pool_new` der Session entfernt (jede Karte
+  gehört exklusiv zu einem Pool), eine entfernte Vormerkung bleibt für den Rest der Session ausserhalb
+  aller Pools und taucht erst in der nächsten Session wieder auf.
 
 - Eigenes Feld `drill_pinned_correct` — **unabhängig von `drill_mastery`**. Grund: `drill_mastery`
   steuert über eine feste Fach-Zuordnung (`master_card()`) den Einstieg ins Leitner-System (siehe
@@ -589,7 +595,7 @@ werden — umschaltbar an zwei Stellen:
 
 ## Statistik-Dashboard
 
-Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler "Alle Listen"-Modus. Auswahl per Button oben — zeigt nur **aktive** Listen (`is_active = 1`), inaktive Listen erscheinen dort nicht zur Auswahl _(v3.2.13)_.
+Statistik startet ohne `list_id` mit der globalen Gesamtstatistik über alle eigenen Listen (Button "Alle Listen") _(v3.6.0; zuvor Auto-Redirect auf die erste eigene Liste, kein globaler Modus)_. Auswahl per Button oben — neben "Alle Listen" nur **aktive** Listen (`is_active = 1`), inaktive Listen erscheinen dort nicht zur Auswahl _(v3.2.13)_. Die globale Ansicht berücksichtigt Leitner- und Drill-Übersicht (Kartenanzahl pro Fach, Richtig/Falsch- bzw. Gewusst-Quote) über alle eigenen Listen; Lernaktivität (Streak, Heatmap) war schon zuvor immer global, unabhängig vom Filter.
 
 **Lernaktivität** _(v3.0.3)_ — eigene Karte oben, unabhängig vom Listen-Filter (zählt über alle Listen der Person):
 - Drei Kennzahlen nebeneinander: 🔥 Aktueller Streak, Lerntage gesamt (Anzahl distinkter Tage mit mindestens einer beantworteten Karte, je über alle Zeit), Beste Woche (maximale Anzahl Lerntage in einer einzelnen Kalenderwoche, Mo–So, über alle Zeit)
@@ -632,7 +638,7 @@ Statistik startet mit der ersten eigenen Liste vorausgewählt — kein globaler 
   4. Zwei separat überschriebene Accordion-Gruppen: **Grundlagen** (Login & Person, Wortlisten erstellen & verwalten, Wörter hinzufügen, Aufbau einer Lernkarte, Leitner-Modus, Drill-Modus) und **Fortgeschritten & mehr entdecken** (Aussprache: Audio & Lautschrift, Karten gezielt für Drill vormerken, Listen migrieren & organisieren, CSV-Import & KI-Prompt im Detail, Statistik & Heatmap im Detail, plus Admin-only: Einstellungen & Benutzerverwaltung, MCP-Server)
   - Alle Abschnitte sind beim Laden eingeklappt und lassen sich **unabhängig voneinander** öffnen — bewusst **kein** gemeinsames `data-bs-parent` mehr (anders als bis v3.4.1): mehrere Abschnitte können gleichzeitig offen bleiben, praktisch beim Vergleichen mehrerer Themen
 - **Aufbau einer Lernkarte** _(v3.3.2)_: Abschnitt innerhalb "Grundlagen" zwischen "Wörter hinzufügen" und "Leitner-Modus", da die Lernkarte in beiden Lernmodi identisch aussieht. Bebildert (Screenshot `img/learner-karte.png`) erklärt: oberer Teil = Frageseite, unterer Teil = per Antippen aufgedeckte Antwortseite (Sprachname, Begriff, optionale Beschreibung je Seite), Lautschrift + 🔊-Ausspracheknopf gehören immer zur fremdsprachigen Seite (Sprache B) unabhängig davon ob diese oben oder unten erscheint, Pin-Symbol oben links für "Für Drill vormerken".
-- **Karten gezielt für Drill vormerken** _(v3.5.0, vorher auf Leitner-/Drill-Abschnitt verteilt)_: eigener Abschnitt innerhalb "Fortgeschritten" bündelt die komplette Erklärung — beide Umschalt-Stellen (Kartenübersicht, laufende Leitner-Session), Priorität aus den Einstellungen, automatisches Entfernen der Vormerkung bei `DRILL_MASTERY_THRESHOLD`× richtiger Antwort in Folge, sowie neu ergänzt: eine vorgemerkte Karte wird bei "musste nachdenken" **nicht** als "zu schwer für heute" pausiert (anders als eine normale Karte) — dieser Unterschied fehlte vorher auf der Hilfeseite.
+- **Karten gezielt für Drill vormerken** _(v3.5.0, vorher auf Leitner-/Drill-Abschnitt verteilt; Umschalt-Stellen-Text v3.6.0 von zwei auf drei aktualisiert)_: eigener Abschnitt innerhalb "Fortgeschritten" bündelt die komplette Erklärung — alle Umschalt-Stellen (Kartenübersicht, laufende Leitner-Session, laufende Drill-Session), Priorität aus den Einstellungen, automatisches Entfernen der Vormerkung bei `DRILL_MASTERY_THRESHOLD`× richtiger Antwort in Folge, sowie neu ergänzt: eine vorgemerkte Karte wird bei "musste nachdenken" **nicht** als "zu schwer für heute" pausiert (anders als eine normale Karte) — dieser Unterschied fehlte vorher auf der Hilfeseite.
 - **Listen migrieren & organisieren** _(v3.5.0)_: eigener Abschnitt innerhalb "Fortgeschritten", bündelt das bereits dokumentierte Migrieren (inkl. Hinweis: keine Duplikat-Prüfung dabei, Button nur bei ≥2 eigenen Listen sichtbar) mit dem bisher auf der Hilfeseite gar nicht erklärten Aktiv-/Inaktiv-Setzen einer Liste (`lists.is_active`, siehe Abschnitt "Startseite") — inkl. Hinweis, dass der Umschalt-Button dafür auf der **Startseite** sitzt, nicht unter "Meine Listen" (wo der Migrieren-Button ist).
 - **CSV-Import & KI-Prompt im Detail** _(v3.5.0)_: eigener Abschnitt innerhalb "Fortgeschritten", ergänzt gegenüber der bisherigen Kurzfassung: dass der KI-Prompt ohne hinterlegten Aussprache-Dialekt die KI anweist nachzufragen statt die Lautschrift wegzulassen, dass bei Englisch ohne Dialekt-Angabe britisches Englisch der Standard ist, sowie die drei Optionen beim Reimport einer bereits archivierten Karte.
 - **Admin-only Abschnitte** _(v3.2.16)_: "Für Admins: Einstellungen & Benutzerverwaltung" und "Für Technik-Fans: Karten per KI-Agent verwalten" sind nur für Personen mit Admin-Status sichtbar (`$_SESSION['is_admin']`) — dadurch **13 Abschnitte für Admins, 11 für alle anderen** _(Stand v3.5.0; vorher 11/9 bis v3.4.1 — Zunahme durch die drei neuen/aufgeteilten Fortgeschritten-Abschnitte, nicht durch den Wegfall der "Einleitung" als Abschnitt)_

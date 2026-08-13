@@ -15,23 +15,17 @@ $stmt = $pdo->prepare("SELECT id, name, language_a, language_b FROM lists WHERE 
 $stmt->execute([$person_id]);
 $own_lists = $stmt->fetchAll();
 
-// Filter: Liste auswählen — ohne Auswahl zur ersten Liste springen
+// Filter: Liste auswählen — ohne Auswahl (list_id fehlt oder 0) zeigt die Seite die globale
+// Gesamtstatistik über alle eigenen Listen (siehe Auswertungen unten, jeweils else-Zweig).
 $filter_list_id = intval($_GET['list_id'] ?? 0);
-if (!$filter_list_id && $own_lists) {
-    header('Location: stats.php?list_id=' . $own_lists[0]['id']);
-    exit;
-}
 
-// Fremde/unbekannte list_id nicht übernehmen, sondern auf die erste eigene Liste umleiten.
-// Alle Auswertungen unten sind zusätzlich per person_id eingegrenzt, ein fremder Wert liefert
-// also ohnehin keine Daten — hier trotzdem sauber prüfen, damit die Seite wie alle anderen nur
-// eigene Listen akzeptiert (und nicht in einen "alle Listen"-Modus fällt, den es nicht gibt).
+// Fremde/unbekannte list_id nicht übernehmen, sondern auf die globale Ansicht umleiten. Alle
+// Auswertungen unten sind zusätzlich per person_id eingegrenzt, ein fremder Wert liefert also
+// ohnehin keine Daten — hier trotzdem sauber prüfen, damit die Seite wie alle anderen nur eigene
+// Listen akzeptiert.
 if ($filter_list_id && !in_array($filter_list_id, array_map('intval', array_column($own_lists, 'id')), true)) {
-    if ($own_lists) {
-        header('Location: stats.php?list_id=' . $own_lists[0]['id']);
-        exit;
-    }
-    $filter_list_id = 0;
+    header('Location: stats.php');
+    exit;
 }
 
 // -------------------------------------------------------
@@ -331,6 +325,10 @@ $drill_pct   = $drill_total > 0 ? round($drill_stats['known'] / $drill_total * 1
 
     <!-- Listen-Filter -->
     <div class="mb-4 d-flex gap-2 flex-wrap">
+        <a href="stats.php"
+           class="btn btn-sm <?= $filter_list_id === 0 ? 'btn-primary' : 'btn-outline-secondary' ?>">
+            Alle Listen
+        </a>
         <?php foreach ($own_lists as $list): ?>
         <a href="stats.php?list_id=<?= $list['id'] ?>"
            class="btn btn-sm <?= $filter_list_id === $list['id'] ? 'btn-primary' : 'btn-outline-secondary' ?>">

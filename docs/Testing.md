@@ -54,7 +54,7 @@ Jeder Abschnitt oder Test trägt einen Release-Verweis _(vX.Y.Z)_ — zeigt ab w
 [ ] `edit.php`: Reaktivieren mit fremder `card_id` (manueller POST) → ebenfalls abgelehnt. _(v3.2.23)_
 [ ] `edit.php`: Vormerken/Entfernen (`toggle_pin`) mit fremder `card_id` (manueller POST) → ebenfalls abgelehnt, kein `card_progress`-Eintrag entsteht. _(v3.2.30)_
 [ ] `edit.php`: Archivieren/Reaktivieren eigener Karten funktioniert unverändert. _(v3.2.23)_
-[ ] `stats.php?list_id=<fremde ID>` → Redirect auf die erste eigene Liste, keine fremden Daten, kein "alle Listen"-Modus. _(v3.2.23)_
+[ ] `stats.php?list_id=<fremde ID>` → Redirect auf die globale Ansicht (`stats.php` ohne `list_id`), keine fremden Daten sichtbar. _(v3.2.23, Redirect-Ziel geändert v3.6.0)_
 [ ] `math.php`: Liste mit `<b>`/`"` im Namen anlegen und Duplikat-Warnung auslösen → Name erscheint als Text, kein HTML wird interpretiert. _(v3.2.23)_
 [ ] Navbar-Aktionen (Logout, Passwort ändern, E-Mail ändern, Person wechseln) leiten weiterhin korrekt auf die Ausgangsseite zurück. _(v3.2.23)_
 
@@ -166,7 +166,7 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Klick auf den Pin-Button klappt die Karte NICHT um (kein versehentliches Aufdecken der Antwort). _(v3.2.41)_
 [ ] Manuell gesendeter POST mit `card_id` einer NICHT aktuell angezeigten Karte → wird ignoriert, kein `card_progress`-Eintrag entsteht/ändert sich. _(v3.2.41)_
 [ ] `edit.php`-Kartenansicht und Leitner-Session zeigen für dieselbe Karte konsistent denselben Vormerkungs-Status. _(v3.2.41)_
-[ ] In `drill.php` bleibt das Pin-Symbol weiterhin nur anzeigend (nicht klickbar) — bewusst kein Umschalten während einer laufenden Drill-Session. _(v3.2.41)_
+[ ] In `drill.php` ist das Pin-Symbol seit v3.6.0 ebenfalls klickbar (siehe eigener Abschnitt "Vormerken direkt in der Drill-Session"). _(v3.2.41, Verhalten geändert v3.6.0)_
 
 ## 14. Listenauswahl in der Leitner-Session zeigt nur aktive Listen _(v3.2.45)_
 
@@ -402,5 +402,44 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Dieselbe Karte auf `edit.php` → Status-Badge "Warteschlange", Filter "Warteschlange" zeigt die Karte. _(v3.5.1)_
 [ ] Eine Leitner-Session für diese Liste starten (Tageslimit noch nicht ausgeschöpft) → die per MCP eingefügte Karte wird als eine der täglich aktivierten Karten berücksichtigt (`leitner_box = 1`, `next_due_date = heute`). _(v3.5.1)_
 [ ] Bereits vor diesem Fix per MCP eingefügte Bestandskarten (fehlender `card_progress`-Eintrag): nach dem Deploy einmal eine beliebige Seite aufrufen (löst die Migration aus) → Karten erscheinen danach korrekt in der Warteschlange auf `home.php`. _(v3.5.1)_
+
+---
+
+## 34. Bugfix: Vormerken direkt in der Drill-Session _(v3.6.0)_
+
+[ ] Laufende Drill-Session: oben links auf der Karte erscheint ein runder, **klickbarer** Pin-Button (nicht nur ein Symbol wie vorher). _(v3.6.0)_
+[ ] Karte ist bereits vorgemerkt (z.B. vorher über `edit.php` gesetzt) → Klick auf den Pin-Button entfernt die Vormerkung (Icon wird zum Umriss), dieselbe Karte bleibt weiterhin angezeigt, die laufende Session (Timer, verbleibende Karten, Zähler) läuft unverändert weiter. _(v3.6.0 — der eigentliche gemeldete Bug)_
+[ ] Karte ist noch nicht vorgemerkt → Klick setzt die Vormerkung (Icon wird ausgefüllt); die Karte erscheint ab sofort priorisiert gemäss der konfigurierten Vormerkungs-Priorität, ohne dass die laufende Session unterbrochen wird. _(v3.6.0)_
+[ ] **Karte antippen, sodass die Übersetzung/Lösung aufgedeckt ist, dann den Pin-Button klicken** → die Kartenanzeige ändert sich dabei NICHT, die Lösung bleibt sichtbar (kein Zurückspringen auf die zugeklappte Vorderseite) — analog zum bereits bestehenden Verhalten in der Leitner-Session. Gilt in beide Richtungen (Vormerken wie Entfernen). _(v3.6.0)_
+[ ] Pin-Button-Klick bei zugeklappter Karte (Lösung noch nicht aufgedeckt) → Karte bleibt weiterhin zugeklappt. _(v3.6.0)_
+[ ] Klick auf den Pin-Button klappt die Karte NICHT um (kein versehentliches Aufdecken der Antwort). _(v3.6.0)_
+[ ] Das Vormerken/Entfernen zählt **nicht** als Antwort — "Gewusst"/"Musste nachdenken"-Zähler sowie die verbleibende Zeit bleiben unverändert. _(v3.6.0)_
+[ ] Manuell gesendeter POST mit `card_id` einer NICHT aktuell angezeigten Drill-Karte → wird ignoriert, kein `card_progress`-Eintrag entsteht/ändert sich. _(v3.6.0)_
+[ ] `edit.php`-Kartenansicht, Leitner-Session und Drill-Session zeigen für dieselbe Karte konsistent denselben Vormerkungs-Status. _(v3.6.0)_
+[ ] In der Drill-Session eine bisher unvorgemerkte, gerade angezeigte Karte vormerken, danach die Session bis zum Ende durchspielen → die frisch vorgemerkte Karte erscheint in dieser Session priorisiert (nicht nur ein einziges Mal), analog zu einer schon vor Sessionstart vorgemerkten Karte. _(v3.6.0)_
+[ ] Vormerkung einer aktuell im Drill gezeigten Karte über einen zweiten Tab (`edit.php`) entfernen, danach im ersten Tab (laufende Drill-Session) dieselbe Karte per Pin-Button erneut vormerken wollen → funktioniert wie ein normales Neu-Vormerken, kein inkonsistenter Zustand. _(v3.6.0)_
+
+## 35. Lautsprecher-Fix für Aussprache auf iOS/Android _(v3.6.0)_
+
+[ ] iPhone (Safari, Klingelton-Schalter auf lautlos ODER normal): 🔊-Button auf einer Leitner-Karte antippen → Aussprache ist über den Lautsprecher hörbar, nicht nur über angeschlossene Kopfhörer/AirPods. _(v3.6.0)_
+[ ] Dasselbe auf einer Drill-Karte. _(v3.6.0)_
+[ ] Android-Gerät: 🔊-Button auf Leitner- und Drill-Karte → Wiedergabe ebenfalls über den Lautsprecher. _(v3.6.0)_
+[ ] Erster 🔊-Klick in einer neuen Session löst keinen hörbaren zusätzlichen Ton/Knacken aus (das stumme Unlock-Audio ist wirklich lautlos). _(v3.6.0)_
+[ ] Mehrfaches Antippen des 🔊-Buttons hintereinander (verschiedene Karten) → jede Aussprache ist weiterhin normal hörbar, kein Aussetzer nach dem ersten Klick. _(v3.6.0)_
+[ ] Desktop-Browser (Chrome/Safari/Firefox): 🔊-Button funktioniert weiterhin wie bisher, keine erkennbare Verhaltensänderung. _(v3.6.0)_
+[ ] Hörprobe-Button auf der Hilfeseite (`help.php`, Abschnitt "Aussprache: Audio & Lautschrift") bleibt unverändert vom Fix unberührt (dort weiterhin nur die bisherige Logik, kein Unlock-Trick). _(v3.6.0)_
+[ ] Browser-Konsole zeigt beim Antippen des 🔊-Buttons auf iOS/Android keine JavaScript-Fehler. _(v3.6.0)_
+
+## 36. Globale Statistik über alle Listen _(v3.6.0)_
+
+[ ] `stats.php` ohne `list_id` aufrufen (z.B. über den "Statistik"-Button auf der Startseite oder das 🔥-Badge in der Navbar) → kein Redirect mehr auf die erste eigene Liste, stattdessen direkt die aggregierte Ansicht über alle eigenen Listen. _(v3.6.0)_
+[ ] Globale Ansicht: Leitner-Übersicht (Karten pro Fach, Warteschlange, Archiviert, Richtig/Falsch-Quote) summiert korrekt über alle eigenen Listen, nicht nur eine. _(v3.6.0)_
+[ ] Globale Ansicht: Drill-Übersicht (gemeisterte Karten, Gewusst-Quote) summiert ebenfalls korrekt über alle eigenen Listen. _(v3.6.0)_
+[ ] Filter-Buttons oberhalb der Übersicht: zusätzlicher Button "Alle Listen" ganz links, hervorgehoben (aktiv) wenn keine `list_id` gesetzt ist. _(v3.6.0)_
+[ ] Klick auf einen einzelnen Listen-Button → wie bisher listenspezifische Statistik, "Alle Listen" ist dabei nicht mehr hervorgehoben. _(v3.6.0)_
+[ ] Klick auf "Alle Listen" nach vorheriger Listenauswahl → zurück zur globalen Ansicht, URL ohne `list_id`. _(v3.6.0)_
+[ ] Lernaktivität (Streak, Lerntage, Beste Woche, Heatmap) zeigt in der globalen Ansicht dieselben Werte wie zuvor bei einer einzelnen Liste — war schon vorher immer global, unabhängig vom Filter, keine Verhaltensänderung dort. _(v3.6.0)_
+[ ] Person ohne eigene Listen → `stats.php` zeigt die globale Ansicht mit leeren/neutralen Werten (kein Fehler, kein Redirect-Loop). _(v3.6.0)_
+[ ] Person mit genau einer eigenen Liste → globale Ansicht und Einzellisten-Ansicht zeigen identische Zahlen (da inhaltlich dieselbe Menge Karten). _(v3.6.0)_
 
 ---

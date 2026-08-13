@@ -5,6 +5,19 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.6.0] - 2026-08-13
+
+### Neu
+- **Globale Statistik über alle Listen.** `stats.php` ohne `list_id` zeigt jetzt die aggregierte Leitner- und Drill-Übersicht über alle eigenen Listen statt automatisch auf die erste eigene Liste umzuleiten. Neuer Filter-Button "Alle Listen" neben den bisherigen Listen-Buttons; eine fremde/unbekannte `list_id` leitet neu auf die globale Ansicht statt auf die erste Liste um.
+
+### Verbessert
+- **Lautsprecher-Wiedergabe der Aussprache auf iOS/Android.** `speechSynthesis` spielte auf iOS/Android teils nur über Kopfhörer statt über den Lautsprecher, weil die Audio-Session des Geräts dafür nicht aktiviert war. In `learn.php`/`drill.php` wird jetzt — nur auf erkanntem iOS/Android, nicht auf Desktop — vor der ersten Sprachausgabe einmalig ein kurzes stummes Audio-Element abgespielt, das die Audio-Session freigibt.
+
+### Behoben
+- **Drill-Modus: aktive Vormerkung "für Drill vorgemerkt" liess sich nicht aufheben.** Der Pin war in `drill.php` bisher rein anzeigend. Jetzt gibt es dort denselben klickbaren Pin-Umschalter wie im Leitner-Modus (per Fetch statt Seiten-Reload, damit eine bereits aufgedeckte Karte aufgedeckt bleibt) — Vormerkung lässt sich direkt während der laufenden Drill-Session setzen und wieder entfernen.
+
+---
+
 ## [3.5.1] - 2026-08-12
 
 ### Behoben
