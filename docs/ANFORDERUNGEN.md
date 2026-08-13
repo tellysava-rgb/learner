@@ -415,6 +415,12 @@ Geeignet für: Mathe-Fakten, häufig vergessene Vokabeln, neue Wörter festigen.
 - Neu eingeführte Karten wandern in den rotierenden Pool und werden ab dann gemeinsam wiederholt
 - Das Mischen passiert im Hintergrund — der User sieht nur eine Karte nach der anderen
 
+### Aktiver Pool an Session-Länge gekoppelt _(v3.7.0)_
+- **Problem vorher:** Beim Sessionstart wurden **alle** infrage kommenden Karten der ausgewählten Liste(n) auf einmal in die Rotation geladen, unabhängig von der gewählten Timer-Dauer. Bei einer grossen Liste verdünnte sich dadurch die Wiederholung jeder einzelnen Karte so stark (Round-Robin über eine grosse Kartenmenge), dass die Mastery-Schwelle (Standard 3× hintereinander richtig) in einer kurzen Session praktisch nie erreicht wurde — selbst bei vielen richtig beantworteten Karten insgesamt.
+- **Lösung:** Der aktive Pool (bekannte + neue Karten, ohne vorgemerkte) wird beim Sessionstart auf `max(DRILL_MIN_ACTIVE_CARDS, Timer-Minuten × DRILL_CARDS_PER_MINUTE)` Karten begrenzt (`limit_active_pool()` in `drill.php`). Bekannte Karten (bereits mit Fortschritt) werden dabei bevorzugt behalten, neue Karten füllen den verbleibenden Platz. Überzählige Karten werden für diese Session einfach nicht berücksichtigt — kein Datenverlust, sie werden beim nächsten Sessionstart über `load_drill_pool()` neu geladen und ggf. dann einbezogen.
+- `DRILL_CARDS_PER_MINUTE` (Default 1.0, Einstellungen → Drill-Modus "Aktive Karten pro Minute", Bereich 0.2–10, Dezimalwert) ist konfigurierbar — höher bedeutet mehr Abwechslung pro Session, niedriger bedeutet häufigere Wiederholung derselben Karte und damit eine realistischere Chance, sie innerhalb einer Session zu meistern. `DRILL_MIN_ACTIVE_CARDS` (fix 5, nicht in den Einstellungen) verhindert ein zu kleines Deck bei sehr kurzen Sessions.
+- Vorgemerkte Karten (`pool_pinned`) sind von dieser Begrenzung ausgenommen — sie laufen weiterhin über ihre eigene Priorisierung (siehe "Manuelle Vormerkung für Drill").
+
 ### "Gemeistert"-Definition
 Eine Karte gilt als in dieser Session gemeistert wenn sie **3× hintereinander** mit "Gewusst" beantwortet wurde. "Musste nachdenken" setzt den Zähler auf 0 zurück.
 
@@ -519,6 +525,7 @@ werden — umschaltbar an zwei Stellen:
 | Drill | «Musste nachdenken»-Limit | `DRILL_TOO_HARD_LIMIT` | Bewertungen bis Karte aus Session entfernt wird | 1–20 |
 | Drill | Mastery-Schwelle | `DRILL_MASTERY_THRESHOLD` | Aufeinanderfolgende Korrekt-Antworten für «gemeistert» | 1–10 |
 | Drill | Bekannt/Neu-Verhältnis | `DRILL_KNOWN_RATIO` | Bekannte Karten pro neuer Karte in der Rotation | 1–30 |
+| Drill | Aktive Karten pro Minute | `DRILL_CARDS_PER_MINUTE` | Wie viele Karten pro Timer-Minute gleichzeitig in die Rotation genommen werden _(v3.7.0)_ | 0.2–10 (Dezimalwert) |
 
 ### Benutzerverwaltung _(v3.0.0)_
 - Kein eigener Passwort-Änderungs-Abschnitt mehr — das eigene Passwort ändert jede Person selbst über das "Konto"-Modal in der Navbar, siehe Abschnitt "Zugang / Benutzerverwaltung"

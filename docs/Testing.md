@@ -443,3 +443,18 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Person mit genau einer eigenen Liste → globale Ansicht und Einzellisten-Ansicht zeigen identische Zahlen (da inhaltlich dieselbe Menge Karten). _(v3.6.0)_
 
 ---
+
+## 37. Bugfix: aktiver Drill-Pool an Session-Länge gekoppelt _(v3.7.0)_
+
+[ ] Grosse Liste (deutlich mehr Karten als "Aktive Karten pro Minute" × Timer-Minuten ergibt, z.B. 50+ Karten bei Standardwerten und einer kurzen Session), noch nie gedrillt → kurze Drill-Session (z.B. 5–7 Min.) durchspielen, dabei konsequent richtig antworten → mindestens eine Karte wird "gemeistert" (vorher: praktisch nie bei grossen Listen). _(v3.7.0 — der eigentliche gemeldete Bug)_
+[ ] Dieselbe grosse Liste, deutlich längerer Timer (z.B. 30–60 Min.) → spürbar mehr unterschiedliche Karten kommen im Verlauf der Session dran als bei der kurzen Session (aktiver Pool wächst mit den Minuten). _(v3.7.0)_
+[ ] Kleine Liste (weniger Karten als der berechnete aktive Pool) → Verhalten unverändert zu vorher, alle eligiblen Karten sind wie gewohnt sofort im Umlauf, keine merkliche Einschränkung. _(v3.7.0)_
+[ ] Einstellungen → Drill-Modus: "Aktive Karten pro Minute" ist änderbar (Dezimalwert, z.B. 0.5 oder 2.5), wirkt sich unmittelbar auf die nächste Drill-Session aus. _(v3.7.0)_
+[ ] Wert ausserhalb 0.2–10 eingeben (z.B. 0 oder 15) → Fehlermeldung, Einstellungen werden nicht gespeichert (auch die anderen geänderten Felder im selben Formular nicht). _(v3.7.0)_
+[ ] Wert mit Komma statt Punkt eingeben (z.B. "1,5", je nach Spracheinstellung des Browsers beim `number`-Feld möglich) → wird korrekt als 1.5 interpretiert und gespeichert, keine Fehlermeldung. _(v3.7.0)_
+[ ] Vorgemerkte Karten ("für Drill vorgemerkt") sind von der Pool-Begrenzung ausgenommen — bei einer grossen Liste mit mehreren vorgemerkten Karten erscheinen weiterhin alle vorgemerkten Karten priorisiert, unabhängig vom eingestellten "Aktive Karten pro Minute"-Wert. _(v3.7.0)_
+[ ] Sehr kurze Session (z.B. 1 Min.) bei niedrigem "Aktive Karten pro Minute"-Wert (z.B. 0.2) → aktiver Pool ist trotzdem nicht kleiner als 5 Karten (`DRILL_MIN_ACTIVE_CARDS`), sofern die Liste mindestens so viele Karten hat. _(v3.7.0)_
+[ ] Nach einer Session mit überzähligen, nicht berücksichtigten Karten (grosse Liste, Pool begrenzt) erneut eine Session mit derselben Liste starten → vorher nicht berücksichtigte Karten sind diesmal (ggf. neben anderen) wieder wählbar, keine Karte geht dauerhaft verloren. _(v3.7.0)_
+[ ] `help.php`, Abschnitt "Drill-Modus": Beschreibung "wenige Karten gleichzeitig im Umlauf" stimmt jetzt tatsächlich mit dem Verhalten überein (war zuvor bei grossen Listen bereits so beschrieben, aber nicht durchgesetzt). _(v3.7.0)_
+
+---

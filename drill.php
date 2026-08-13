@@ -259,6 +259,7 @@ function start_drill_session(PDO $pdo, int $person_id, array $list_ids, string $
 
     $today = today();
     ['known' => $pool_known, 'new' => $pool_new, 'pinned' => $pool_pinned] = load_drill_pool($pdo, $person_id, $valid_ids, $today);
+    limit_active_pool($pool_known, $pool_new, $session_seconds);
 
     if (!$pool_known && !$pool_new && !$pool_pinned) {
         $_SESSION['flash_error'] = 'Keine geeigneten Karten für Drill in dieser Liste.';
@@ -340,6 +341,28 @@ function load_drill_pool(PDO $pdo, int $person_id, array $list_ids, string $toda
         }
     }
     return ['known' => $known, 'new' => $new, 'pinned' => $pinned];
+}
+
+// Begrenzt den aktiven Pool (known+new, ohne pinned) auf eine an die Session-Länge gekoppelte
+// Grösse — sonst wird bei einer grossen Liste sofort die komplette Liste in die Rotation geladen
+// und die Wiederholung jeder einzelnen Karte verdünnt sich so stark, dass die Mastery-Schwelle
+// (X× hintereinander richtig) in einer kurzen Session praktisch nie erreicht wird (siehe
+// DRILL_CARDS_PER_MINUTE in config.php). Beide Arrays kommen bereits per SQL RAND() sortiert aus
+// load_drill_pool() — ein einfaches Abschneiden ist damit schon eine Zufallsauswahl, kein erneutes
+// Mischen nötig. Bekannte Karten (bereits mit Fortschritt) werden bevorzugt behalten, neue Karten
+// füllen den verbleibenden Platz auf; überzählige Karten aus beiden Pools bleiben für diese Session
+// einfach unberücksichtigt und werden beim nächsten Sessionstart über load_drill_pool() neu geladen.
+function limit_active_pool(array &$pool_known, array &$pool_new, int $session_seconds): void {
+    $minutes = $session_seconds / 60;
+    $max_active = max(DRILL_MIN_ACTIVE_CARDS, (int) round($minutes * DRILL_CARDS_PER_MINUTE));
+
+    if (count($pool_known) + count($pool_new) <= $max_active) {
+        return;
+    }
+
+    $keep_known = min(count($pool_known), $max_active);
+    $pool_known = array_slice($pool_known, 0, $keep_known);
+    $pool_new   = array_slice($pool_new, 0, max(0, $max_active - $keep_known));
 }
 
 // Wählt die nächste Karte. Vorgemerkte Karten (pool_pinned) werden priorisiert eingeschoben:

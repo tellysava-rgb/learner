@@ -1,7 +1,10 @@
 <?php
-define('APP_VERSION', '3.6.0');
+define('APP_VERSION', '3.7.0');
 define('TIMEZONE', 'Europe/Zurich');
 define('LEITNER_INTERVALS', [1 => 1, 2 => 2, 3 => 7, 4 => 14, 5 => 30]);
+// Untere Grenze für den aktiven Drill-Pool (siehe DRILL_CARDS_PER_MINUTE) — auch eine sehr kurze
+// Session bekommt noch ein sinnvoll grosses Arbeitsdeck statt z.B. nur 1-2 Karten.
+define('DRILL_MIN_ACTIVE_CARDS', 5);
 date_default_timezone_set(TIMEZONE);
 
 // Laufzeit-Einstellungen: aus config-runtime.php laden wenn vorhanden (gitignored, nie deployed)
@@ -30,6 +33,15 @@ $_rt = [
     'DRILL_TOO_HARD_LIMIT'   => 5,
     'DRILL_MASTERY_THRESHOLD'=> 3,
     'DRILL_KNOWN_RATIO'      => 9,
+
+    // Begrenzt, wie viele Karten pro Session überhaupt in die Rotation genommen werden — an die
+    // Timer-Minuten gekoppelt (aktiver Pool = max(DRILL_MIN_ACTIVE_CARDS, Minuten × dieser Wert)).
+    // Ohne diese Grenze wird die komplette Liste auf einmal geladen: bei einer grossen Liste
+    // verdünnt sich die Wiederholung jeder einzelnen Karte so stark, dass "3× hintereinander
+    // richtig" (Mastery-Schwelle) in einer kurzen Session kaum je erreicht wird, egal wie viele
+    // Karten insgesamt beantwortet wurden. Überzählige Karten bleiben einfach liegen und werden
+    // in einer künftigen Session neu geladen (kein Datenverlust, nur zeitlich gestreckt).
+    'DRILL_CARDS_PER_MINUTE' => 1.0,
 
     // Priorität "Für Drill vormerken": 'absolute' = vorgemerkte Karte immer zuerst (solange
     // welche vorgemerkt sind), 'weighted' = alle DRILL_PIN_RATIO Karten eine vorgemerkte

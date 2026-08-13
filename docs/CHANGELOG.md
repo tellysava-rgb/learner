@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.7.0] - 2026-08-13
+
+### Behoben
+- **Drill-Modus: praktisch keine Karte wurde gemeistert, obwohl viele richtig beantwortet wurden.** Ursache: der aktive Pool wurde beim Sessionstart mit der kompletten Liste befüllt statt an die Timer-Dauer gekoppelt zu sein — bei einer grossen Liste verdünnte sich die Wiederholung jeder Karte so stark, dass die Mastery-Schwelle (Standard 3× hintereinander richtig) kaum je erreicht wurde. Der aktive Pool wird jetzt beim Sessionstart auf eine an die Timer-Minuten gekoppelte Grösse begrenzt (`limit_active_pool()`), überzählige Karten folgen in einer künftigen Session. Neue Einstellung "Aktive Karten pro Minute" (`DRILL_CARDS_PER_MINUTE`, Default 1.0) unter Einstellungen → Drill-Modus steuert das Tempo.
+
+---
+
 ## [3.6.0] - 2026-08-13
 
 ### Neu

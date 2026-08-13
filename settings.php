@@ -62,6 +62,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pin_mode = 'weighted';
         }
 
+        // Karten pro Minute (Dezimalwert, daher ausserhalb der int_fields-Schleife)
+        $cards_per_minute = (float) str_replace(',', '.', trim($_POST['drill_cards_per_minute'] ?? ''));
+        if ($cards_per_minute < 0.2 || $cards_per_minute > 10) {
+            $errs[] = 'Aktive Karten pro Minute: Wert muss zwischen 0.2 und 10 liegen.';
+        }
+
         if (empty($errs)) {
             $drill_sec   = $vals['drill_minutes'] * 60;
 
@@ -76,6 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'DRILL_TOO_HARD_LIMIT'   => $vals['drill_too_hard'],
                 'DRILL_MASTERY_THRESHOLD'=> $vals['drill_mastery'],
                 'DRILL_KNOWN_RATIO'      => $vals['drill_known_ratio'],
+                'DRILL_CARDS_PER_MINUTE' => $cards_per_minute,
                 'DRILL_PIN_MODE'         => $pin_mode,
                 'DRILL_PIN_RATIO'        => $vals['drill_pin_ratio'],
                 'DEBUG_MODE'             => DEBUG_MODE,
@@ -144,6 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'DRILL_TOO_HARD_LIMIT'   => DRILL_TOO_HARD_LIMIT,
             'DRILL_MASTERY_THRESHOLD'=> DRILL_MASTERY_THRESHOLD,
             'DRILL_KNOWN_RATIO'      => DRILL_KNOWN_RATIO,
+            'DRILL_CARDS_PER_MINUTE' => DRILL_CARDS_PER_MINUTE,
             'DRILL_PIN_MODE'         => DRILL_PIN_MODE,
             'DRILL_PIN_RATIO'        => DRILL_PIN_RATIO,
             'DEBUG_MODE'             => $debug_mode,
@@ -186,6 +194,7 @@ $cur_drill_min   = (int) round(DRILL_SESSION_SECONDS / 60);
 $cur_too_hard    = DRILL_TOO_HARD_LIMIT;
 $cur_mastery     = DRILL_MASTERY_THRESHOLD;
 $cur_known_ratio = DRILL_KNOWN_RATIO;
+$cur_cards_per_minute = DRILL_CARDS_PER_MINUTE;
 $cur_pin_mode    = DRILL_PIN_MODE;
 $cur_pin_ratio   = DRILL_PIN_RATIO;
 $cur_debug_mode  = DEBUG_MODE;
@@ -391,6 +400,19 @@ $cur_debug_mode  = DEBUG_MODE;
                                name="drill_known_ratio" value="<?= $cur_known_ratio ?>"
                                min="1" max="30" style="width:68px;">
                         <span class="text-muted small">Karten</span>
+                    </div>
+                </div>
+
+                <div class="list-group-item settings-row d-flex align-items-center gap-3 py-2">
+                    <div class="flex-grow-1">
+                        <span class="fw-medium">Aktive Karten pro Minute</span>
+                        <span class="text-muted small ms-2">Wie viele Karten pro Timer-Minute gleichzeitig in die Rotation genommen werden (Rest folgt in einer künftigen Session) — höher = mehr Abwechslung, niedriger = häufigere Wiederholung derselben Karte und damit realistischere Chance auf "gemeistert" innerhalb einer Session</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                        <input type="number" class="form-control form-control-sm text-end"
+                               name="drill_cards_per_minute" value="<?= $cur_cards_per_minute ?>"
+                               min="0.2" max="10" step="0.1" style="width:68px;">
+                        <span class="text-muted small">Karten/Min.</span>
                     </div>
                 </div>
 
