@@ -191,6 +191,12 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Normaler Deploy ohne parallele Last funktioniert weiterhin unverändert: Statusanzeige, "Deploy starten", Erfolgsmeldung mit Anzahl kopierter/übersprungener Dateien. _(v3.2.46)_
 [ ] Nach einem Deploy sind geschützte Dateien (`db-credentials.php`, `config-runtime.php`, `deploy.php`, `deploy-config.php`, `install.php`) unverändert — Regressionscheck, da die Kopierlogik angepasst wurde. _(v3.2.46)_
 
+### PHP-/Browser-Cache nach Deploy _(v3.7.10 — deploy.php muss dafür einmalig manuell per FTP auf Prod aktualisiert werden, Skip-Liste)_
+
+[ ] Deploy auf Prod ausführen → Log enthält die Zeile "PHP-OPcache geleert" (bzw. den Hinweis, falls OPcache auf dem Server nicht verfügbar/erlaubt ist). _(v3.7.10)_
+[ ] Direkt nach dem Deploy (ohne Wartezeit) eine App-Seite laden → Verhalten und Versionsnummer entsprechen sofort der neuen Version, kein "hängt noch auf der alten Version"-Effekt mehr. _(v3.7.10)_
+[ ] `deploy.php` nach einem Deploy erneut aufrufen (gleiche URL, gleicher Tab) → "Installiert" zeigt die frisch installierte Version, nie eine ältere aus dem Browser-Cache (Response-Header enthält `Cache-Control: no-store`). _(v3.7.10)_
+
 ---
 
 ## 16. Listenübergreifende Leitner-/Drill-Buttons und Drill-Listenauswahl _(v3.2.47)_

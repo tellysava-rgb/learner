@@ -26,6 +26,11 @@ if (!defined('DEPLOY_TOKEN') || !hash_equals(DEPLOY_TOKEN, $token)) {
     die('Ungültiger Token.');
 }
 
+// Statusseite nie aus dem Browser-Cache bedienen — ohne diesen Header darf der Browser einen
+// erneuten Aufruf aus seiner zwischengespeicherten Kopie beantworten und zeigt dann nach einem
+// Deploy scheinbar noch die alte "Installiert"-Version an, obwohl die Dateien längst neu sind.
+header('Cache-Control: no-store');
+
 if (!function_exists('curl_init')) {
     die('cURL ist auf diesem Server nicht verfügbar.');
 }
@@ -224,6 +229,20 @@ function deploy_run(array &$log, bool &$success): void {
         }
 
         $log[] = $copied . ' Dateien kopiert, ' . $skipped . ' geschützte Dateien übersprungen';
+
+        // 6. PHP-Caches leeren: OPcache hält kompilierten Bytecode der ALTEN Dateien im Speicher und
+        // führt ihn — je nach Hosting-Konfiguration (opcache.validate_timestamps=0 oder hohe
+        // revalidate_freq) — auch nach dem Überschreiben weiter aus. Die App bliebe dann scheinbar
+        // auf der alten Version, obwohl die Dateien auf der Platte längst neu sind (genau so auf
+        // Prod beobachtet: Deploy meldete die neue Version, Verhalten und Versionsanzeige der App
+        // blieben trotzdem alt). clearstatcache() zusätzlich, damit nachfolgende Dateizugriffe in
+        // diesem Request keine veralteten Metadaten sehen.
+        clearstatcache(true);
+        if (function_exists('opcache_reset') && @opcache_reset()) {
+            $log[] = 'PHP-OPcache geleert';
+        } else {
+            $log[] = 'Hinweis: OPcache nicht verfügbar oder Reset nicht erlaubt — neue Version greift ggf. erst nach wenigen Sekunden';
+        }
 
         // 6. Temp-Verzeichnis aufräumen
         $cleanup = new RecursiveIteratorIterator(

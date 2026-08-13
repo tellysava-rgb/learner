@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.7.10] - 2026-08-13
+
+### Behoben
+- **App blieb nach einem Deploy scheinbar auf der alten Version.** Zwei Cache-Ursachen: (1) Der PHP-OPcache führte den Bytecode der alten Dateien weiter aus, obwohl die neuen längst auf der Platte lagen — `deploy.php` leert jetzt nach dem Kopieren `opcache_reset()` + `clearstatcache()` (Log-Zeile "PHP-OPcache geleert"). (2) Die Statusseite von `deploy.php` durfte der Browser zwischenspeichern, wodurch ein erneuter Aufruf eine veraltete "Installiert"-Version zeigen konnte — sie sendet jetzt `Cache-Control: no-store`. **Wichtig:** `deploy.php` steht auf der eigenen Skip-Liste und muss einmalig manuell per FTP auf Prod kopiert werden, damit dieser Fix dort ankommt.
+
+---
+
 ## [3.7.9] - 2026-08-13
 
 ### Verbessert
