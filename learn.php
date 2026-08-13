@@ -862,20 +862,32 @@ window.addEventListener('pageshow', function (e) {
 <?php endif; ?>
 
 // speechSynthesis spielt auf iOS/Android sonst nur über Kopfhörer bzw. den Ohrhörer statt über den
-// Lautsprecher, weil die Audio-Session des Geräts dafür nicht aktiviert ist. Trick: einmalig (im
-// selben Klick-Handler, iOS verlangt eine User-Geste) ein kurzes stummes <audio>-Element abspielen —
-// das zwingt die Audio-Session auf die Kategorie "playback", danach läuft speechSynthesis normal
-// über den Lautsprecher. Auf Desktop-Browsern tritt das Problem nicht auf, dort bleibt es beim
-// bisherigen Verhalten.
-var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+// Lautsprecher, weil die Audio-Session des Geräts dafür nicht in der Kategorie "playback" läuft (in
+// der u.a. der Stumm-Schalter des iPhones ignoriert wird). Trick: ein stummes <audio>-Element als
+// Endlosschleife starten und durchgehend weiterlaufen lassen, solange die Seite offen ist.
+//
+// Wichtig — daran scheiterte der erste Versuch (v3.6.0): eine stumme Datei mit 0 Sekunden Länge
+// reicht NICHT. Sie ist bereits beendet, bevor die Sprachausgabe anfängt (der TTS-Start hat auf iOS
+// spürbare Latenz), und die Audio-Session fällt sofort wieder zurück. Das stumme Audio muss
+// GLEICHZEITIG mit der Sprachausgabe laufen — daher 0.25 s echte Stille mit loop = true.
+//
+// Der erste play()-Aufruf muss aus einer User-Geste heraus erfolgen (iOS-Autoplay-Sperre) — gegeben,
+// da speakWord() nur aus einem Klick-Handler aufgerufen wird. Auf Desktop-Browsern tritt das Problem
+// nicht auf, dort bleibt es beim bisherigen Verhalten.
+var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+         || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOS 13+ meldet sich als Mac
 var isAndroid = /Android/i.test(navigator.userAgent);
-var audioSessionUnlocked = false;
+var silenceLoop = null;
 
 function unlockAudioSession() {
-    if (audioSessionUnlocked) return;
-    audioSessionUnlocked = true;
-    var silence = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=');
-    silence.play().catch(function () {});
+    if (silenceLoop === null) {
+        silenceLoop = new Audio('data:audio/wav;base64,UklGRvgHAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YdAHAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==');
+        silenceLoop.loop = true;
+    }
+    // Auch bei späteren Klicks prüfen statt nur einmalig starten: iOS pausiert die Wiedergabe z.B.
+    // nach einem eingehenden Anruf oder beim Zurückkehren aus dem Hintergrund — dann muss die
+    // Schleife neu angestossen werden, sonst ist die Session beim nächsten 🔊 wieder inaktiv.
+    if (silenceLoop.paused) silenceLoop.play().catch(function () {});
 }
 
 function speakWord(btn) {

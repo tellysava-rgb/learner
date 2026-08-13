@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.7.3] - 2026-08-13
+
+### Behoben
+- **Aussprache war auf dem iPhone ohne Kopfhörer weiterhin nicht hörbar** — der Lautsprecher-Fix aus v3.6.0 war wirkungslos. Ursache: das stumme "Unlock"-Audio hatte 0 Sekunden Länge und war damit schon beendet, bevor die Sprachausgabe überhaupt begann (der TTS-Start hat auf iOS spürbare Latenz), wodurch die Audio-Session sofort wieder zurückfiel. Jetzt läuft ein stummes Audio von 0.25 s als Endlosschleife durchgehend weiter, solange die Lernseite offen ist, und hält die Audio-Session damit aktiv — entscheidend ist, dass es **gleichzeitig** mit der Sprachausgabe läuft. Zusätzlich wird die Schleife bei jedem 🔊-Klick neu angestossen, falls iOS sie zwischenzeitlich pausiert hat (z.B. nach einem Anruf oder Wechsel in den Hintergrund), und iPads unter iPadOS 13+ werden neu korrekt als iOS-Gerät erkannt.
+
+---
+
 ## [3.7.2] - 2026-08-13
 
 ### Verbessert

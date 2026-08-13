@@ -422,14 +422,20 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] In der Drill-Session eine bisher unvorgemerkte, gerade angezeigte Karte vormerken, danach die Session bis zum Ende durchspielen → die frisch vorgemerkte Karte erscheint in dieser Session priorisiert (nicht nur ein einziges Mal), analog zu einer schon vor Sessionstart vorgemerkten Karte. _(v3.6.0)_
 [ ] Vormerkung einer aktuell im Drill gezeigten Karte über einen zweiten Tab (`edit.php`) entfernen, danach im ersten Tab (laufende Drill-Session) dieselbe Karte per Pin-Button erneut vormerken wollen → funktioniert wie ein normales Neu-Vormerken, kein inkonsistenter Zustand. _(v3.6.0)_
 
-## 35. Lautsprecher-Fix für Aussprache auf iOS/Android _(v3.6.0)_
+## 35. Lautsprecher-Fix für Aussprache auf iOS/Android _(v3.6.0, Fix korrigiert v3.7.3)_
 
-[ ] iPhone (Safari, Klingelton-Schalter auf lautlos ODER normal): 🔊-Button auf einer Leitner-Karte antippen → Aussprache ist über den Lautsprecher hörbar, nicht nur über angeschlossene Kopfhörer/AirPods. _(v3.6.0)_
-[ ] Dasselbe auf einer Drill-Karte. _(v3.6.0)_
+**Hinweis:** Der Fix aus v3.6.0 war wirkungslos (stummes Audio mit 0 Sekunden Länge, siehe `ANFORDERUNGEN.md`). Alle Testfälle hier gelten für die korrigierte Fassung ab v3.7.3 und sind daher neu zu prüfen.
+
+[ ] **iPhone OHNE Kopfhörer, Klingelton-Schalter auf lautlos:** 🔊-Button auf einer Leitner-Karte antippen → Aussprache ist über den Lautsprecher hörbar. _(v3.7.3 — genau dieser Fall schlug mit dem v3.6.0-Fix noch fehl)_
+[ ] iPhone ohne Kopfhörer, Klingelton-Schalter auf normal (nicht lautlos) → ebenfalls über den Lautsprecher hörbar. _(v3.7.3)_
+[ ] Dasselbe auf einer Drill-Karte (beide Schalterstellungen). _(v3.7.3)_
+[ ] iPhone MIT Kopfhörern/AirPods → Wiedergabe wie gewohnt über die Kopfhörer, keine Verschlechterung gegenüber vorher. _(v3.7.3)_
 [ ] Android-Gerät: 🔊-Button auf Leitner- und Drill-Karte → Wiedergabe ebenfalls über den Lautsprecher. _(v3.6.0)_
-[ ] Erster 🔊-Klick in einer neuen Session löst keinen hörbaren zusätzlichen Ton/Knacken aus (das stumme Unlock-Audio ist wirklich lautlos). _(v3.6.0)_
+[ ] Erster 🔊-Klick löst keinen hörbaren zusätzlichen Ton/Knacken aus (das stumme Loop-Audio ist wirklich lautlos) — auch nicht als leises Dauerrauschen im Hintergrund, solange die Seite offen bleibt. _(v3.7.3)_
 [ ] Mehrfaches Antippen des 🔊-Buttons hintereinander (verschiedene Karten) → jede Aussprache ist weiterhin normal hörbar, kein Aussetzer nach dem ersten Klick. _(v3.6.0)_
-[ ] Desktop-Browser (Chrome/Safari/Firefox): 🔊-Button funktioniert weiterhin wie bisher, keine erkennbare Verhaltensänderung. _(v3.6.0)_
+[ ] **iPhone: während offener Lernseite kurz die App verlassen (Home) bzw. einen Anruf annehmen, danach zurückkehren und 🔊 antippen** → Aussprache ist weiterhin über den Lautsprecher hörbar (die stumme Schleife wird bei Bedarf neu gestartet). _(v3.7.3)_
+[ ] iPad (iPadOS 13+, meldet sich als "MacIntel") → Fix greift ebenfalls, Aussprache über den Lautsprecher hörbar. _(v3.7.3)_
+[ ] Desktop-Browser (Chrome/Safari/Firefox): 🔊-Button funktioniert weiterhin wie bisher, kein stummes Loop-Audio wird dort gestartet (Guard auf iOS/Android). _(v3.6.0)_
 [ ] Hörprobe-Button auf der Hilfeseite (`help.php`, Abschnitt "Aussprache: Audio & Lautschrift") bleibt unverändert vom Fix unberührt (dort weiterhin nur die bisherige Logik, kein Unlock-Trick). _(v3.6.0)_
 [ ] Browser-Konsole zeigt beim Antippen des 🔊-Buttons auf iOS/Android keine JavaScript-Fehler. _(v3.6.0)_
 
