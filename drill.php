@@ -133,8 +133,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
         $debug_after = $stmt->fetch();
         $mastery_counter  = $state['session_correct'][$card_id] ?? 0;
         $too_hard_counter = $state['session_unknown'][$card_id] ?? 0;
-        $deck_size = count($state['pool_known']) + count($state['pool_new']) + count($state['pool_pinned']);
-        $_SESSION['debug_last_answer'] = debug_drill_message($pdo, $card_id, $result, $is_pinned, $debug_before, $debug_after, $mastery_counter, $too_hard_counter, $deck_size);
+        // 'target' ist die beim Sessionstart ermittelte Zielgrösse (bleibt über die ganze Session
+        // konstant), 'active'/'pinned' der aktuelle Stand. Vorgemerkte Karten werden getrennt
+        // ausgewiesen, weil sie NICHT gegen die Zielgrösse begrenzt werden (siehe limit_active_pool)
+        // — nur so ist erkennbar, ob eine unerwartet grosse Session von Vormerkungen kommt.
+        $deck = [
+            'target' => (int) ($state['max_active_cards'] ?? 0),
+            'active' => count($state['pool_known']) + count($state['pool_new']),
+            'pinned' => count($state['pool_pinned']),
+        ];
+        $_SESSION['debug_last_answer'] = debug_drill_message($pdo, $card_id, $result, $is_pinned, $debug_before, $debug_after, $mastery_counter, $too_hard_counter, $deck);
     }
 
     // Session-Ende: Timer abgelaufen oder keine Karten mehr
@@ -209,14 +217,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggl
 // Debug-Modus: baut die Vorher/Nachher-Meldung aus den beiden Snapshots. Erkennt besondere
 // Ereignisse (gemeistert, zu schwer markiert, Vormerkung erreicht) an der jeweiligen Feldänderung,
 // statt sie separat nachzuverfolgen — robust gegenüber Änderungen an master_card()/mark_too_hard_card().
-// $deck_size ist die aktuelle Grösse des Session-Decks (known+new+pinned, NACH einem eventuellen
-// Nachschub aus der Reserve, siehe replenish_active_pool()) — feste zweite Zeile, damit sich die
-// Pool-Begrenzung/der Nachschub (siehe DRILL_CARDS_PER_MINUTE) direkt beim Testen nachvollziehen lässt.
-// Rückgabe: 4-5 Zeilen [Karte, Deckgrösse, Antwort (Kontext), Detail(s)] — siehe debug_panel() in
-// includes/auth.php.
-function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_pinned, array $before, array $after, int $mastery_counter, int $too_hard_counter, int $deck_size): array {
+// $deck ['target' => Zielgrösse beim Sessionstart, 'active' => aktuell known+new, 'pinned' =>
+// aktuell vorgemerkt] wird zur festen zweiten Zeile aufbereitet (siehe debug_deck_line()), damit
+// sich die Pool-Begrenzung/der Nachschub (siehe DRILL_CARDS_PER_MINUTE) direkt beim Testen
+// nachvollziehen lässt. Rückgabe: 4-5 Zeilen [Karte, Deckgrösse, Antwort (Kontext), Detail(s)] —
+// siehe debug_panel() in includes/auth.php.
+function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_pinned, array $before, array $after, int $mastery_counter, int $too_hard_counter, array $deck): array {
     $label      = debug_card_label($pdo, $card_id);
-    $deck_line  = "Anzahl in der Session: {$deck_size}";
+    $deck_line  = debug_deck_line($deck);
     $antwort    = $result === 'known' ? 'gewusst' : 'musste nachdenken';
 
     if ($was_pinned) {
@@ -247,6 +255,25 @@ function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_p
         "Mastery-Zähler {$mastery_counter}/" . DRILL_MASTERY_THRESHOLD,
         "Zu-schwer-Zähler {$too_hard_counter}/" . DRILL_TOO_HARD_LIMIT,
     ];
+}
+
+// Baut die Deckgrössen-Zeile des Debug-Panels. Bewusst zwei getrennte Zahlen:
+//   - "Anzahl in der Session: X" = die beim Sessionstart ermittelte Zielgrösse, ändert sich während
+//     der ganzen Session NICHT (max(DRILL_MIN_ACTIVE_CARDS, Minuten × DRILL_CARDS_PER_MINUTE)).
+//   - "(aktuell Y)" = wie viele Karten gerade tatsächlich rotieren. Weicht von X ab, sobald die
+//     Reserve erschöpft ist und Karten gemeistert/als zu schwer markiert wurden.
+// Vorgemerkte Karten stehen separat dahinter, weil sie NICHT gegen die Zielgrösse begrenzt werden —
+// eine unerwartet grosse Session lässt sich so sofort auf Vormerkungen zurückführen.
+// Sessions, die vor v3.7.1 gestartet wurden, kennen keine Zielgrösse (target = 0) — dann wird nur
+// der aktuelle Stand gezeigt statt einer irreführenden "0".
+function debug_deck_line(array $deck): string {
+    $suffix = $deck['pinned'] > 0 ? " + {$deck['pinned']} vorgemerkt" : '';
+
+    if ($deck['target'] <= 0) {
+        return "Anzahl in der Session: {$deck['active']}{$suffix}";
+    }
+
+    return "Anzahl in der Session: {$deck['target']} (aktuell {$deck['active']}{$suffix})";
 }
 
 function start_drill_session(PDO $pdo, int $person_id, array $list_ids, string $direction, int $session_seconds): void {

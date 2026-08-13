@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.7.4] - 2026-08-13
+
+### Verbessert
+- **Debug-Zeile im Drill zeigt jetzt Zielgrösse UND aktuellen Stand** statt einer einzigen, laufend wechselnden Zahl: "Anzahl in der Session: 5 (aktuell 4)". Die erste Zahl wird beim Sessionstart einmalig ermittelt und bleibt über die ganze Session konstant — so ist erkennbar, worauf die Session ursprünglich ausgelegt war. Vorgemerkte Karten werden neu **separat** ausgewiesen ("… aktuell 5 + 14 vorgemerkt"), da sie nicht gegen die Zielgrösse begrenzt werden: ein unerwartet grosses Deck lässt sich damit sofort auf Vormerkungen zurückführen.
+
+---
+
 ## [3.7.3] - 2026-08-13
 
 ### Behoben
