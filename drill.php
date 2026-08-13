@@ -122,18 +122,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
         }
     }
 
+    // Reserve-Nachschub direkt hier (statt erst bei der Session-Ende-Prüfung unten) auslösen —
+    // damit die Debug-Nachricht bereits die ggf. angepasste (aufgefüllte) Deckgrösse zeigt, nicht
+    // den Stand von vor dem Nachschub.
+    replenish_active_pool($state);
+
     if ($debug_enabled) {
         $stmt = $pdo->prepare($debug_snapshot_sql);
         $stmt->execute([$person_id, $card_id]);
         $debug_after = $stmt->fetch();
         $mastery_counter  = $state['session_correct'][$card_id] ?? 0;
         $too_hard_counter = $state['session_unknown'][$card_id] ?? 0;
-        $_SESSION['debug_last_answer'] = debug_drill_message($pdo, $card_id, $result, $is_pinned, $debug_before, $debug_after, $mastery_counter, $too_hard_counter);
+        $deck_size = count($state['pool_known']) + count($state['pool_new']) + count($state['pool_pinned']);
+        $_SESSION['debug_last_answer'] = debug_drill_message($pdo, $card_id, $result, $is_pinned, $debug_before, $debug_after, $mastery_counter, $too_hard_counter, $deck_size);
     }
 
     // Session-Ende: Timer abgelaufen oder keine Karten mehr
     $elapsed  = time() - $state['started_at'];
-    replenish_active_pool($state);
     $no_cards = empty($state['pool_known']) && empty($state['pool_new']) && empty($state['pool_pinned']);
 
     if ($elapsed >= $state['session_seconds'] || $no_cards) {
@@ -204,10 +209,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggl
 // Debug-Modus: baut die Vorher/Nachher-Meldung aus den beiden Snapshots. Erkennt besondere
 // Ereignisse (gemeistert, zu schwer markiert, Vormerkung erreicht) an der jeweiligen Feldänderung,
 // statt sie separat nachzuverfolgen — robust gegenüber Änderungen an master_card()/mark_too_hard_card().
-// Rückgabe: 3-4 Zeilen [Karte, Antwort (Kontext), Detail(s)] — siehe debug_panel() in includes/auth.php.
-function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_pinned, array $before, array $after, int $mastery_counter, int $too_hard_counter): array {
-    $label   = debug_card_label($pdo, $card_id);
-    $antwort = $result === 'known' ? 'gewusst' : 'musste nachdenken';
+// $deck_size ist die aktuelle Grösse des Session-Decks (known+new+pinned, NACH einem eventuellen
+// Nachschub aus der Reserve, siehe replenish_active_pool()) — feste zweite Zeile, damit sich die
+// Pool-Begrenzung/der Nachschub (siehe DRILL_CARDS_PER_MINUTE) direkt beim Testen nachvollziehen lässt.
+// Rückgabe: 4-5 Zeilen [Karte, Deckgrösse, Antwort (Kontext), Detail(s)] — siehe debug_panel() in
+// includes/auth.php.
+function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_pinned, array $before, array $after, int $mastery_counter, int $too_hard_counter, int $deck_size): array {
+    $label      = debug_card_label($pdo, $card_id);
+    $deck_line  = "Anzahl in der Session: {$deck_size}";
+    $antwort    = $result === 'known' ? 'gewusst' : 'musste nachdenken';
 
     if ($was_pinned) {
         $box_note = $after['leitner_box'] !== null ? "Fach unverändert (Fach {$after['leitner_box']})" : 'noch nicht in Leitner aktiv (Warteschlange)';
@@ -217,21 +227,22 @@ function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_p
         } else {
             $detail = 'Vormerkungszähler ' . ($before['drill_pinned_correct'] ?? 0) . '→' . ($after['drill_pinned_correct'] ?? 0);
         }
-        return [$label, "{$antwort} (vorgemerkt)", $detail];
+        return [$label, $deck_line, "{$antwort} (vorgemerkt)", $detail];
     }
 
     if ((int)$before['drill_mastery'] !== (int)$after['drill_mastery']) {
         $detail = "gemeistert ({$after['drill_mastery']}×): Fach {$before['leitner_box']}→{$after['leitner_box']}, fällig "
             . debug_format_date($before['next_due_date']) . '→' . debug_format_date($after['next_due_date']);
-        return [$label, $antwort, $detail];
+        return [$label, $deck_line, $antwort, $detail];
     }
 
     if ((int)$before['drill_too_hard'] !== (int)$after['drill_too_hard']) {
-        return [$label, $antwort, 'als zu schwer markiert, bis morgen pausiert'];
+        return [$label, $deck_line, $antwort, 'als zu schwer markiert, bis morgen pausiert'];
     }
 
     return [
         $label,
+        $deck_line,
         $antwort,
         "Mastery-Zähler {$mastery_counter}/" . DRILL_MASTERY_THRESHOLD,
         "Zu-schwer-Zähler {$too_hard_counter}/" . DRILL_TOO_HARD_LIMIT,

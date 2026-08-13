@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.7.2] - 2026-08-13
+
+### Verbessert
+- **Debug-Panel im Drill-Modus zeigt jetzt die aktuelle Deckgrösse.** Neue feste zweite Zeile "Anzahl in der Session: X" (bekannte + neue + vorgemerkte Karten) in jeder Panel-Variante — macht die Pool-Begrenzung und den Reserve-Nachschub aus v3.7.0/v3.7.1 direkt beim Testen sichtbar. Wert wird nach einem eventuellen Nachschub aus der Reserve ermittelt, zeigt also immer den tatsächlich aktuellen Stand.
+
+---
+
 ## [3.7.1] - 2026-08-13
 
 ### Behoben

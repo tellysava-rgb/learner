@@ -513,8 +513,10 @@ function debug_format_date(?string $date): string {
     return date('d.m.', strtotime($date));
 }
 
-// $_SESSION['debug_last_answer'] ist ein Array aus 3 Zeilen: [Karte, Antwort (Kontext), Detail].
-// Wird dreizeilig dargestellt statt als ein langer Fliesstext-Satz — besser überflogen.
+// $_SESSION['debug_last_answer'] ist ein Array aus mehreren Zeilen (Leitner: 3, Drill: 4-5 inkl.
+// Deckgrösse als zweite Zeile — siehe debug_drill_message() in drill.php): [Karte, ggf. Deckgrösse,
+// Antwort (Kontext), Detail(s)]. Wird zeilenweise dargestellt statt als ein langer Fliesstext-Satz —
+// besser überflogen.
 function debug_panel(): string {
     $lines = $_SESSION['debug_last_answer'] ?? null;
     unset($_SESSION['debug_last_answer']);

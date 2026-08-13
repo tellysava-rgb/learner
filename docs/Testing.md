@@ -135,6 +135,9 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Drill, normale Karte (nicht vorgemerkt): Panel zeigt bei einer normalen Antwort BEIDE Zähler gleichzeitig ("Mastery-Zähler X/3" und "Zu-schwer-Zähler X/5", je auf eigener Zeile); wird die Karte in diesem Schritt gemeistert oder als zu schwer markiert, zeigt das Panel stattdessen nur die Fach-Änderung bzw. den Hinweis "als zu schwer markiert". _(v3.2.42)_
 [ ] Drill, vorgemerkte Karte: Panel zeigt den Vormerk-Zähler; wird die Vormerkung in diesem Schritt entfernt, vermerkt das Panel das explizit — Fach bleibt dabei laut Panel unverändert. _(v3.2.34)_
 [ ] War die beantwortete Karte die letzte der Drill-Session → Panel erscheint auf dem Abschluss-Screen. _(v3.2.34)_
+[ ] Drill, jede Antwort (alle Varianten oben): Panel zeigt als feste zweite Zeile "Anzahl in der Session: X" — X entspricht der Summe aus bekannten + neuen + vorgemerkten Karten im aktuellen Session-Deck. _(v3.7.2)_
+[ ] Grosse Liste, kurze Session, Karte wird in diesem Schritt gemeistert oder als zu schwer markiert (Deck schrumpft dadurch) und danach aus der Reserve nachgefüllt (siehe Abschnitt 37) → die angezeigte Zahl bei "Anzahl in der Session" bleibt unverändert bzw. entspricht der Zielgrösse (Nachschub bereits eingerechnet), sinkt NICHT sichtbar für den Moment des Nachschubs. _(v3.7.2)_
+[ ] Grosse Liste, Reserve bereits komplett aufgebraucht, weitere Karte wird gemeistert/als zu schwer markiert → die angezeigte Zahl sinkt jetzt sichtbar (kein Nachschub mehr möglich). _(v3.7.2)_
 [ ] Debug-Modus aktiv, aber als NICHT-Admin eingeloggt (z.B. andere Person im selben Haushalt): kein Panel sichtbar, keinerlei Unterschied zum ausgeschalteten Zustand. _(v3.2.34)_
 [ ] Debug-Modus deaktiviert: kein Panel sichtbar, auch nicht für Admins. _(v3.2.34)_
 [ ] `math.php` bleibt vom Debug-Modus unberührt (kein Panel dort). _(v3.2.34)_
