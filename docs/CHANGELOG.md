@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.7.5] - 2026-08-13
+
+### Verbessert
+- **Debug-Zeile im Drill zeigt jetzt die komplette Karten-Buchhaltung der Session:** "Karten der Session: 60 total · 5 im Deck · 52 Reserve · 2 gemeistert · 1 pausiert" (dazu "· N vorgemerkt", falls vorhanden). Total ist die Summe der vier Töpfe und bleibt über die ganze Session konstant — so ist auf einen Blick sichtbar, wohin jede Karte gewandert ist (rotiert im Deck, wartet in der Reserve, gemeistert ins Leitner, als zu schwer pausiert). Ersetzt das Format "Anzahl in der Session: X (aktuell Y)" aus v3.7.4.
+
+---
+
 ## [3.7.4] - 2026-08-13
 
 ### Verbessert
