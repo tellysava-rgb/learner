@@ -136,11 +136,11 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Drill, vorgemerkte Karte: Panel zeigt den Vormerk-Zähler; wird die Vormerkung in diesem Schritt entfernt, vermerkt das Panel das explizit — Fach bleibt dabei laut Panel unverändert. _(v3.2.34)_
 [ ] War die beantwortete Karte die letzte der Drill-Session → Panel erscheint auf dem Abschluss-Screen. _(v3.2.34)_
 [ ] Drill, jede Antwort (alle Varianten oben): Panel zeigt als feste zweite Zeile "Karten der Session: T total · D im Deck · R Reserve · G gemeistert · P pausiert". _(v3.7.5)_
-[ ] **T bleibt über die gesamte Session konstant** und entspricht immer der Summe D+R+G+P — auch nachdem Karten gemeistert, pausiert oder aus der Reserve nachgefüllt wurden. _(v3.7.5)_
-[ ] Sessionstart, grosse Liste (z.B. 60 Karten), 5 Minuten, Standardwerte → Zeile zeigt "60 total · 5 im Deck · 55 Reserve · 0 gemeistert · 0 pausiert". _(v3.7.5)_
-[ ] Karte wird gemeistert (3× richtig in Folge) → G steigt um 1, R sinkt um 1 (Nachschub), D bleibt konstant. _(v3.7.5)_
-[ ] Karte wird als zu schwer markiert (5× "musste nachdenken") → P steigt um 1, R sinkt um 1, D bleibt konstant. _(v3.7.5)_
-[ ] Reserve komplett aufgebraucht (R = 0), weitere Karte wird gemeistert/pausiert → D sinkt jetzt sichtbar, T bleibt unverändert. _(v3.7.5)_
+[ ] **T = D+G+P** (OHNE Reserve): Sessionstart mit grosser Liste (z.B. 266 Karten), 5 Minuten, Standardwerte → Zeile zeigt "5 total · 5 im Deck · 261 Reserve · 0 gemeistert · 0 pausiert" — NICHT "266 total". _(v3.7.6 — Korrektur: in v3.7.5 zeigte T die ganze Listengrösse)_
+[ ] Gleiche Liste, 10 Minuten Timer → "10 total · 10 im Deck …" — T unterscheidet sich sichtbar je nach gewählter Timer-Länge. _(v3.7.6)_
+[ ] Karte wird gemeistert (3× richtig in Folge) → G steigt um 1, R sinkt um 1 (Nachschub), D bleibt konstant, **T wächst um 1**. _(v3.7.6)_
+[ ] Karte wird als zu schwer markiert (5× "musste nachdenken") → P steigt um 1, R sinkt um 1, D bleibt konstant, T wächst um 1. _(v3.7.6)_
+[ ] Reserve komplett aufgebraucht (R = 0), weitere Karte wird gemeistert/pausiert → D sinkt jetzt sichtbar, T bleibt in diesem Fall unverändert (keine neue Karte rückt mehr nach). _(v3.7.6)_
 [ ] Session mit mindestens einer vorgemerkten Karte → Zeile endet mit "· N vorgemerkt"; N zählt NICHT in T mit (Vormerkungen laufen ausserhalb der Rechnung). _(v3.7.5)_
 [ ] Session ganz ohne vorgemerkte Karten → KEIN "vorgemerkt"-Teil in der Zeile. _(v3.7.5)_
 [ ] Wird die Vormerkung einer Karte während der Session entfernt (Pin-Button oder automatisch nach 3× richtig), sinkt N entsprechend — T, D, R, G, P bleiben davon unberührt. _(v3.7.5)_

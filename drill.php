@@ -134,9 +134,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
         $mastery_counter  = $state['session_correct'][$card_id] ?? 0;
         $too_hard_counter = $state['session_unknown'][$card_id] ?? 0;
         // Kennzahlen für die Deckgrössen-Zeile, erfasst NACH dem Reserve-Nachschub oben. Jede nicht
-        // vorgemerkte Karte der Session steckt zu jedem Zeitpunkt in genau einem der vier Töpfe
-        // (Deck rotiert, Reserve wartet, gemeistert → Leitner, pausiert → bis morgen gesperrt) —
-        // die Summe ist daher über die ganze Session konstant, siehe debug_deck_line().
+        // vorgemerkte Karte steckt zu jedem Zeitpunkt in genau einem der vier Töpfe (Deck rotiert,
+        // Reserve wartet, gemeistert → Leitner, pausiert → bis morgen gesperrt); wie daraus die
+        // Total-Zahl entsteht, entscheidet debug_deck_line().
         $deck = [
             'deck'     => count($state['pool_known']) + count($state['pool_new']),
             'reserve'  => count($state['reserve_known'] ?? []) + count($state['reserve_new'] ?? []),
@@ -261,14 +261,15 @@ function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_p
 
 // Baut die Deckgrössen-Zeile des Debug-Panels:
 //   "Karten der Session: T total · D im Deck · R Reserve · G gemeistert · P pausiert [· N vorgemerkt]"
-// T wird nicht gespeichert, sondern als Summe D+R+G+P berechnet — jede nicht vorgemerkte Karte der
-// Session steckt zu jedem Zeitpunkt in genau einem der vier Töpfe, die Summe bleibt daher über die
-// ganze Session konstant (und ein Abweichen würde sofort einen Buchhaltungsfehler verraten).
-// D entspricht der Zielgrösse aus limit_active_pool(), solange die Reserve nicht leer ist; danach
-// schrumpft es mit jeder gemeisterten/pausierten Karte. Vorgemerkte Karten laufen ausserhalb dieser
-// Rechnung (eigener Topf ohne Begrenzung) und erscheinen nur, wenn welche vorhanden sind.
+// T = D+G+P — die Karten, die diese Session tatsächlich in der Rotation hatte: startet bei der
+// Deckgrösse (Timer-Minuten × DRILL_CARDS_PER_MINUTE, min. DRILL_MIN_ACTIVE_CARDS) und wächst mit
+// jeder gemeisterten/pausierten Karte, für die eine neue aus der Reserve nachrückt. Bewusst OHNE
+// die Reserve (Korrektur v3.7.6): bei grossen Listen ist die riesig (ganze Liste minus Deck) und
+// machte T zu einer statischen, Timer-unabhängigen Zahl ohne Aussagekraft für die Session — die
+// Reserve steht als eigene Zahl daneben. Vorgemerkte Karten laufen ausserhalb dieser Rechnung
+// (eigener Topf ohne Begrenzung) und erscheinen nur, wenn welche vorhanden sind.
 function debug_deck_line(array $deck): string {
-    $total = $deck['deck'] + $deck['reserve'] + $deck['mastered'] + $deck['paused'];
+    $total = $deck['deck'] + $deck['mastered'] + $deck['paused'];
     $line  = "Karten der Session: {$total} total · {$deck['deck']} im Deck · {$deck['reserve']} Reserve"
            . " · {$deck['mastered']} gemeistert · {$deck['paused']} pausiert";
     if ($deck['pinned'] > 0) {

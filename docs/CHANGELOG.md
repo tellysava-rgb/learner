@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.7.6] - 2026-08-13
+
+### Behoben
+- **Debug-Zeile: "total" zeigte bei grossen Listen einfach die Listengrösse** (z.B. "266 total" bei einer 5-Minuten-Session) — statisch, unabhängig vom gewählten Timer und ohne Aussagekraft für die Session. Total rechnet jetzt ohne die Reserve: **T = im Deck + gemeistert + pausiert**, also die Karten, die diese Session tatsächlich in der Rotation hatte. Startet damit bei der Timer-abhängigen Deckgrösse (5 Min. → "5 total", 10 Min. → "10 total") und wächst mit jeder gemeisterten/pausierten Karte, für die Nachschub aus der Reserve kommt. Die Reserve steht weiterhin als eigene Zahl in der Zeile.
+
+---
+
 ## [3.7.5] - 2026-08-13
 
 ### Verbessert
