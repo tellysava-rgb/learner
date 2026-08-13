@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.7.8] - 2026-08-13
+
+### Verbessert
+- **Debug-Panel im Drill: Zähler-Zeilen tragen ihre Bedeutung jetzt direkt als Suffix** — "Mastery-Zähler 1/3 - gewusst" und "Zu-schwer-Zähler 0/5 - nicht gewusst". Die bisherige eigenständige "gewusst"/"musste nachdenken"-Zeile entfällt im Normalfall; bei besonderen Ereignissen (gemeistert, zu schwer markiert, vorgemerkte Karte) bleibt sie erhalten.
+
+---
+
 ## [3.7.7] - 2026-08-13
 
 ### Verbessert

@@ -222,8 +222,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggl
 // $deck ['deck' => aktuell rotierend (known+new), 'reserve' => wartend, 'mastered' => in dieser
 // Session gemeistert, 'paused' => als zu schwer pausiert, 'pinned' => vorgemerkt] wird zur festen
 // zweiten Zeile aufbereitet (siehe debug_deck_line()), damit sich Pool-Begrenzung und Nachschub
-// (siehe DRILL_CARDS_PER_MINUTE) direkt beim Testen nachvollziehen lassen. Rückgabe: 4-5 Zeilen
-// [Karte, Deckgrösse, Antwort (Kontext), Detail(s)] — siehe debug_panel() in includes/auth.php.
+// (siehe DRILL_CARDS_PER_MINUTE) direkt beim Testen nachvollziehen lassen. Rückgabe: 4 Zeilen —
+// Normalfall [Karte, Deckgrösse, "Mastery-Zähler X/Y - gewusst", "Zu-schwer-Zähler X/Y - nicht
+// gewusst"], besondere Ereignisse [Karte, Deckgrösse, Antwort (Kontext), Detail] — siehe
+// debug_panel() in includes/auth.php.
 function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_pinned, array $before, array $after, int $mastery_counter, int $too_hard_counter, array $deck): array {
     $label      = debug_card_label($pdo, $card_id);
     $deck_line  = debug_deck_line($deck);
@@ -250,12 +252,14 @@ function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_p
         return [$label, $deck_line, $antwort, 'als zu schwer markiert, bis morgen pausiert'];
     }
 
+    // Normalfall (kein besonderes Ereignis): keine eigenständige Antwort-Zeile — die Bedeutung
+    // steht direkt hinter dem jeweiligen Zähler ("- gewusst" zählt richtige Antworten in Folge,
+    // "- nicht gewusst" die falschen der Session), siehe v3.7.8.
     return [
         $label,
         $deck_line,
-        $antwort,
-        "Mastery-Zähler {$mastery_counter}/" . DRILL_MASTERY_THRESHOLD,
-        "Zu-schwer-Zähler {$too_hard_counter}/" . DRILL_TOO_HARD_LIMIT,
+        "Mastery-Zähler {$mastery_counter}/" . DRILL_MASTERY_THRESHOLD . ' - gewusst',
+        "Zu-schwer-Zähler {$too_hard_counter}/" . DRILL_TOO_HARD_LIMIT . ' - nicht gewusst',
     ];
 }
 
