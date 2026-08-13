@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.7.9] - 2026-08-13
+
+### Verbessert
+- **Debug-Panel im Drill: Suffix nur noch am Zähler, der gerade hochgezählt hat.** Bei "Gewusst" steht "- gewusst" nur am Mastery-Zähler, bei "Musste nachdenken" steht "- nicht gewusst" nur am Zu-schwer-Zähler — der jeweils andere Zähler bleibt ohne Suffix. In v3.7.8 trugen noch beide Zeilen immer beide Suffixe, wodurch nicht erkennbar war, welche Antwort gerade gegeben wurde.
+
+---
+
 ## [3.7.8] - 2026-08-13
 
 ### Verbessert

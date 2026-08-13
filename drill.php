@@ -252,14 +252,14 @@ function debug_drill_message(PDO $pdo, int $card_id, string $result, bool $was_p
         return [$label, $deck_line, $antwort, 'als zu schwer markiert, bis morgen pausiert'];
     }
 
-    // Normalfall (kein besonderes Ereignis): keine eigenständige Antwort-Zeile — die Bedeutung
-    // steht direkt hinter dem jeweiligen Zähler ("- gewusst" zählt richtige Antworten in Folge,
-    // "- nicht gewusst" die falschen der Session), siehe v3.7.8.
+    // Normalfall (kein besonderes Ereignis): keine eigenständige Antwort-Zeile — der Suffix steht
+    // nur am Zähler, der durch diese Antwort hochgezählt hat: "- gewusst" am Mastery-Zähler bei
+    // richtiger Antwort, "- nicht gewusst" am Zu-schwer-Zähler bei falscher (v3.7.8/v3.7.9).
     return [
         $label,
         $deck_line,
-        "Mastery-Zähler {$mastery_counter}/" . DRILL_MASTERY_THRESHOLD . ' - gewusst',
-        "Zu-schwer-Zähler {$too_hard_counter}/" . DRILL_TOO_HARD_LIMIT . ' - nicht gewusst',
+        "Mastery-Zähler {$mastery_counter}/" . DRILL_MASTERY_THRESHOLD . ($result === 'known' ? ' - gewusst' : ''),
+        "Zu-schwer-Zähler {$too_hard_counter}/" . DRILL_TOO_HARD_LIMIT . ($result === 'known' ? '' : ' - nicht gewusst'),
     ];
 }
 
