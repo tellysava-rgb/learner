@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.7.1] - 2026-08-13
+
+### Behoben
+- **Drill-Session konnte vor Ablauf des Timers vorzeitig enden.** Nebeneffekt des Pool-Limits aus v3.7.0: eine schnelle/genaue Person konnte ihr bewusst klein gehaltenes Deck komplett abarbeiten (gemeistert/als zu schwer markiert), bevor die Zeit um war — die überzähligen, beim Sessionstart weggeschnittenen Karten wurden bisher verworfen statt nachgeladen. `limit_active_pool()` legt sie jetzt als Reserve im Session-State ab, `replenish_active_pool()` füllt den aktiven Pool daraus wieder auf, sobald er unter die Zielgrösse fällt. Der Timer entscheidet damit wieder allein über das Sessionende (ausser die komplette Liste ist tatsächlich abgearbeitet).
+
+---
+
 ## [3.7.0] - 2026-08-13
 
 ### Behoben

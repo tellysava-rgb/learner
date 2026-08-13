@@ -454,7 +454,13 @@ Prüfen auf einem echten iPhone (Referenz: 15 Pro Max, 430 px) oder im Browser m
 [ ] Wert mit Komma statt Punkt eingeben (z.B. "1,5", je nach Spracheinstellung des Browsers beim `number`-Feld möglich) → wird korrekt als 1.5 interpretiert und gespeichert, keine Fehlermeldung. _(v3.7.0)_
 [ ] Vorgemerkte Karten ("für Drill vorgemerkt") sind von der Pool-Begrenzung ausgenommen — bei einer grossen Liste mit mehreren vorgemerkten Karten erscheinen weiterhin alle vorgemerkten Karten priorisiert, unabhängig vom eingestellten "Aktive Karten pro Minute"-Wert. _(v3.7.0)_
 [ ] Sehr kurze Session (z.B. 1 Min.) bei niedrigem "Aktive Karten pro Minute"-Wert (z.B. 0.2) → aktiver Pool ist trotzdem nicht kleiner als 5 Karten (`DRILL_MIN_ACTIVE_CARDS`), sofern die Liste mindestens so viele Karten hat. _(v3.7.0)_
-[ ] Nach einer Session mit überzähligen, nicht berücksichtigten Karten (grosse Liste, Pool begrenzt) erneut eine Session mit derselben Liste starten → vorher nicht berücksichtigte Karten sind diesmal (ggf. neben anderen) wieder wählbar, keine Karte geht dauerhaft verloren. _(v3.7.0)_
 [ ] `help.php`, Abschnitt "Drill-Modus": Beschreibung "wenige Karten gleichzeitig im Umlauf" stimmt jetzt tatsächlich mit dem Verhalten überein (war zuvor bei grossen Listen bereits so beschrieben, aber nicht durchgesetzt). _(v3.7.0)_
+
+### Nachschub aus der Reserve, falls das Deck vor Ablauf des Timers leer würde _(v3.7.1)_
+
+[ ] Grosse Liste, kurze Session, sehr genau/schnell durchspielen (viele Karten hintereinander richtig, Deck wird mehrfach mit "gemeistert" ausgedünnt) → Session läuft trotzdem bis zum eingestellten Timer weiter, bricht NICHT vorzeitig ab, solange die Liste noch weitere (nicht initial berücksichtigte) Karten hergibt. _(v3.7.1 — vorher brach die Session bei einem vor Ablauf des Timers leeren Deck ab)_
+[ ] In diesem Szenario tauchen im Laufe derselben Session Karten auf, die zu Beginn (direkt nach dem Start) noch nicht dabei waren — nicht erst in einer künftigen Session. _(v3.7.1)_
+[ ] Liste komplett abgearbeitet (auch die Reserve leer, z.B. bei einer kleinen bis mittleren Liste) → Session endet regulär mit "keine Karten mehr", wie bisher — kein Hängenbleiben, keine Endlosschleife. _(v3.7.1)_
+[ ] Reserve wird zuerst aus bereits bekannten Karten aufgefüllt (falls vorhanden), erst danach aus neuen — erkennbar z.B. am Debug-Panel (Fach-Angabe vorhanden vs. "noch nicht in Leitner aktiv"). _(v3.7.1)_
 
 ---
