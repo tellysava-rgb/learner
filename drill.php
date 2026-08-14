@@ -454,8 +454,13 @@ function replenish_active_pool(array &$state): void {
 
 // Wählt die nächste Karte. Vorgemerkte Karten (pool_pinned) werden priorisiert eingeschoben:
 // Modus 'absolute' = immer zuerst, solange welche vorgemerkt sind; Modus 'weighted' = alle
-// DRILL_PIN_RATIO Karten eine vorgemerkte einschieben, das bekannte 9:1-Prinzip (Known-Pool
-// rotierend, jede 9. Karte neu) läuft für die übrigen Karten unverändert parallel weiter.
+// DRILL_PIN_RATIO Karten eine vorgemerkte einschieben. Für die übrigen Karten steuert das
+// bekannte 9:1-Prinzip weiterhin, wie oft eine neue (bisher ungezeigte) Karte eingeführt wird —
+// WELCHE bereits im Deck befindliche Karte dabei gezogen wird, ist seit v3.8.0 zufällig statt
+// striktem Reihum (siehe pick_random_known_card()). Eine feste Rotation liess alle Karten eines
+// Decks gleich oft dran kommen, wodurch sie fast gleichzeitig die Mastery-Schwelle erreichten
+// ("Batch-Meistern", danach wurde das ganze Deck auf einen Schlag über die Reserve ersetzt) und
+// die Reihenfolge vorhersehbar war (Bugreport, siehe docs/Checkliste.md-Historie).
 function next_drill_card(array &$state): ?int {
     $has_pinned = !empty($state['pool_pinned']);
     $has_known  = !empty($state['pool_known']);
@@ -485,11 +490,23 @@ function next_drill_card(array &$state): ?int {
         $state['pool_known'][] = $id;
     } else {
         $state['cycle_pos']++;
-        $id = array_shift($state['pool_known']);
-        $state['pool_known'][] = $id;
+        $id = pick_random_known_card($state);
     }
     if ($has_pinned) $state['pin_cycle_pos']++;
     return $id;
+}
+
+// Zieht eine zufällige Karte aus pool_known statt striktem Reihum — pool_known ist dadurch ein
+// ungeordneter Vorrat, kein FIFO mehr (kein array_shift()/Wiederanhängen nötig, die Reihenfolge
+// im Array ist bedeutungslos). Schliesst die gerade angezeigte Karte von der Auswahl aus, sofern
+// es eine Alternative gibt, damit dieselbe Karte nicht zweimal direkt hintereinander erscheint.
+function pick_random_known_card(array $state): int {
+    $pool = $state['pool_known'];
+    if (count($pool) > 1) {
+        $rest = array_values(array_filter($pool, fn($id) => $id !== $state['current_card_id']));
+        if ($rest) $pool = $rest;
+    }
+    return $pool[array_rand($pool)];
 }
 
 // Richtige Antwort auf eine vorgemerkte Karte: eigener Zähler, rührt leitner_box/status/
@@ -965,6 +982,17 @@ function unlockAudioSession() {
     // nach einem eingehenden Anruf oder beim Zurückkehren aus dem Hintergrund — dann muss die
     // Schleife neu angestossen werden, sonst ist die Session beim nächsten 🔊 wieder inaktiv.
     if (silenceLoop.paused) silenceLoop.play().catch(function () {});
+
+    // Zusätzlicher Versuch (v3.8.0): die neue, bisher nur von Safari implementierte Audio Session
+    // API erlaubt es, die Audio-Session-Kategorie einer Seite direkt zu setzen, statt sie indirekt
+    // über ein Media-Element zu erzwingen. Explizit als experimentell markiert — keine Quelle
+    // bestätigt, dass das genau dieses Kopfhörer/Lautsprecher-Problem von speechSynthesis behebt,
+    // aber es ist die von Apple selbst für diese Problemklasse gebaute, sauberste verfügbare API.
+    // Feature-detected, kein Fehler in Browsern ohne Unterstützung; ersetzt den Loop-Trick oben
+    // nicht (kostet nichts extra, schadet also nicht, falls sie allein nicht ausreicht).
+    if ('audioSession' in navigator) {
+        try { navigator.audioSession.type = 'playback'; } catch (e) {}
+    }
 }
 
 function speakWord(btn) {

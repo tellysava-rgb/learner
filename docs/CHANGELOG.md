@@ -5,6 +5,17 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.8.0] - 2026-08-14
+
+### Neu
+- **Testing.md-Pflicht aus dem Projekt entfernt.** Die Anweisung, für jede Änderung automatisch Testfälle in `docs/Testing.md` zu ergänzen, wurde aus `CLAUDE.md` gestrichen (auf ausdrücklichen Wunsch). `ANFORDERUNGEN.md`- und `CHANGELOG.md`-Pflege laufen unverändert weiter. Die Datei `docs/Testing.md` selbst bleibt bestehen, wird aber nicht mehr automatisch fortgeführt.
+
+### Verbessert
+- **Drill-Modus: Kartenauswahl innerhalb des Decks ist jetzt zufällig statt strikt reihum.** Bisher bekamen alle Karten eines Decks exakt gleich oft die Chance auf eine richtige Antwort in Folge (feste Rotation) — dadurch erreichten sie die Mastery-Schwelle fast gleichzeitig ("Batch-Meistern", z.B. alle 5 Karten eines Decks kurz hintereinander, danach ein komplett neues Deck aus der Reserve) und die Reihenfolge war vorhersehbar. `pick_random_known_card()` zieht jetzt zufällig, schliesst aber die gerade gezeigte Karte aus (kein Zweimal-hintereinander). Einführungstempo neuer Karten (9:1) und Vormerkungs-Priorität bleiben unverändert.
+- **Neuer Versuch für den iOS-Lautsprecher-Fix (experimentell).** Zusätzlich zum bestehenden Silent-Loop-Trick (v3.7.3) wird jetzt — sofern verfügbar — die neue, bisher nur von Safari implementierte Audio Session API gesetzt (`navigator.audioSession.type = 'playback'`, feature-detected). Ergänzt den bestehenden Fix, ersetzt ihn nicht. Ausdrücklich als Versuch markiert: keine Quelle bestätigt, dass diese API das Kopfhörer/Lautsprecher-Problem von `speechSynthesis` auf iOS zuverlässig behebt.
+
+---
+
 ## [3.7.10] - 2026-08-13
 
 ### Behoben

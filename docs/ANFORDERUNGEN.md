@@ -167,6 +167,7 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
   - **Der erste Versuch in v3.6.0 funktionierte nicht** und wurde in v3.7.3 korrigiert: dort wurde ein stummes WAV mit **0 Sekunden Länge** genau einmal abgespielt. Es war bereits beendet, bevor die Sprachausgabe anfing (der TTS-Start hat auf iOS spürbare Latenz), wodurch die Audio-Session sofort wieder zurückfiel — auf dem iPhone blieb ohne Kopfhörer alles stumm. Entscheidend ist, dass das stumme Audio **gleichzeitig** mit der Sprachausgabe läuft, nicht nur davor.
   - `unlockAudioSession()` prüft bei **jedem** Klick, ob die Schleife noch läuft, und startet sie bei Bedarf neu (iOS pausiert sie z.B. nach einem eingehenden Anruf oder beim Zurückkehren aus dem Hintergrund) — nicht nur einmalig beim ersten Klick.
   - Der erste `play()`-Aufruf muss aus einer User-Geste heraus erfolgen (iOS-Autoplay-Sperre); das ist gegeben, da `speakWord()` ausschliesslich aus einem Klick-Handler aufgerufen wird.
+  - **Zusätzlich Audio Session API** _(v3.8.0, experimentell)_: `unlockAudioSession()` setzt bei jedem Aufruf zusätzlich `navigator.audioSession.type = 'playback'`, feature-detected (`if ('audioSession' in navigator)`) und mit `try/catch` abgesichert. Die Audio Session API ist eine neue W3C-Draft-API, die bisher nur Safari implementiert hat — von Apple selbst für diese Problemklasse gebaut. Ergänzt den bestehenden Loop-Trick, ersetzt ihn nicht (kein Zielkonflikt, beide können parallel greifen). **Ausdrücklich als Versuch markiert**: keine Quelle bestätigt, dass diese API das Kopfhörer/Lautsprecher-Routing von `speechSynthesis` konkret behebt — falls auch dieser Versuch nicht hilft (nach den bisherigen unter v3.6.0/v3.7.3), deutet das auf eine echte, aktuell ungelöste WebKit-Plattformgrenze hin.
   - Betrifft nicht den Ausprobieren-Button auf der Hilfeseite (`help.php`) — dort bewusst unverändert, da reine Demo ausserhalb der eigentlichen Lernmodi.
 - Button erscheint **nur**, wenn die Liste einen Aussprache-Code hinterlegt hat — sonst kein Button
 - Bestehende Listen ohne Code: Button bleibt einfach aus, bis der Besitzer den Code einmalig über "Bearbeiten" nachträgt
@@ -414,10 +415,11 @@ Geeignet für: Mathe-Fakten, häufig vergessene Vokabeln, neue Wörter festigen.
 4. User bewertet → nächste Karte erscheint sofort
 
 ### Karten-Reihenfolge (9:1-Verhältnis)
-- Bekannte Karten (`drill_mastery >= 1`) bilden einen rotierenden Pool
+- Bekannte Karten (`drill_mastery >= 1`) bilden einen Pool, aus dem **zufällig** gezogen wird _(v3.8.0; vorher strikt reihum/FIFO)_ — dieselbe Karte erscheint dabei nie zweimal direkt hintereinander (`pick_random_known_card()` schliesst die gerade gezeigte Karte von der Auswahl aus, sofern eine Alternative existiert)
 - Neue/unbekannte Karten werden einzeln eingeführt: nach jeweils 9 bekannten Karten erscheint 1 neue
-- Neu eingeführte Karten wandern in den rotierenden Pool und werden ab dann gemeinsam wiederholt
+- Neu eingeführte Karten wandern in den Pool und werden ab dann gemeinsam zufällig wiederholt
 - Das Mischen passiert im Hintergrund — der User sieht nur eine Karte nach der anderen
+- **Hintergrund der Umstellung auf Zufallsauswahl** _(v3.8.0)_: Bei striktem Reihum bekamen alle Karten eines Decks exakt gleich oft die Chance auf eine richtige Antwort in Folge — sie erreichten die Mastery-Schwelle dadurch fast gleichzeitig ("Batch-Meistern", z.B. alle 5 Karten eines Decks kurz hintereinander), wonach `replenish_active_pool()` das ganze Deck auf einen Schlag aus der Reserve ersetzte. Zusätzlich war die Reihenfolge innerhalb einer Session komplett vorhersehbar. Betrifft nur die Auswahl-Reihenfolge — Einführungstempo neuer Karten (9:1) und Vormerkungs-Priorität bleiben unverändert.
 
 ### Aktiver Pool an Session-Länge gekoppelt _(v3.7.0)_
 - **Problem vorher:** Beim Sessionstart wurden **alle** infrage kommenden Karten der ausgewählten Liste(n) auf einmal in die Rotation geladen, unabhängig von der gewählten Timer-Dauer. Bei einer grossen Liste verdünnte sich dadurch die Wiederholung jeder einzelnen Karte so stark (Round-Robin über eine grosse Kartenmenge), dass die Mastery-Schwelle (Standard 3× hintereinander richtig) in einer kurzen Session praktisch nie erreicht wurde — selbst bei vielen richtig beantworteten Karten insgesamt.

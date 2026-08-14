@@ -888,6 +888,17 @@ function unlockAudioSession() {
     // nach einem eingehenden Anruf oder beim Zurückkehren aus dem Hintergrund — dann muss die
     // Schleife neu angestossen werden, sonst ist die Session beim nächsten 🔊 wieder inaktiv.
     if (silenceLoop.paused) silenceLoop.play().catch(function () {});
+
+    // Zusätzlicher Versuch (v3.8.0): die neue, bisher nur von Safari implementierte Audio Session
+    // API erlaubt es, die Audio-Session-Kategorie einer Seite direkt zu setzen, statt sie indirekt
+    // über ein Media-Element zu erzwingen. Explizit als experimentell markiert — keine Quelle
+    // bestätigt, dass das genau dieses Kopfhörer/Lautsprecher-Problem von speechSynthesis behebt,
+    // aber es ist die von Apple selbst für diese Problemklasse gebaute, sauberste verfügbare API.
+    // Feature-detected, kein Fehler in Browsern ohne Unterstützung; ersetzt den Loop-Trick oben
+    // nicht (kostet nichts extra, schadet also nicht, falls sie allein nicht ausreicht).
+    if ('audioSession' in navigator) {
+        try { navigator.audioSession.type = 'playback'; } catch (e) {}
+    }
 }
 
 function speakWord(btn) {
