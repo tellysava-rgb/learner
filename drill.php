@@ -955,49 +955,8 @@ window.addEventListener('pageshow', function (e) {
     if (e.persisted) window.location.reload();
 });
 
-// speechSynthesis spielt auf iOS/Android sonst nur über Kopfhörer bzw. den Ohrhörer statt über den
-// Lautsprecher, weil die Audio-Session des Geräts dafür nicht in der Kategorie "playback" läuft (in
-// der u.a. der Stumm-Schalter des iPhones ignoriert wird). Trick: ein stummes <audio>-Element als
-// Endlosschleife starten und durchgehend weiterlaufen lassen, solange die Seite offen ist.
-//
-// Wichtig — daran scheiterte der erste Versuch (v3.6.0): eine stumme Datei mit 0 Sekunden Länge
-// reicht NICHT. Sie ist bereits beendet, bevor die Sprachausgabe anfängt (der TTS-Start hat auf iOS
-// spürbare Latenz), und die Audio-Session fällt sofort wieder zurück. Das stumme Audio muss
-// GLEICHZEITIG mit der Sprachausgabe laufen — daher 0.25 s echte Stille mit loop = true.
-//
-// Der erste play()-Aufruf muss aus einer User-Geste heraus erfolgen (iOS-Autoplay-Sperre) — gegeben,
-// da speakWord() nur aus einem Klick-Handler aufgerufen wird. Auf Desktop-Browsern tritt das Problem
-// nicht auf, dort bleibt es beim bisherigen Verhalten.
-var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
-         || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOS 13+ meldet sich als Mac
-var isAndroid = /Android/i.test(navigator.userAgent);
-var silenceLoop = null;
-
-function unlockAudioSession() {
-    if (silenceLoop === null) {
-        silenceLoop = new Audio('data:audio/wav;base64,UklGRvgHAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YdAHAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==');
-        silenceLoop.loop = true;
-    }
-    // Auch bei späteren Klicks prüfen statt nur einmalig starten: iOS pausiert die Wiedergabe z.B.
-    // nach einem eingehenden Anruf oder beim Zurückkehren aus dem Hintergrund — dann muss die
-    // Schleife neu angestossen werden, sonst ist die Session beim nächsten 🔊 wieder inaktiv.
-    if (silenceLoop.paused) silenceLoop.play().catch(function () {});
-
-    // Zusätzlicher Versuch (v3.8.0): die neue, bisher nur von Safari implementierte Audio Session
-    // API erlaubt es, die Audio-Session-Kategorie einer Seite direkt zu setzen, statt sie indirekt
-    // über ein Media-Element zu erzwingen. Explizit als experimentell markiert — keine Quelle
-    // bestätigt, dass das genau dieses Kopfhörer/Lautsprecher-Problem von speechSynthesis behebt,
-    // aber es ist die von Apple selbst für diese Problemklasse gebaute, sauberste verfügbare API.
-    // Feature-detected, kein Fehler in Browsern ohne Unterstützung; ersetzt den Loop-Trick oben
-    // nicht (kostet nichts extra, schadet also nicht, falls sie allein nicht ausreicht).
-    if ('audioSession' in navigator) {
-        try { navigator.audioSession.type = 'playback'; } catch (e) {}
-    }
-}
-
 function speakWord(btn) {
     if (!('speechSynthesis' in window)) return;
-    if (isIOS || isAndroid) unlockAudioSession();
     var text = btn.dataset.speak;
     var lang = btn.dataset.lang;
     var u = new SpeechSynthesisUtterance(text);

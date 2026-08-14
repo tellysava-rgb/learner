@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.8.1] - 2026-08-14
+
+### Entfernt
+- **Sämtlicher iOS/Android-Lautsprecher-Fix-Code wieder ausgebaut.** Auf echtem iPhone 15 Pro Max (aktuelles iOS) blieb die Sprachausgabe ohne Kopfhörer weiterhin stumm — auch der dritte, in v3.8.0 ergänzte Versuch (Audio Session API) brachte keinen Effekt. Statt wirkungslosen Code stehen zu lassen, wurden `unlockAudioSession()`, die stumme Audio-Endlosschleife, die `isIOS`/`isAndroid`-Erkennung und der `navigator.audioSession`-Aufruf komplett aus `learn.php`/`drill.php` entfernt — `speakWord()` entspricht dort jetzt wieder exakt der unveränderten Fassung in `edit.php`/`help.php`. Akzeptierte Plattformgrenze, siehe `docs/ANFORDERUNGEN.md`.
+
+---
+
 ## [3.8.0] - 2026-08-14
 
 ### Neu
