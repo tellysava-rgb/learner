@@ -20,8 +20,14 @@ if (!$list) {
     exit;
 }
 
-// Karten laden
-$stmt = $pdo->prepare("SELECT word_a, word_b, desc_a, desc_b, phonetic_b FROM cards WHERE list_id = ? ORDER BY created_at");
+// Karten laden (Tags als korrelierte Subquery, analog edit.php)
+$stmt = $pdo->prepare("
+    SELECT word_a, word_b, desc_a, desc_b, phonetic_b,
+           (SELECT GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ' ')
+            FROM card_tags ct JOIN tags t ON t.id = ct.tag_id
+            WHERE ct.card_id = cards.id) AS tags
+    FROM cards WHERE list_id = ? ORDER BY created_at
+");
 $stmt->execute([$list_id]);
 $cards = $stmt->fetchAll();
 
@@ -47,15 +53,20 @@ fputcsv($out, [
     'Beschreibung ' . $list['language_a'],
     'Beschreibung ' . $list['language_b'],
     'Lautschrift',
+    'Tags',
 ], ';', '"', '\\');
 
 foreach ($cards as $card) {
+    // Tags-Spalte ist reine Backup/Portabilitäts-Angabe (Export/Reimport verliert sonst Tags) —
+    // import.php liest sie bewusst nicht ein, Tags bleiben ausschliesslich über edit.php pflegbar.
+    $tags_display = $card['tags'] ? implode(' ', array_map(fn($t) => '#' . $t, explode(' ', $card['tags']))) : '';
     fputcsv($out, [
         html_entity_decode(strip_tags($card['word_a']), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
         html_entity_decode(strip_tags($card['word_b']), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
         html_entity_decode(strip_tags($card['desc_a'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
         html_entity_decode(strip_tags($card['desc_b'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
         html_entity_decode(strip_tags($card['phonetic_b'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+        $tags_display,
     ], ';', '"', '\\');
 }
 

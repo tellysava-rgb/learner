@@ -351,7 +351,7 @@ PROMPT;
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Meine Listen', 'lists.php'], [$list['name'], 'edit.php?list_id=' . $list_id], ['Importieren', '']]) ?></div>
 
-<div class="container mt-2" style="max-width:960px;">
+<div class="container mt-2 mb-5" style="max-width:960px;">
 
     <h1 class="h4 mb-4">CSV Import — <?= htmlspecialchars($list['name']) ?></h1>
 

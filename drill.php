@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/tags.php';
 require_person();
 
 $person_id   = $_SESSION['person_id'];
@@ -45,22 +46,51 @@ if ($preset_list_id) {
     }
 }
 
+// Themen-Session: siehe learn.php, identisches Prinzip (ergänzt die Listenauswahl, ersetzt sie
+// nicht bei Vorrang für den Tag). Angebotene Tags mit vorausgewählter Liste (?list_id=…) nur
+// deren eigene Tags, sonst alle Tags über sämtliche eigene aktiven Listen hinweg — ausgewählt wird
+// trotzdem immer listenübergreifend. Anders als beim Leitner-Tageslimit gibt es im Drill-Modus
+// keine analoge Einstellung zu überschreiben — die Session-Länge (Timer) begrenzt hier bereits alles.
+$available_tags = $preset_list ? get_list_tags($pdo, (int) $preset_list['id']) : get_person_tags($pdo, $person_id);
+$preset_tag  = trim($_GET['tag'] ?? '');
+if ($preset_tag !== '' && !in_array($preset_tag, $available_tags, true)) {
+    $preset_tag = '';
+}
+
 // POST: Session konfigurieren und starten
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin') {
     csrf_validate();
     unset($_SESSION['drill']);
 
-    $list_ids  = array_map('intval', array_filter((array)($_POST['list_ids'] ?? [])));
     $direction = resolve_direction($_POST['direction'] ?? null);
     $default_minutes = (int) round(DRILL_SESSION_SECONDS / 60);
     $session_minutes = max(1, min(120, intval($_POST['session_minutes'] ?? $default_minutes)));
+    $tag = trim($_POST['tag'] ?? '');
 
-    if (!$list_ids) {
-        $_SESSION['flash_error'] = 'Bitte mindestens eine Liste auswählen.';
-        header('Location: drill.php');
-        exit;
+    // Themen-Session (siehe learn.php, identisches Prinzip): Tag hat Vorrang vor der
+    // Listen-Checkbox-Auswahl, Session läuft listenübergreifend über die getaggten Karten.
+    $card_ids_filter = null;
+    if ($tag !== '') {
+        $card_ids_filter = get_person_tag_card_ids($pdo, $person_id, $tag);
+        if (!$card_ids_filter) {
+            $_SESSION['flash_error'] = 'Keine Karten mit diesem Tag gefunden.';
+            header('Location: drill.php');
+            exit;
+        }
+        $ph = implode(',', array_fill(0, count($card_ids_filter), '?'));
+        $stmt = $pdo->prepare("SELECT DISTINCT list_id FROM cards WHERE id IN ($ph)");
+        $stmt->execute($card_ids_filter);
+        $list_ids = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    } else {
+        $list_ids = array_map('intval', array_filter((array)($_POST['list_ids'] ?? [])));
+        if (!$list_ids) {
+            $_SESSION['flash_error'] = 'Bitte mindestens eine Liste auswählen.';
+            header('Location: drill.php');
+            exit;
+        }
     }
-    start_drill_session($pdo, $person_id, $list_ids, $direction, $session_minutes * 60);
+
+    start_drill_session($pdo, $person_id, $list_ids, $direction, $session_minutes * 60, $card_ids_filter, $tag !== '' ? $tag : null);
 }
 
 // POST: Karte beantworten
@@ -283,7 +313,10 @@ function debug_deck_line(array $deck): string {
     return $line;
 }
 
-function start_drill_session(PDO $pdo, int $person_id, array $list_ids, string $direction, int $session_seconds): void {
+// $card_ids_filter/$tag: nur im Themen-Modus gesetzt (siehe begin-Handler oben) — $list_ids ist in
+// diesem Fall bereits auf die Listen der getaggten Karten aufgelöst, $card_ids_filter schränkt
+// load_drill_pool() zusätzlich auf genau diese Karten ein (analog zu learn.php).
+function start_drill_session(PDO $pdo, int $person_id, array $list_ids, string $direction, int $session_seconds, ?array $card_ids_filter = null, ?string $tag = null): void {
     $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
     $stmt = $pdo->prepare("SELECT id, language_a FROM lists WHERE id IN ($placeholders) AND person_id = ?");
     $stmt->execute(array_merge($list_ids, [$person_id]));
@@ -304,7 +337,7 @@ function start_drill_session(PDO $pdo, int $person_id, array $list_ids, string $
     }
 
     $today = today();
-    ['known' => $pool_known, 'new' => $pool_new, 'pinned' => $pool_pinned] = load_drill_pool($pdo, $person_id, $valid_ids, $today);
+    ['known' => $pool_known, 'new' => $pool_new, 'pinned' => $pool_pinned] = load_drill_pool($pdo, $person_id, $valid_ids, $today, $card_ids_filter);
     $reserve_known = [];
     $reserve_new   = [];
     $max_active_cards = limit_active_pool($pool_known, $pool_new, $reserve_known, $reserve_new, $session_seconds);
@@ -315,6 +348,9 @@ function start_drill_session(PDO $pdo, int $person_id, array $list_ids, string $
         exit;
     }
 
+    // last_used_at für alle beteiligten Listen — im Themen-Modus für alle Listen, die mindestens
+    // eine Karte mit diesem Tag haben, unabhängig davon ob an diesem Tag tatsächlich eine ihrer
+    // Karten in der Rotation war (konsistent mit dem Verhalten in learn.php).
     $upd = $pdo->prepare("UPDATE lists SET last_used_at = NOW() WHERE id = ?");
     foreach ($valid_ids as $lid) {
         $upd->execute([$lid]);
@@ -322,6 +358,7 @@ function start_drill_session(PDO $pdo, int $person_id, array $list_ids, string $
 
     $state = [
         'list_ids'        => $valid_ids,
+        'tag'             => $tag,
         'direction'       => $direction,
         'session_seconds' => $session_seconds,
         'pool_known'      => $pool_known,
@@ -357,9 +394,13 @@ function start_drill_session(PDO $pdo, int $person_id, array $list_ids, string $
     exit;
 }
 
-function load_drill_pool(PDO $pdo, int $person_id, array $list_ids, string $today): array {
+// $card_ids_filter: nur im Themen-Modus gesetzt — schränkt zusätzlich zu $list_ids auf diese
+// Karten-IDs ein (auch vorgemerkte Karten ohne diesen Tag bleiben dann aussen vor, siehe
+// start_drill_session()).
+function load_drill_pool(PDO $pdo, int $person_id, array $list_ids, string $today, ?array $card_ids_filter = null): array {
     $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
-    $params = array_merge([$person_id], $list_ids, [$today]);
+    [$card_filter_sql, $card_filter_params] = card_id_filter_sql($card_ids_filter);
+    $params = array_merge([$person_id], $list_ids, $card_filter_params, [$today]);
 
     // Vorgemerkte Karten (drill_pinned_correct IS NOT NULL) sind von der drill_too_hard-Tagessperre
     // ausgenommen — sie sollen trotz wiederholtem "Musste nachdenken" im Pool bleiben.
@@ -368,7 +409,7 @@ function load_drill_pool(PDO $pdo, int $person_id, array $list_ids, string $toda
         FROM card_progress cp
         JOIN cards c ON c.id = cp.card_id
         WHERE cp.person_id = ?
-          AND c.list_id IN ($placeholders)
+          AND c.list_id IN ($placeholders){$card_filter_sql}
           AND cp.status != 'archived'
           AND (cp.drill_pinned_correct IS NOT NULL
                OR cp.drill_too_hard = 0
@@ -608,6 +649,7 @@ function finish_drill_session(PDO $pdo, array &$state, int $person_id): void {
         'stats'        => $state['stats'],
         'mastered_ids' => $state['mastered_cards'],
         'list_ids'     => $state['list_ids'],
+        'tag'          => $state['tag'] ?? null,
     ];
 
     if ($state['mastered_cards']) {
@@ -697,7 +739,7 @@ $default_drill_minutes = (int) round(DRILL_SESSION_SECONDS / 60);
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Drill', '']]) ?></div>
 
-<div class="container mt-2" style="max-width:700px;">
+<div class="container mt-2 mb-5" style="max-width:700px;">
 
 <?php if ($done_data !== null): ?>
 <!-- ==================== ABSCHLUSS ==================== -->
@@ -753,7 +795,9 @@ $default_drill_minutes = (int) round(DRILL_SESSION_SECONDS / 60);
 
     <p class="text-muted small">Für beste Resultate warte ein paar Stunden bis zur nächsten Session.</p>
 
-    <?php if (count($done_data['list_ids'] ?? []) === 1): ?>
+    <?php if (!empty($done_data['tag'])): ?>
+    <a href="drill.php?tag=<?= urlencode($done_data['tag']) ?>" class="btn btn-primary">Erneut starten</a>
+    <?php elseif (count($done_data['list_ids'] ?? []) === 1): ?>
     <a href="drill.php?list_id=<?= (int)$done_data['list_ids'][0] ?>" class="btn btn-primary">Erneut starten</a>
     <?php endif; ?>
 </div>
@@ -838,7 +882,7 @@ $default_drill_minutes = (int) round(DRILL_SESSION_SECONDS / 60);
 
 <?php elseif (!$state && !$done_data): ?>
 <!-- ==================== SETUP ==================== -->
-<h1 class="h4 mb-4">Drill-Session starten</h1>
+<h1 class="h4 mb-4"><i class="bi bi-stopwatch text-primary me-2"></i>Drill-Session starten</h1>
 
 <?php if ($setup_error): ?>
 <div class="alert alert-danger"><?= htmlspecialchars($setup_error) ?></div>
@@ -858,70 +902,154 @@ $is_math_preset = $preset_list && is_math_list($preset_list);
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="begin">
 
-    <?php if ($preset_list): ?>
-    <!-- Vorausgewählte Liste (von Startseite oder "Erneut starten") -->
-    <input type="hidden" name="list_ids[]" value="<?= $preset_list['id'] ?>">
-    <div class="mb-4">
-        <div class="fw-semibold mb-1">Liste</div>
-        <div class="text-muted"><?= htmlspecialchars($preset_list['name']) ?> <span class="small">(<?= $lang_a ?> / <?= $lang_b ?>)</span></div>
-    </div>
-    <?php else: ?>
-    <!-- Alle aktiven Listen zur Auswahl -->
-    <div class="mb-4">
-        <label class="form-label fw-semibold">Listen auswählen</label>
-        <?php foreach ($all_lists as $list): ?>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="list_ids[]"
-                   value="<?= $list['id'] ?>" id="list_<?= $list['id'] ?>"
-                   <?= $list['id'] === ($all_lists[0]['id'] ?? 0) ? 'checked' : '' ?>>
-            <label class="form-check-label" for="list_<?= $list['id'] ?>">
-                <?= htmlspecialchars($list['name']) ?>
-                <span class="text-muted small">(<?= htmlspecialchars($list['language_a']) ?> / <?= htmlspecialchars($list['language_b']) ?>)</span>
-            </label>
-        </div>
-        <?php endforeach; ?>
-    </div>
-    <?php endif; ?>
+    <?php
+    // "Was lernen": Mathe / Sprachen / Thema als segmentierte Toggle-Buttons (dasselbe btn-check-
+    // Muster wie bei Lernrichtung weiter unten) statt gestapelter Sektionen. Mathe/Sprachen sind
+    // wegen der Typ-Sperre ohnehin nie gleichzeitig kombinierbar, deshalb hier gleich als getrennte
+    // Modi. Bei vorausgewählter Einzelliste (?list_id=…) entfällt die Mathe/Sprachen-Aufteilung.
+    $math_lists = $preset_list ? [] : array_filter($all_lists, fn($l) => is_math_list($l));
+    $word_lists = $preset_list ? [] : array_filter($all_lists, fn($l) => !is_math_list($l));
 
-    <!-- Lernrichtung -->
-    <div class="mb-4">
-        <label class="form-label fw-semibold">Lernrichtung</label>
-        <div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="direction" id="dir_ab" value="a_to_b" <?= $is_math_preset ? 'checked' : '' ?>>
-                <label class="form-check-label" for="dir_ab" id="label_ab"><?= $lang_a ?> → <?= $lang_b ?></label>
+    $modes = [];
+    if ($preset_list) {
+        $modes['liste'] = ['icon' => 'bi-collection', 'label' => 'Liste'];
+    } else {
+        if ($math_lists) $modes['math'] = ['icon' => 'bi-calculator', 'label' => 'Mathe'];
+        if ($word_lists) $modes['word'] = ['icon' => 'bi-translate', 'label' => 'Sprachen'];
+    }
+    if ($available_tags) $modes['tag'] = ['icon' => 'bi-tags', 'label' => 'Thema'];
+
+    $default_mode = $preset_tag !== '' ? 'tag' : (array_key_first(array_diff_key($modes, ['tag' => 1])) ?? 'tag');
+    ?>
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <?php if (count($modes) > 1): ?>
+            <div class="row row-cols-<?= count($modes) ?> g-2 mb-3" id="mode-select">
+                <?php foreach ($modes as $key => $m): ?>
+                <div class="col">
+                    <input type="radio" class="btn-check" name="mode_select" id="mode_<?= $key ?>" autocomplete="off"
+                           data-pane="mode-<?= $key ?>-pane" <?= $default_mode === $key ? 'checked' : '' ?>>
+                    <label class="btn btn-outline-primary w-100" for="mode_<?= $key ?>"><i class="bi <?= $m['icon'] ?> me-1"></i><?= $m['label'] ?></label>
+                </div>
+                <?php endforeach; ?>
             </div>
-            <div id="dir-other-options" class="<?= $is_math_preset ? 'd-none' : '' ?>">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="direction" id="dir_ba" value="b_to_a">
-                    <label class="form-check-label" for="dir_ba" id="label_ba"><?= $lang_b ?> → <?= $lang_a ?></label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="direction" id="dir_mix" value="mixed">
-                    <label class="form-check-label" for="dir_mix">Gemischt</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="direction" id="dir_random" value="random" <?= $is_math_preset ? '' : 'checked' ?>>
-                    <label class="form-check-label" for="dir_random">Zufall</label>
+            <?php endif; ?>
+
+            <?php if ($preset_list): ?>
+            <!-- Vorausgewählte Liste (von Startseite oder "Erneut starten") -->
+            <div id="mode-liste-pane" class="mode-pane" style="<?= $default_mode === 'liste' ? '' : 'display:none;' ?>">
+                <input type="hidden" name="list_ids[]" value="<?= $preset_list['id'] ?>">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-journal-text text-muted fs-4"></i>
+                    <div>
+                        <div class="fw-semibold"><?= htmlspecialchars($preset_list['name']) ?></div>
+                        <div class="text-muted small"><?= $lang_a ?> / <?= $lang_b ?></div>
+                    </div>
                 </div>
             </div>
-            <p class="text-muted small mb-0 <?= $is_math_preset ? '' : 'd-none' ?>" id="dir-math-hint">Bei Mathe-Listen ist nur "Aufgabe → Ergebnis" sinnvoll.</p>
+            <?php else: ?>
+            <!-- Listen je Typ als volle, klickbare Zeilen (list-group). Initial ist bewusst keine
+                 Liste angehakt (siehe Checkliste). -->
+            <?php if ($math_lists): ?>
+            <div id="mode-math-pane" class="mode-pane" style="<?= $default_mode === 'math' ? '' : 'display:none;' ?>">
+                <div class="list-group">
+                    <?php foreach ($math_lists as $list): ?>
+                    <label class="list-group-item d-flex align-items-center gap-2" for="list_<?= $list['id'] ?>">
+                        <input class="form-check-input mt-0 flex-shrink-0" type="checkbox" name="list_ids[]"
+                               value="<?= $list['id'] ?>" id="list_<?= $list['id'] ?>" data-math="1">
+                        <span><?= htmlspecialchars($list['name']) ?>
+                            <span class="text-muted small">(<?= htmlspecialchars($list['language_a']) ?> / <?= htmlspecialchars($list['language_b']) ?>)</span>
+                        </span>
+                    </label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+            <?php if ($word_lists): ?>
+            <div id="mode-word-pane" class="mode-pane" style="<?= $default_mode === 'word' ? '' : 'display:none;' ?>">
+                <div class="list-group">
+                    <?php foreach ($word_lists as $list): ?>
+                    <label class="list-group-item d-flex align-items-center gap-2" for="list_<?= $list['id'] ?>">
+                        <input class="form-check-input mt-0 flex-shrink-0" type="checkbox" name="list_ids[]"
+                               value="<?= $list['id'] ?>" id="list_<?= $list['id'] ?>" data-math="0">
+                        <span><?= htmlspecialchars($list['name']) ?>
+                            <span class="text-muted small">(<?= htmlspecialchars($list['language_a']) ?> / <?= htmlspecialchars($list['language_b']) ?>)</span>
+                        </span>
+                    </label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+            <?php endif; ?>
+
+            <?php if ($available_tags): ?>
+            <!-- Themen-Session: listenübergreifend über alle eigenen Karten mit diesem Tag, siehe
+                 begin-Handler. -->
+            <div id="mode-tag-pane" class="mode-pane" style="<?= $default_mode === 'tag' ? '' : 'display:none;' ?>">
+                <div id="tag-cloud-section">
+                    <div class="d-flex gap-2 flex-wrap mb-2" id="tag-cloud">
+                        <?php foreach ($available_tags as $t): $tid = 'tag_' . md5($t); ?>
+                        <div data-tag="<?= htmlspecialchars($t) ?>">
+                            <input type="radio" class="btn-check" name="tag" id="<?= $tid ?>" autocomplete="off"
+                                   value="<?= htmlspecialchars($t) ?>" <?= $preset_tag === $t ? 'checked' : '' ?>>
+                            <label class="btn btn-outline-secondary btn-sm rounded-pill" for="<?= $tid ?>">#<?= htmlspecialchars($t) ?></label>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="form-text">
+                        Gilt listenübergreifend über alle eigenen Karten mit diesem Tag — unabhängig von der Liste, aus der sie stammen.
+                        <a href="#" id="clear-tag-link" style="<?= $preset_tag === '' ? 'display:none;' : '' ?>">Thema entfernen</a>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Lernrichtung: bei Mathe-Auswahl ist sie immer dieselbe (Aufgabe→Ergebnis) — die ganze
+         Sektion ist dann überflüssig statt nur eine "eingefrorene" Auswahl zu zeigen. Serverseitig
+         ohnehin erzwungen (start_drill_session()), unabhängig davon ob überhaupt ein
+         direction-Wert übermittelt wird — das Formularfeld darf also komplett fehlen. Segmentierte
+         Toggle-Buttons (Bootstrap btn-check) statt gestapelter Radios. -->
+    <div class="card shadow-sm mb-3" id="direction-section" style="<?= $is_math_preset ? 'display:none;' : '' ?>">
+        <div class="card-body">
+            <label class="form-label fw-semibold">Lernrichtung</label>
+            <div class="row row-cols-2 g-2">
+                <div class="col">
+                    <input type="radio" class="btn-check" name="direction" id="dir_ab" value="a_to_b" autocomplete="off">
+                    <label class="btn btn-outline-primary w-100" for="dir_ab" id="label_ab"><?= $lang_a ?> → <?= $lang_b ?></label>
+                </div>
+                <div class="col">
+                    <input type="radio" class="btn-check" name="direction" id="dir_ba" value="b_to_a" autocomplete="off">
+                    <label class="btn btn-outline-primary w-100" for="dir_ba" id="label_ba"><?= $lang_b ?> → <?= $lang_a ?></label>
+                </div>
+                <div class="col">
+                    <input type="radio" class="btn-check" name="direction" id="dir_mix" value="mixed" autocomplete="off">
+                    <label class="btn btn-outline-primary w-100" for="dir_mix">Gemischt</label>
+                </div>
+                <div class="col">
+                    <input type="radio" class="btn-check" name="direction" id="dir_random" value="random" autocomplete="off" checked>
+                    <label class="btn btn-outline-primary w-100" for="dir_random">Zufall</label>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Timer (nur für diese Session, wird nicht dauerhaft gespeichert) -->
-    <div class="mb-4">
-        <label class="form-label fw-semibold">Timer</label>
-        <div class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-outline-secondary" onclick="adjustMinutes(-5)">−5</button>
-            <input type="number" name="session_minutes" id="session_minutes" class="form-control text-center" value="<?= $default_drill_minutes ?>" min="1" max="120" style="width:80px;">
-            <span class="text-muted">Min.</span>
-            <button type="button" class="btn btn-outline-secondary" onclick="adjustMinutes(5)">+5</button>
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <label class="form-label fw-semibold">Timer</label>
+            <div class="input-group" style="max-width:220px;">
+                <button type="button" class="btn btn-outline-secondary" onclick="adjustMinutes(-5)">−5</button>
+                <input type="number" name="session_minutes" id="session_minutes" class="form-control text-center" value="<?= $default_drill_minutes ?>" min="1" max="120">
+                <span class="input-group-text">Min.</span>
+                <button type="button" class="btn btn-outline-secondary" onclick="adjustMinutes(5)">+5</button>
+            </div>
+            <div class="form-text">Gilt nur für diese Session. Standard aus den Einstellungen: <?= $default_drill_minutes ?> Min.</div>
         </div>
-        <div class="form-text">Gilt nur für diese Session. Standard aus den Einstellungen: <?= $default_drill_minutes ?> Min.</div>
     </div>
 
-    <button type="submit" class="btn btn-primary btn-lg">Drill starten</button>
+    <button type="submit" class="btn btn-primary btn-lg w-100"><i class="bi bi-play-fill me-1"></i>Drill starten</button>
 </form>
 <?php endif; ?>
 
@@ -976,6 +1104,25 @@ function adjustMinutes(delta) {
     if (el) el.value = Math.max(1, Math.min(120, parseInt(el.value || <?= $default_drill_minutes ?>) + delta));
 }
 
+// "Was lernen": Mathe/Sprachen/Thema-Segmentbuttons schalten die zugehörige Sektion sichtbar,
+// alle anderen aus — genau ein mode-pane ist je Auswahl sichtbar. Kein PHP-Guard nötig: existiert
+// die Radiogruppe nicht (nur ein einziger Modus verfügbar), ist die NodeList einfach leer. Ein
+// Moduswechsel setzt Listen- und Themenauswahl komplett zurück — sonst könnte eine unsichtbare,
+// aber weiterhin angehakte Liste/ein Tag aus dem vorherigen Modus mit abgeschickt werden.
+document.querySelectorAll('input[name="mode_select"]').forEach(function (r) {
+    r.addEventListener('change', function () {
+        document.querySelectorAll('.mode-pane').forEach(function (p) { p.style.display = 'none'; });
+        var pane = document.getElementById(r.dataset.pane);
+        if (pane) pane.style.display = '';
+
+        document.querySelectorAll('input[name="list_ids[]"]').forEach(function (cb) { cb.checked = false; });
+        document.querySelectorAll('input[name="tag"]').forEach(function (t) { t.checked = false; });
+
+        if (typeof updateDirLabels === 'function') updateDirLabels();
+        if (typeof window.__updateTagUI === 'function') window.__updateTagUI();
+    });
+});
+
 <?php if (!$state && !$done_data && !$preset_list && $all_lists): ?>
 // Richtungs-Labels bei Mehrfach-Listenauswahl dynamisch aktualisieren
 const langMap = <?= json_encode(array_combine(
@@ -991,19 +1138,41 @@ function updateDirLabels() {
     document.getElementById('label_ba').textContent = langs.b + ' → ' + langs.a;
 
     // Nur wenn AUSSCHLIESSLICH Mathe-Listen ausgewählt sind, ist "Aufgabe → Ergebnis" die einzig
-    // sinnvolle Richtung — bei Mischauswahl mit Wortlisten bleiben alle Optionen verfügbar.
+    // sinnvolle Richtung — die ganze Lernrichtung-Sektion ist dann überflüssig (serverseitig
+    // ohnehin erzwungen, siehe start_drill_session()). Bei Mischauswahl mit Wortlisten (aktuell
+    // durch die Typ-Sperre ausgeschlossen) bliebe sie sichtbar.
     const allMath = checked.length > 0 && checked.every(cb => langMap[cb.value] && langMap[cb.value].math);
-    document.getElementById('dir-other-options').classList.toggle('d-none', allMath);
-    document.getElementById('dir-math-hint').classList.toggle('d-none', !allMath);
-    if (allMath) {
-        document.getElementById('dir_ab').checked = true;
-    }
+    document.getElementById('direction-section').style.display = allMath ? 'none' : '';
 }
 
 document.querySelectorAll('input[name="list_ids[]"]').forEach(cb => {
     cb.addEventListener('change', updateDirLabels);
 });
 updateDirLabels();
+<?php endif; ?>
+
+<?php if (!$state && !$done_data && $available_tags): ?>
+// Themen-Session: "Thema entfernen"-Link nur einblenden, solange ein Thema gewählt ist.
+(function () {
+    var tagRadios = document.querySelectorAll('input[name="tag"]');
+    var clearLink = document.getElementById('clear-tag-link');
+    function updateTagUI() {
+        var anyChecked = Array.from(tagRadios).some(function (r) { return r.checked; });
+        if (clearLink) clearLink.style.display = anyChecked ? '' : 'none';
+    }
+    tagRadios.forEach(function (r) { r.addEventListener('change', updateTagUI); });
+    if (clearLink) {
+        clearLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            tagRadios.forEach(function (r) { r.checked = false; });
+            updateTagUI();
+        });
+    }
+
+    // Vom mode_select-Handler (Mathe/Sprachen/Thema-Umschalter) aufgerufen, wenn der Thema-Modus
+    // verlassen/betreten wird und die Tag-Auswahl entsprechend zurückgesetzt werden muss.
+    window.__updateTagUI = updateTagUI;
+})();
 <?php endif; ?>
 
 <?php if ($state && $card_data): ?>

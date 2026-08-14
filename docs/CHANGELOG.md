@@ -5,6 +5,21 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.9.0] - 2026-08-14
+
+### Neu
+- **Tags pro Karte.** Freie, mit `#` eingegebene Stichworte je Karte (z.B. `#Wetter #Business`), pro Person eigenständig (kein globaler Pool) — eigene `tags`-Tabelle + n:m-Verknüpfung `card_tags` statt Freitextfeld, um Substring-Fehltreffer beim Filtern zu vermeiden und Schreibweisen konsistent zu halten. Bearbeitbar im bestehenden Karten-Formular (`edit.php`), dort auch anklickbarer Tag-Filter zusätzlich zum Status-/Fach-Filter. Beim Kopieren einer öffentlichen Liste (`discover.php`) werden Tags für die kopierende Person mitübernommen; CSV-Export (`export.php`) enthält eine Tags-Spalte (reine Portabilität, Import liest sie bewusst nicht ein). Bei Mathe-Listen sind Tags (und Beschreibung A/B) ausgeblendet, da dort nicht sinnvoll.
+- **Themen-Session (Tag-Cloud) in Leitner und Drill.** `learn.php`/`drill.php` bieten neben der Listenauswahl einen Modus "Thema": ein gewählter Tag startet eine listenübergreifende Session über alle eigenen Karten mit diesem Tag, unabhängig aus welcher Liste sie stammen. Im Leitner-Tag-Modus ist das Tageslimit für neue Karten überschreibbar (explizite Checkbox-Bestätigung; die Menge folgt dabei dem bestehenden "Kartenanzahl"-Feld, kein zusätzliches Zahlenfeld nötig) — ausserhalb des Tag-Modus bleibt es beim festen Standardwert. Drill kennt kein Tageslimit-Pendant.
+- **Setup-Seiten von Leitner/Drill neu gestaltet.** Segmentierte Toggle-Buttons "Mathe" / "Sprachen" / "Thema" ersetzen die bisherige gemischte Listenauswahl — jeder Button nur sichtbar, wenn dafür etwas existiert, ein Moduswechsel setzt die jeweils andere Auswahl zurück. Listen erscheinen als volle, klickbare Zeilen; Lernrichtung als Segment-Buttons statt gestapelter Radios; Kartenanzahl/Timer als angedockter Eingabe-Stepper; alle Sektionen in eigenen Karten statt loser Blöcke.
+
+### Verbessert
+- **Keine Liste mehr vorausgewählt beim Öffnen von Leitner/Drill** (vorher war automatisch die erste Liste angehakt) — dadurch ist "Zufall" bei der Lernrichtung jetzt zuverlässig der Standard, statt gelegentlich durch die vorausgewählte erste Liste auf "Aufgabe → Ergebnis" verfälscht zu werden.
+- **Mathe- und Sprachlisten lassen sich nicht mehr gleichzeitig auswählen** (getrennte Modi statt Mischauswahl mit Sperr-Checkboxen) — eine gemischte Auswahl ergab ohnehin keine sinnvolle Lernrichtung.
+- **Lernrichtung-Sektion komplett ausgeblendet bei Mathe-Auswahl** statt nur die drei nicht sinnvollen Optionen — "Aufgabe → Ergebnis" ist serverseitig ohnehin die einzig mögliche Richtung.
+- **Abstand am Seitenende ergänzt** (`mb-5`), damit der Inhalt nicht mehr am unteren Rand klebt: `lists.php`, `edit.php`, `stats.php`, `discover.php`, `drill.php`, `learn.php`, `home.php`, `math.php`, `settings.php`, `users.php`, `import.php`.
+
+---
+
 ## [3.8.1] - 2026-08-14
 
 ### Entfernt

@@ -1,10 +1,12 @@
 <?php
-define('APP_VERSION', '3.8.1');
+define('APP_VERSION', '3.9.0');
 define('TIMEZONE', 'Europe/Zurich');
 define('LEITNER_INTERVALS', [1 => 1, 2 => 2, 3 => 7, 4 => 14, 5 => 30]);
 // Untere Grenze für den aktiven Drill-Pool (siehe DRILL_CARDS_PER_MINUTE) — auch eine sehr kurze
 // Session bekommt noch ein sinnvoll grosses Arbeitsdeck statt z.B. nur 1-2 Karten.
 define('DRILL_MIN_ACTIVE_CARDS', 5);
+// Maximale Länge eines einzelnen Tag-Namens (Spalte tags.name, VARCHAR) — siehe includes/tags.php.
+define('TAG_NAME_MAX_LENGTH', 100);
 date_default_timezone_set(TIMEZONE);
 
 // Laufzeit-Einstellungen: aus config-runtime.php laden wenn vorhanden (gitignored, nie deployed)

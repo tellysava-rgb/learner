@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/tags.php';
 require_person();
 
 $person_id   = $_SESSION['person_id'];
@@ -47,6 +48,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->execute([$source_list_id]);
                 $source_cards = $stmt->fetchAll();
 
+                // Tags aller Quellkarten vorab in einer Abfrage laden (statt pro Karte einzeln) —
+                // werden unten für die kopierende Person neu angelegt/verknüpft (Tags sind pro
+                // Person eigenständig, siehe includes/tags.php).
+                $stmt = $pdo->prepare("
+                    SELECT ct.card_id, t.name
+                    FROM card_tags ct
+                    JOIN tags t ON t.id = ct.tag_id
+                    WHERE ct.card_id IN (SELECT id FROM cards WHERE list_id = ?)
+                ");
+                $stmt->execute([$source_list_id]);
+                $source_tags_by_card = [];
+                foreach ($stmt->fetchAll() as $row) {
+                    $source_tags_by_card[$row['card_id']][] = $row['name'];
+                }
+
                 $ins_card = $pdo->prepare("INSERT INTO cards (list_id, word_a, word_b, desc_a, desc_b, phonetic_b) VALUES (?,?,?,?,?,?)");
                 $ins_prog = $pdo->prepare("INSERT INTO card_progress (person_id, card_id, status) VALUES (?,?,'queued')");
 
@@ -54,6 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $ins_card->execute([$new_list_id, $card['word_a'], $card['word_b'], $card['desc_a'], $card['desc_b'], $card['phonetic_b']]);
                     $new_card_id = (int) $pdo->lastInsertId();
                     $ins_prog->execute([$person_id, $new_card_id]);
+                    if (!empty($source_tags_by_card[$card['id']])) {
+                        set_card_tags($pdo, $person_id, $new_card_id, $source_tags_by_card[$card['id']]);
+                    }
                 }
 
                 $pdo->commit();
@@ -115,7 +134,7 @@ if ($preview_list_id) {
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Entdecken', '']]) ?></div>
 
-<div class="container mt-2" style="max-width:960px;">
+<div class="container mt-2 mb-5" style="max-width:960px;">
 
     <h1 class="h4 mb-4">Öffentliche Listen entdecken</h1>
 

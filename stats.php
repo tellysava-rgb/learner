@@ -269,7 +269,7 @@ $drill_pct   = $drill_total > 0 ? round($drill_stats['known'] / $drill_total * 1
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Statistik', '']]) ?></div>
 
-<div class="container mt-2" style="max-width:960px;">
+<div class="container mt-2 mb-5" style="max-width:960px;">
 
     <h1 class="h4 mb-4">Statistik</h1>
 

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/tags.php';
 require_person();
 
 $person_id   = $_SESSION['person_id'];
@@ -23,9 +24,24 @@ if (!$list) {
     exit;
 }
 
+// Mathe-Listen (siehe is_math_list() in includes/auth.php — gleiche Grundlage wie in
+// learn.php/drill.php für die Lernrichtungs-Optionen): Beschreibung A/B und Tags ergeben bei
+// Rechenaufgaben keinen Sinn und werden unten aus den Formularen ausgeblendet. Lautschrift ist
+// bereits über die bestehende speech_lang_b-Prüfung abgedeckt — math.php setzt das nie.
+$is_math = is_math_list($list);
+
 $filter = $_GET['filter'] ?? 'all';
 $valid_filters = ['all', 'active', 'queued', 'archived', 'pinned', 'box1', 'box2', 'box3', 'box4', 'box5'];
 if (!in_array($filter, $valid_filters, true)) $filter = 'all';
+
+// Tag-Filter: eigenständige, zweite Filterdimension neben dem Status-Filter oben — beide gelten
+// gleichzeitig. Formulare auf dieser Seite haben kein explizites "action"-Attribut, senden also
+// per Default an die aktuelle URL inkl. Query-String — dadurch bleibt $tag_filter auch in
+// POST-Requests über $_GET verfügbar, ohne ein eigenes Hidden-Feld pro Formular zu brauchen.
+$tag_filter = trim($_GET['tag'] ?? '');
+// Wird an alle Links/Redirects angehängt, die schon &filter=... führen, damit der aktive
+// Tag-Filter beim Navigieren/nach einer Aktion erhalten bleibt.
+$filter_qs = '&filter=' . urlencode($filter) . ($tag_filter !== '' ? '&tag=' . urlencode($tag_filter) : '');
 
 // Prüft, dass eine Karten-ID wirklich zur (oben als eigene verifizierten) Liste gehört.
 // Nötig bei allen Aktionen, die card_progress schreiben: dort kommt list_id sonst nicht vor,
@@ -46,12 +62,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add') {
         $word_a = trim($_POST['word_a'] ?? '');
         $word_b = trim($_POST['word_b'] ?? '');
-        $desc_a = trim($_POST['desc_a'] ?? '');
-        $desc_b = trim($_POST['desc_b'] ?? '');
+        // Beschreibung A/B und Tags ergeben bei Mathe-Listen keinen Sinn (siehe $is_math oben) —
+        // Formularfelder sind dort ausgeblendet, hier zusätzlich serverseitig ignoriert statt
+        // einem manipulierten Formular zu vertrauen.
+        $desc_a = $is_math ? '' : trim($_POST['desc_a'] ?? '');
+        $desc_b = $is_math ? '' : trim($_POST['desc_b'] ?? '');
         $phonetic_b = $list['speech_lang_b'] ? trim($_POST['phonetic_b'] ?? '') : '';
+        $tags_parsed = $is_math ? ['names' => [], 'error' => null] : parse_tag_input($_POST['tags'] ?? '');
 
         if ($word_a === '' || $word_b === '') {
             $error = 'Beide Sprachfelder sind Pflicht.';
+        } elseif ($tags_parsed['error']) {
+            $error = $tags_parsed['error'];
         } else {
             $pdo->beginTransaction();
             try {
@@ -64,9 +86,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ON DUPLICATE KEY UPDATE status = status
                 ");
                 $stmt->execute([$person_id, $card_id]);
+                if (!$is_math) {
+                    set_card_tags($pdo, $person_id, $card_id, $tags_parsed['names']);
+                }
                 $pdo->commit();
                 $_SESSION['flash_success'] = 'Karte wurde hinzugefügt.';
-                header("Location: edit.php?list_id={$list_id}&filter={$filter}");
+                header("Location: edit.php?list_id={$list_id}{$filter_qs}");
                 exit;
             } catch (Exception $e) {
                 $pdo->rollBack();
@@ -80,13 +105,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $card_id = intval($_POST['card_id'] ?? 0);
         $word_a  = trim($_POST['word_a'] ?? '');
         $word_b  = trim($_POST['word_b'] ?? '');
-        $desc_a  = trim($_POST['desc_a'] ?? '');
-        $desc_b  = trim($_POST['desc_b'] ?? '');
+        $tags_parsed = $is_math ? ['names' => [], 'error' => null] : parse_tag_input($_POST['tags'] ?? '');
 
         if ($word_a === '' || $word_b === '') {
             $error = 'Beide Sprachfelder sind Pflicht.';
+        } elseif ($tags_parsed['error']) {
+            $error = $tags_parsed['error'];
         } else {
-            $stmt = $pdo->prepare("SELECT id, phonetic_b FROM cards WHERE id=? AND list_id=?");
+            $stmt = $pdo->prepare("SELECT id, desc_a, desc_b, phonetic_b FROM cards WHERE id=? AND list_id=?");
             $stmt->execute([$card_id, $list_id]);
             $existing_card = $stmt->fetch();
             if (!$existing_card) {
@@ -95,14 +121,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Lautschrift-Feld ist nur editierbar wenn die Liste einen Aussprache-Code hat —
                 // ansonsten bestehenden Wert unverändert lassen (nicht versehentlich löschen)
                 $phonetic_b = $list['speech_lang_b'] ? trim($_POST['phonetic_b'] ?? '') : ($existing_card['phonetic_b'] ?? '');
+                // Beschreibung A/B sind bei Mathe-Listen ausgeblendet (siehe $is_math oben) —
+                // bestehenden Wert unverändert lassen, analog zur Lautschrift-Regel oben.
+                $desc_a = $is_math ? ($existing_card['desc_a'] ?? '') : trim($_POST['desc_a'] ?? '');
+                $desc_b = $is_math ? ($existing_card['desc_b'] ?? '') : trim($_POST['desc_b'] ?? '');
 
+                $pdo->beginTransaction();
                 $stmt = $pdo->prepare("UPDATE cards SET word_a=?, word_b=?, desc_a=?, desc_b=?, phonetic_b=? WHERE id=? AND list_id=?");
                 $stmt->execute([$word_a, $word_b, $desc_a ?: null, $desc_b ?: null, $phonetic_b ?: null, $card_id, $list_id]);
+                // Tags bei Mathe-Listen ausgeblendet — bestehende Zuordnung unangetastet lassen
+                // statt sie mit einer leeren Auswahl zu überschreiben (Formularfeld existiert dort
+                // gar nicht, $_POST['tags'] wäre sonst fälschlich "leer").
+                if (!$is_math) {
+                    set_card_tags($pdo, $person_id, $card_id, $tags_parsed['names']);
+                }
+                $pdo->commit();
                 $_SESSION['flash_success'] = 'Karte gespeichert.';
                 // Fragment statt sessionStorage-Restore: nach dem Speichern ist "Neue Karte
                 // hinzufügen" wieder sichtbar (Layout wird höher), ein per Pixel gemerktes scrollY
                 // würde daher nicht mehr auf die richtige Zeile zeigen.
-                header("Location: edit.php?list_id={$list_id}&filter={$filter}#card-row-{$card_id}");
+                header("Location: edit.php?list_id={$list_id}{$filter_qs}#card-row-{$card_id}");
                 exit;
             }
         }
@@ -118,7 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $_SESSION['flash_success'] = 'Karte wurde gelöscht.';
         }
-        header("Location: edit.php?list_id={$list_id}&filter={$filter}");
+        header("Location: edit.php?list_id={$list_id}{$filter_qs}");
         exit;
     }
 
@@ -136,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$person_id, $card_id]);
             $_SESSION['flash_success'] = 'Karte wurde archiviert.';
         }
-        header("Location: edit.php?list_id={$list_id}&filter={$filter}");
+        header("Location: edit.php?list_id={$list_id}{$filter_qs}");
         exit;
     }
 
@@ -155,7 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$person_id, $card_id, $today, $today]);
             $_SESSION['flash_success'] = 'Karte wurde reaktiviert.';
         }
-        header("Location: edit.php?list_id={$list_id}&filter={$filter}");
+        header("Location: edit.php?list_id={$list_id}{$filter_qs}");
         exit;
     }
 
@@ -189,16 +227,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['flash_success'] = $is_pinned ? 'Vormerkung entfernt.' : 'Karte für Drill vorgemerkt.';
             }
         }
-        header("Location: edit.php?list_id={$list_id}&filter={$filter}");
+        header("Location: edit.php?list_id={$list_id}{$filter_qs}");
         exit;
     }
 }
 
-// Karten laden mit Fortschritt dieser Person
+// Karten laden mit Fortschritt dieser Person. Tags als korrelierte Subquery (statt separatem
+// JOIN + GROUP BY) — bei einer Handvoll Tags pro Karte performant genug und hält die Query
+// einfach; Reihenfolge alphabetisch für eine stabile Anzeige/Vergleich beim Tag-Filter.
 $stmt = $pdo->prepare("
     SELECT c.id, c.word_a, c.word_b, c.desc_a, c.desc_b, c.phonetic_b,
            COALESCE(cp.status, 'queued') AS status,
-           cp.leitner_box, cp.drill_mastery, cp.drill_pinned_correct
+           cp.leitner_box, cp.drill_mastery, cp.drill_pinned_correct,
+           (SELECT GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ' ')
+            FROM card_tags ct JOIN tags t ON t.id = ct.tag_id
+            WHERE ct.card_id = c.id) AS tags
     FROM cards c
     LEFT JOIN card_progress cp ON cp.card_id = c.id AND cp.person_id = ?
     WHERE c.list_id = ?
@@ -206,6 +249,24 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$person_id, $list_id]);
 $cards = $stmt->fetchAll();
+
+// Alle in dieser Liste tatsächlich vorkommenden Tags — für die anklickbare Filterleiste unten.
+$all_tags_in_list = [];
+foreach ($cards as $c) {
+    if ($c['tags']) {
+        foreach (explode(' ', $c['tags']) as $t) {
+            $all_tags_in_list[$t] = true;
+        }
+    }
+}
+$all_tags_in_list = array_keys($all_tags_in_list);
+sort($all_tags_in_list, SORT_FLAG_CASE | SORT_STRING);
+// Ist der aktuell gewählte Tag-Filter durch eine spätere Löschung/Umbenennung nicht mehr in
+// dieser Liste vorhanden, still zurücksetzen statt eine leere Ansicht ohne Erklärung zu zeigen.
+if ($tag_filter !== '' && !in_array($tag_filter, $all_tags_in_list, true)) {
+    $tag_filter = '';
+    $filter_qs  = '&filter=' . urlencode($filter);
+}
 
 // Edit-Formular: welche Karte?
 $edit_card_id = intval($_GET['edit'] ?? 0);
@@ -235,6 +296,11 @@ if (str_starts_with($filter, 'box')) {
         default    => $cards,
     };
 }
+
+// Tag-Filter gilt zusätzlich zum Status-Filter oben (beide Bedingungen gleichzeitig).
+if ($tag_filter !== '') {
+    $filtered_cards = array_filter($filtered_cards, fn($c) => $c['tags'] && in_array($tag_filter, explode(' ', $c['tags']), true));
+}
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -254,7 +320,7 @@ if (str_starts_with($filter, 'box')) {
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Meine Listen', 'lists.php'], [$list['name'], '']]) ?></div>
 
-<div class="container mt-2">
+<div class="container mt-2 mb-5">
 
     <div class="d-flex align-items-center gap-3 mb-1">
         <h1 class="h4 mb-0"><?= htmlspecialchars($list['name']) ?></h1>
@@ -290,6 +356,7 @@ if (str_starts_with($filter, 'box')) {
                     <input type="text" name="word_b" class="form-control form-control-sm"
                            placeholder="<?= htmlspecialchars($list['language_b']) ?> *" required maxlength="500">
                 </div>
+                <?php if (!$is_math): ?>
                 <div class="col-md-3">
                     <textarea name="desc_a" class="form-control form-control-sm" rows="2"
                               placeholder="Beschreibung <?= htmlspecialchars($list['language_a']) ?>" maxlength="1000"></textarea>
@@ -298,10 +365,17 @@ if (str_starts_with($filter, 'box')) {
                     <textarea name="desc_b" class="form-control form-control-sm" rows="2"
                               placeholder="Beschreibung <?= htmlspecialchars($list['language_b']) ?>" maxlength="1000"></textarea>
                 </div>
+                <?php endif; ?>
                 <?php if ($list['speech_lang_b']): ?>
                 <div class="col-md-1">
                     <input type="text" name="phonetic_b" class="form-control form-control-sm"
                            placeholder="Lautschrift" maxlength="200">
+                </div>
+                <?php endif; ?>
+                <?php if (!$is_math): ?>
+                <div class="col-md-2">
+                    <input type="text" name="tags" class="form-control form-control-sm"
+                           placeholder="#Tag1 #Tag2" maxlength="300">
                 </div>
                 <?php endif; ?>
                 <div class="col-md-1">
@@ -323,21 +397,38 @@ if (str_starts_with($filter, 'box')) {
             if ($c['drill_pinned_correct'] !== null) $counts['pinned']++;
         }
         $filters = ['all' => 'Alle', 'active' => 'Aktiv', 'queued' => 'Warteschlange', 'archived' => 'Archiviert', 'pinned' => 'Für Drill vorgemerkt'];
+        // An Status-/Fach-Filter-Links angehängt, damit ein aktiver Tag-Filter beim Wechsel des
+        // Status-Filters erhalten bleibt (beide Dimensionen gelten unabhängig voneinander).
+        $tag_qs = $tag_filter !== '' ? '&tag=' . urlencode($tag_filter) : '';
         foreach ($filters as $key => $label):
         ?>
-        <a href="edit.php?list_id=<?= $list_id ?>&filter=<?= $key ?>"
+        <a href="edit.php?list_id=<?= $list_id ?>&filter=<?= $key ?><?= $tag_qs ?>"
            class="btn btn-sm <?= $filter === $key ? 'btn-primary' : 'btn-outline-secondary' ?>">
             <?= $label ?> <span class="badge bg-light text-dark ms-1"><?= $counts[$key] ?></span>
         </a>
         <?php endforeach; ?>
         <span class="vr d-none d-sm-inline"></span>
         <?php for ($box = 1; $box <= 5; $box++): $key = 'box' . $box; ?>
-        <a href="edit.php?list_id=<?= $list_id ?>&filter=<?= $key ?>"
+        <a href="edit.php?list_id=<?= $list_id ?>&filter=<?= $key ?><?= $tag_qs ?>"
            class="btn btn-sm <?= $filter === $key ? 'btn-primary' : 'btn-outline-secondary' ?>">
             Fach <?= $box ?> <span class="badge bg-light text-dark ms-1"><?= $counts[$key] ?></span>
         </a>
         <?php endfor; ?>
     </div>
+
+    <!-- Tag-Filter: eigene, anklickbare Leiste mit allen in dieser Liste tatsächlich
+         vorkommenden Tags — gilt zusätzlich zum Status-/Fach-Filter oben. -->
+    <?php if ($all_tags_in_list): ?>
+    <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+        <span class="text-muted small">Tags:</span>
+        <?php foreach ($all_tags_in_list as $tag_name): $tag_active = ($tag_filter === $tag_name); ?>
+        <a href="edit.php?list_id=<?= $list_id ?>&filter=<?= $filter ?><?= $tag_active ? '' : '&tag=' . urlencode($tag_name) ?>"
+           class="btn btn-sm <?= $tag_active ? 'btn-primary' : 'btn-outline-secondary' ?>">
+            #<?= htmlspecialchars($tag_name) ?>
+        </a>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
 
     <!-- Kartenliste -->
     <?php if (!$filtered_cards): ?>
@@ -371,6 +462,7 @@ if (str_starts_with($filter, 'box')) {
                                 <input type="text" name="word_b" class="form-control form-control-sm"
                                        value="<?= htmlspecialchars($card['word_b']) ?>" required>
                             </div>
+                            <?php if (!$is_math): ?>
                             <div class="col">
                                 <textarea name="desc_a" class="form-control form-control-sm" rows="2"
                                           placeholder="Beschreibung A"><?= htmlspecialchars($card['desc_a'] ?? '') ?></textarea>
@@ -379,16 +471,23 @@ if (str_starts_with($filter, 'box')) {
                                 <textarea name="desc_b" class="form-control form-control-sm" rows="2"
                                           placeholder="Beschreibung B"><?= htmlspecialchars($card['desc_b'] ?? '') ?></textarea>
                             </div>
+                            <?php endif; ?>
                             <?php if ($list['speech_lang_b']): ?>
                             <div class="col">
                                 <input type="text" name="phonetic_b" class="form-control form-control-sm"
                                        value="<?= htmlspecialchars($card['phonetic_b'] ?? '') ?>" placeholder="Lautschrift">
                             </div>
                             <?php endif; ?>
+                            <?php if (!$is_math): ?>
+                            <div class="col">
+                                <input type="text" name="tags" class="form-control form-control-sm"
+                                       value="<?= htmlspecialchars(format_tags_for_input($card['tags'])) ?>" placeholder="#Tag1 #Tag2" maxlength="300">
+                            </div>
+                            <?php endif; ?>
                             <div class="col-auto d-flex gap-1">
                                 <button type="submit" class="btn btn-sm btn-success"
                                         data-bs-toggle="tooltip" title="Speichern"><i class="bi bi-check-lg"></i></button>
-                                <a href="edit.php?list_id=<?= $list_id ?>&filter=<?= $filter ?>#card-row-<?= $card['id'] ?>" class="btn btn-sm btn-outline-secondary"
+                                <a href="edit.php?list_id=<?= $list_id ?><?= $filter_qs ?>#card-row-<?= $card['id'] ?>" class="btn btn-sm btn-outline-secondary"
                                    data-bs-toggle="tooltip" title="Abbrechen"><i class="bi bi-x-lg"></i></button>
                             </div>
                         </form>
@@ -400,6 +499,11 @@ if (str_starts_with($filter, 'box')) {
                         <strong><?= htmlspecialchars($card['word_a']) ?></strong>
                         <?php if ($card['desc_a']): ?>
                         <br><span class="text-muted"><?= htmlspecialchars($card['desc_a']) ?></span>
+                        <?php endif; ?>
+                        <?php if ($card['tags']): ?>
+                        <br><?php foreach (explode(' ', $card['tags']) as $t): ?>
+                        <span class="badge bg-light text-dark border">#<?= htmlspecialchars($t) ?></span>
+                        <?php endforeach; ?>
                         <?php endif; ?>
                     </td>
                     <td>
@@ -431,11 +535,11 @@ if (str_starts_with($filter, 'box')) {
                              diese Spalte zusammendrücken. flex-wrap bleibt als Fallback für sehr
                              schmale Bildschirme (Handy) — dort brechen die Icons in zwei Reihen um. -->
                         <div class="d-flex justify-content-end gap-1 flex-wrap">
-                            <a href="edit.php?list_id=<?= $list_id ?>&highlight=<?= $card['id'] ?>&filter=<?= $filter ?>"
+                            <a href="edit.php?list_id=<?= $list_id ?>&highlight=<?= $card['id'] ?><?= $filter_qs ?>"
                                class="btn btn-sm btn-outline-secondary"
                                data-bs-toggle="tooltip" title="Karte ansehen"><i class="bi bi-eye"></i></a>
 
-                            <a href="edit.php?list_id=<?= $list_id ?>&edit=<?= $card['id'] ?>&filter=<?= $filter ?>#edit-card-row"
+                            <a href="edit.php?list_id=<?= $list_id ?>&edit=<?= $card['id'] ?><?= $filter_qs ?>#edit-card-row"
                                class="btn btn-sm btn-outline-primary"
                                data-bs-toggle="tooltip" title="Bearbeiten"><i class="bi bi-pencil"></i></a>
 

@@ -14,7 +14,7 @@ function run_pending_migrations(PDO $pdo): void {
     // eine Neuinstallation ohnehin nie eine dieser Migrationen braucht. Nachzulesen in der
     // Git-Historie (includes/migrations.php vor v3.2.21), falls je ein sehr altes Backup
     // (vor v3.2.20) wiederhergestellt werden muss.
-    // Nächste neue Migration hier mit der ID 17 beginnen (bestehende db_version bleibt bei 16).
+    // Nächste neue Migration hier mit der ID 18 beginnen (bestehende db_version bleibt bei 17).
     $migrations = [
         // Rate-Limiting für Login und "Passwort vergessen" (v3.2.23).
         14 => "CREATE TABLE IF NOT EXISTS auth_attempts (
@@ -41,6 +41,28 @@ function run_pending_migrations(PDO $pdo): void {
                JOIN lists l ON l.id = c.list_id
                LEFT JOIN card_progress cp ON cp.card_id = c.id AND cp.person_id = l.person_id
                WHERE cp.id IS NULL",
+
+        // Tags pro Karte (v3.9.0): eigene, pro Person eigenständige Tags-Tabelle + n:m-Verknüpfung
+        // zu cards statt Freitextfeld — verhindert Substring-Fehltreffer beim Filtern (z.B.
+        // "#Wetter" würde in einem Freitextfeld auch "#Wetterbericht" matchen) und hält
+        // Schreibweisen konsistent. Siehe includes/tags.php.
+        17 => function (PDO $pdo): void {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS tags (
+                id         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                person_id  INT          NOT NULL,
+                name       VARCHAR(100) NOT NULL,
+                created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY unique_person_tag (person_id, name),
+                FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            $pdo->exec("CREATE TABLE IF NOT EXISTS card_tags (
+                card_id INT NOT NULL,
+                tag_id  INT NOT NULL,
+                PRIMARY KEY (card_id, tag_id),
+                FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE,
+                FOREIGN KEY (tag_id)  REFERENCES tags(id)  ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        },
     ];
 
     // db_version aus settings lesen — falls Tabelle noch nicht existiert (vor install.php): abbrechen

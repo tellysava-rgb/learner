@@ -217,7 +217,7 @@ $cur_debug_mode  = DEBUG_MODE;
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Einstellungen', '']]) ?></div>
 
-<div class="container mt-2">
+<div class="container mt-2 mb-5">
 
     <div class="d-flex align-items-center gap-2 mb-4">
         <h1 class="h4 mb-0">Einstellungen</h1>

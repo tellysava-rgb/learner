@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/tags.php';
 require_person();
 
 $person_id   = $_SESSION['person_id'];
@@ -87,27 +88,74 @@ if ($preset_list_id) {
     }
 }
 
+// Themen-Session: ergänzt die Listenauswahl oben, ersetzt sie nicht. Angebotene Tags richten sich
+// nach dem Kontext — mit vorausgewählter Liste (?list_id=…) nur deren eigene Tags (passend zum
+// gerade betrachteten Deck), ohne Preset alle Tags über sämtliche eigene aktiven Listen hinweg.
+// Ausgewählt wird trotzdem immer listenübergreifend (siehe get_person_tag_card_ids() unten) — nur
+// die Vorschlagsliste ist eingeschränkt. Vorausgewählter Tag aus URL (z.B. "Nochmal"-Link nach
+// einer Themen-Session, siehe $repeat_url unten) — nur übernehmen, wenn der Tag tatsächlich
+// noch existiert, sonst wortlos ignorieren statt eine ungültige Auswahl vorzubelegen.
+$available_tags = $preset_list ? get_list_tags($pdo, (int) $preset_list['id']) : get_person_tags($pdo, $person_id);
+$preset_tag  = trim($_GET['tag'] ?? '');
+if ($preset_tag !== '' && !in_array($preset_tag, $available_tags, true)) {
+    $preset_tag = '';
+}
+
 // -------------------------------------------------------
 // POST: Session konfigurieren und starten
 // -------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin') {
     csrf_validate();
 
-    $list_ids  = array_map('intval', array_filter((array)($_POST['list_ids'] ?? [])));
-    $direction = resolve_direction($_POST['direction'] ?? null);
+    $direction  = resolve_direction($_POST['direction'] ?? null);
     $card_limit = max(1, intval($_POST['card_limit'] ?? LEITNER_DEFAULT_CARDS));
+    $tag        = trim($_POST['tag'] ?? '');
 
-    if (!$list_ids) {
-        $setup_error = 'Bitte mindestens eine Liste auswählen.';
-        goto render_setup;
+    // Nur im Tag-Modus gesetzt: schränkt beide Hilfsfunktionen unten zusätzlich auf die
+    // getaggten Karten ein (statt alle Karten der beteiligten Listen) — die eigentliche
+    // Themen-Session-Logik.
+    $card_ids_filter = null;
+    $daily_limit     = DAILY_CARD_LIMIT;
+
+    if ($tag !== '') {
+        // Themen-Session: listenübergreifend, nur eigene Karten mit diesem Tag (aktive Listen)
+        $card_ids_filter = get_person_tag_card_ids($pdo, $person_id, $tag);
+        if (!$card_ids_filter) {
+            $setup_error = 'Keine Karten mit diesem Tag gefunden.';
+            goto render_setup;
+        }
+        $card_ph = implode(',', array_fill(0, count($card_ids_filter), '?'));
+        $stmt = $pdo->prepare("SELECT DISTINCT l.id, l.language_a FROM lists l JOIN cards c ON c.list_id = l.id WHERE c.id IN ($card_ph)");
+        $stmt->execute($card_ids_filter);
+        $valid_rows = $stmt->fetchAll();
+        $valid_ids  = array_column($valid_rows, 'id');
+        // Tageslimit ist im Tag-Modus bewusst überschreibbar (geschützter Default, siehe
+        // ANFORDERUNGEN.md "Themen-Session") — ausserhalb des Tag-Modus fest bei DAILY_CARD_LIMIT.
+        // Kein eigenes Zahlenfeld dafür: die Menge steuert sich über das bestehende "Kartenanzahl"
+        // ($card_limit) — die Checkbox (daily_limit_override) bestätigt nur, dass dafür auch mehr
+        // als DAILY_CARD_LIMIT neue Karten aus der Warteschlange aktiviert werden dürfen. max() mit
+        // DAILY_CARD_LIMIT verhindert, dass eine bewusst klein gewählte Kartenanzahl (< 10) das
+        // Tageslimit versehentlich UNTER den Default drückt — die Checkbox darf das Limit nur
+        // anheben, nie verschärfen. Ohne die Checkbox bleibt es beim geschützten Default, auch bei
+        // einem manipulierten Formular.
+        if (!empty($_POST['daily_limit_override'])) {
+            $daily_limit = max($card_limit, DAILY_CARD_LIMIT);
+        }
+    } else {
+        $list_ids = array_map('intval', array_filter((array)($_POST['list_ids'] ?? [])));
+        if (!$list_ids) {
+            $setup_error = 'Bitte mindestens eine Liste auswählen.';
+            goto render_setup;
+        }
+
+        // Eigentümerschaft prüfen
+        $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
+        $stmt = $pdo->prepare("SELECT id, language_a FROM lists WHERE id IN ($placeholders) AND person_id = ?");
+        $stmt->execute(array_merge($list_ids, [$person_id]));
+        $valid_rows = $stmt->fetchAll();
+        $valid_ids  = array_column($valid_rows, 'id');
     }
 
-    // Eigentümerschaft prüfen
-    $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
-    $stmt = $pdo->prepare("SELECT id, language_a FROM lists WHERE id IN ($placeholders) AND person_id = ?");
-    $stmt->execute(array_merge($list_ids, [$person_id]));
-    $valid_rows = $stmt->fetchAll();
-    $valid_ids = array_column($valid_rows, 'id');
     if (!$valid_ids) {
         $setup_error = 'Keine gültige Liste ausgewählt.';
         goto render_setup;
@@ -122,38 +170,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin
 
     $today = today();
 
-    // Karten ohne card_progress-Eintrag für diese Person initialisieren (lazy init)
+    // Karten ohne card_progress-Eintrag für diese Person initialisieren (lazy init). Im Tag-Modus
+    // bewusst für ALLE Karten der beteiligten Listen (nicht nur die getaggten) — unschädlich,
+    // gleiches Lazy-Init wie im Listen-Modus, hält den Code hier einfach.
     $init_ph = implode(',', array_fill(0, count($valid_ids), '?'));
     $pdo->prepare("
         INSERT IGNORE INTO card_progress (person_id, card_id, status)
         SELECT ?, c.id, 'queued' FROM cards c WHERE c.list_id IN ($init_ph)
     ")->execute(array_merge([$person_id], $valid_ids));
 
-    // Täglich 10 Karten aktivieren (queued → active)
-    activate_daily_cards($pdo, $person_id, $valid_ids, $today);
+    // Täglich (im Tag-Modus: einstellbar) neue Karten aktivieren (queued → active)
+    activate_daily_cards($pdo, $person_id, $valid_ids, $today, $card_ids_filter, $daily_limit);
 
     // Karten für diese Session laden (mit Priorisierung)
-    $queue = build_leitner_queue($pdo, $person_id, $valid_ids, $today, $card_limit);
+    $queue = build_leitner_queue($pdo, $person_id, $valid_ids, $today, $card_limit, $card_ids_filter);
 
     if (!$queue) {
-        // Nächsten Fälligkeitstermin bestimmen
+        // Nächsten Fälligkeitstermin bestimmen (im Tag-Modus nur unter den getaggten Karten)
+        $card_filter_sql = '';
+        $card_filter_params = [];
+        if ($card_ids_filter !== null) {
+            $cph = implode(',', array_fill(0, count($card_ids_filter), '?'));
+            $card_filter_sql = " AND cp.card_id IN ($cph)";
+            $card_filter_params = $card_ids_filter;
+        }
         $next_stmt = $pdo->prepare("
             SELECT MIN(cp.next_due_date) FROM card_progress cp
             JOIN cards c ON c.id = cp.card_id
-            WHERE cp.person_id = ? AND c.list_id IN ($init_ph)
+            WHERE cp.person_id = ? AND c.list_id IN ($init_ph){$card_filter_sql}
               AND cp.status = 'active' AND cp.next_due_date > ?
         ");
-        $next_stmt->execute(array_merge([$person_id], $valid_ids, [$today]));
+        $next_stmt->execute(array_merge([$person_id], $valid_ids, $card_filter_params, [$today]));
         $next_due = $next_stmt->fetchColumn();
         $_SESSION['learn_done'] = [
             'stats'    => ['correct' => 0, 'incorrect' => 0, 'promoted' => 0],
             'next_due' => $next_due ?: null,
         ];
-        header('Location: learn.php?done=1&list_id=' . $valid_ids[0]);
+        header('Location: learn.php?done=1' . ($tag === '' ? '&list_id=' . $valid_ids[0] : ''));
         exit;
     }
 
-    // last_used_at für alle beteiligten Listen aktualisieren
+    // last_used_at für alle beteiligten Listen aktualisieren — im Tag-Modus für alle Listen, die
+    // mindestens eine Karte mit diesem Tag haben, unabhängig davon ob an diesem Tag tatsächlich
+    // eine ihrer Karten gezogen wurde (konsistent mit dem bestehenden Mehrfach-Listen-Verhalten).
     $upd = $pdo->prepare("UPDATE lists SET last_used_at = NOW() WHERE id = ?");
     foreach ($valid_ids as $lid) {
         $upd->execute([$lid]);
@@ -162,6 +221,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin
     // Session-State initialisieren
     $_SESSION['learn'] = [
         'list_ids'      => $valid_ids,
+        'tag'           => $tag !== '' ? $tag : null,
         'direction'     => $direction,
         'queue'         => $queue,
         'current_index' => 0,
@@ -340,17 +400,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
     // Session beendet?
     if (!$state['queue']) {
         // Session abschliessen
-        $summary = $state['stats'];
+        $summary  = $state['stats'];
         $list_ids = $state['list_ids'];
+        $tag      = $state['tag'] ?? null;
         unset($_SESSION['learn']);
 
         // Streak berechnen
         $streak = get_learn_streak($pdo, $person_id);
 
         $_SESSION['learn_done'] = [
-            'stats'   => $summary,
-            'streak'  => $streak,
+            'stats'    => $summary,
+            'streak'   => $streak,
             'list_ids' => $list_ids,
+            'tag'      => $tag,
         ];
         header('Location: learn.php?done=1');
         exit;
@@ -364,28 +426,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
 // Hilfsfunktionen
 // -------------------------------------------------------
 
-function activate_daily_cards(PDO $pdo, int $person_id, array $list_ids, string $today): void {
+// $card_ids_filter: nur im Tag-Modus gesetzt — schränkt zusätzlich zu $list_ids auf diese
+// Karten-IDs ein (statt alle Karten der übergebenen Listen). $daily_limit: im Tag-Modus vom User
+// überschreibbar (siehe begin-Handler), sonst immer DAILY_CARD_LIMIT.
+function activate_daily_cards(PDO $pdo, int $person_id, array $list_ids, string $today, ?array $card_ids_filter = null, int $daily_limit = DAILY_CARD_LIMIT): void {
     $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
+    [$card_filter_sql, $card_filter_params] = card_id_filter_sql($card_ids_filter);
 
     // Wie viele wurden heute schon aktiviert?
     $stmt = $pdo->prepare("
         SELECT COUNT(*) FROM card_progress cp
         JOIN cards c ON c.id = cp.card_id
-        WHERE cp.person_id = ? AND c.list_id IN ($placeholders)
+        WHERE cp.person_id = ? AND c.list_id IN ($placeholders){$card_filter_sql}
           AND cp.status = 'active' AND cp.next_due_date = ?
           AND cp.leitner_box = 1
     ");
-    $check_params = array_merge([$person_id], $list_ids, [$today]);
+    $check_params = array_merge([$person_id], $list_ids, $card_filter_params, [$today]);
     $stmt->execute($check_params);
     $already_activated = (int) $stmt->fetchColumn();
-    $to_activate = DAILY_CARD_LIMIT - $already_activated;
+    $to_activate = $daily_limit - $already_activated;
     if ($to_activate <= 0) return;
 
-    $params = array_merge([$person_id], $list_ids);
+    $params = array_merge([$person_id], $list_ids, $card_filter_params);
     $stmt = $pdo->prepare("
         SELECT cp.card_id FROM card_progress cp
         JOIN cards c ON c.id = cp.card_id
-        WHERE cp.person_id = ? AND c.list_id IN ($placeholders) AND cp.status = 'queued'
+        WHERE cp.person_id = ? AND c.list_id IN ($placeholders){$card_filter_sql} AND cp.status = 'queued'
         ORDER BY RAND()
         LIMIT {$to_activate}
     ");
@@ -400,9 +466,9 @@ function activate_daily_cards(PDO $pdo, int $person_id, array $list_ids, string 
     }
 }
 
-function build_leitner_queue(PDO $pdo, int $person_id, array $list_ids, string $today, int $limit): array {
+function build_leitner_queue(PDO $pdo, int $person_id, array $list_ids, string $today, int $limit, ?array $card_ids_filter = null): array {
     $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
-    $params = array_merge([$person_id], $list_ids, [$today, $today]);
+    [$card_filter_sql, $card_filter_params] = card_id_filter_sql($card_ids_filter);
 
     $stmt = $pdo->prepare("
         SELECT cp.card_id,
@@ -414,13 +480,13 @@ function build_leitner_queue(PDO $pdo, int $person_id, array $list_ids, string $
         FROM card_progress cp
         JOIN cards c ON c.id = cp.card_id
         WHERE cp.person_id = ?
-          AND c.list_id IN ($placeholders)
+          AND c.list_id IN ($placeholders){$card_filter_sql}
           AND cp.status = 'active'
           AND cp.next_due_date <= ?
         ORDER BY priority, RAND()
         LIMIT {$limit}
     ");
-    $stmt->execute(array_merge([$today, $today, $person_id], $list_ids, [$today]));
+    $stmt->execute(array_merge([$today, $today, $person_id], $list_ids, $card_filter_params, [$today]));
     return array_column($stmt->fetchAll(), 'card_id');
 }
 
@@ -508,7 +574,7 @@ render_setup:
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Leitner', '']]) ?></div>
 
-<div class="container mt-2" style="max-width:700px;">
+<div class="container mt-2 mb-5" style="max-width:700px;">
 
 <?php if ($done_data !== null): ?>
 <!-- ==================== SESSION-ZUSAMMENFASSUNG ==================== -->
@@ -575,7 +641,10 @@ $no_cards_due   = ($total_answered === 0);
 
     <?php
     $repeat_ids = $done_data['list_ids'] ?? [];
-    $repeat_url = count($repeat_ids) === 1 ? 'learn.php?list_id=' . $repeat_ids[0] : 'learn.php';
+    $repeat_tag = $done_data['tag'] ?? null;
+    $repeat_url = $repeat_tag
+        ? 'learn.php?tag=' . urlencode($repeat_tag)
+        : (count($repeat_ids) === 1 ? 'learn.php?list_id=' . $repeat_ids[0] : 'learn.php');
     ?>
     <a href="<?= $repeat_url ?>" class="btn btn-primary">Neue Session</a>
 </div>
@@ -695,7 +764,7 @@ $is_retry  = isset($state['answered'][$current['id']]);
 
 <?php else: ?>
 <!-- ==================== SETUP ==================== -->
-<h1 class="h4 mb-4">Leitner-Session starten</h1>
+<h1 class="h4 mb-4"><i class="bi bi-collection text-primary me-2"></i>Leitner-Session starten</h1>
 
 <?php if ($setup_error): ?>
 <div class="alert alert-danger"><?= htmlspecialchars($setup_error) ?></div>
@@ -723,72 +792,185 @@ $is_math_preset = $preset_list && is_math_list($preset_list);
         return 'data-due="' . $a['due_today'] . '" data-queued="' . $a['queued'] . '" data-activated="' . $a['already_activated'] . '"';
     };
     ?>
-    <?php if ($preset_list): ?>
-    <!-- Vorausgewählte Liste (von Startseite) -->
-    <input type="hidden" name="list_ids[]" value="<?= $preset_list['id'] ?>" <?= $avail_attrs($preset_list['id']) ?>>
-    <div class="mb-4">
-        <div class="fw-semibold mb-1">Liste</div>
-        <div class="text-muted"><?= htmlspecialchars($preset_list['name']) ?> <span class="small">(<?= $lang_a ?> / <?= $lang_b ?>)</span></div>
-    </div>
-    <?php else: ?>
-    <!-- Alle Listen zur Auswahl -->
-    <div class="mb-4">
-        <label class="form-label fw-semibold">Listen auswählen</label>
-        <?php foreach ($all_lists as $list): ?>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="list_ids[]"
-                   value="<?= $list['id'] ?>" id="list_<?= $list['id'] ?>"
-                   <?= $avail_attrs($list['id']) ?>
-                   <?= $list['id'] === ($all_lists[0]['id'] ?? 0) ? 'checked' : '' ?>>
-            <label class="form-check-label" for="list_<?= $list['id'] ?>">
-                <?= htmlspecialchars($list['name']) ?>
-                <span class="text-muted small">(<?= htmlspecialchars($list['language_a']) ?> / <?= htmlspecialchars($list['language_b']) ?>)</span>
-            </label>
-        </div>
-        <?php endforeach; ?>
-    </div>
-    <?php endif; ?>
 
-    <!-- Lernrichtung -->
-    <div class="mb-4">
-        <label class="form-label fw-semibold">Lernrichtung</label>
-        <div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="direction" id="dir_ab" value="a_to_b" <?= $is_math_preset ? 'checked' : '' ?>>
-                <label class="form-check-label" for="dir_ab" id="label_ab"><?= $lang_a ?> → <?= $lang_b ?></label>
+    <?php
+    // "Was lernen": Mathe / Sprachen / Thema als segmentierte Toggle-Buttons (dasselbe btn-check-
+    // Muster wie bei Lernrichtung weiter unten) statt gestapelter Sektionen — macht auf einen Blick
+    // klar, dass es drei alternative Wege sind. Mathe/Sprachen sind wegen der Typ-Sperre ohnehin nie
+    // gleichzeitig kombinierbar, deshalb hier gleich als getrennte Modi statt einer gemeinsamen
+    // Listen-Sektion mit Sperr-Logik. Bei vorausgewählter Einzelliste (?list_id=…) entfällt die
+    // Mathe/Sprachen-Aufteilung (es gibt nur die eine Liste) — dort ggf. nur "Liste" + "Thema".
+    $math_lists = $preset_list ? [] : array_filter($all_lists, fn($l) => is_math_list($l));
+    $word_lists = $preset_list ? [] : array_filter($all_lists, fn($l) => !is_math_list($l));
+
+    $modes = [];
+    if ($preset_list) {
+        $modes['liste'] = ['icon' => 'bi-collection', 'label' => 'Liste'];
+    } else {
+        if ($math_lists) $modes['math'] = ['icon' => 'bi-calculator', 'label' => 'Mathe'];
+        if ($word_lists) $modes['word'] = ['icon' => 'bi-translate', 'label' => 'Sprachen'];
+    }
+    if ($available_tags) $modes['tag'] = ['icon' => 'bi-tags', 'label' => 'Thema'];
+
+    // Default: gewählter Tag (z.B. "Nochmal"-Link) > erster nicht-Thema-Modus > Thema als letzter Fallback.
+    $default_mode = $preset_tag !== '' ? 'tag' : (array_key_first(array_diff_key($modes, ['tag' => 1])) ?? 'tag');
+    ?>
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <?php if (count($modes) > 1): ?>
+            <div class="row row-cols-<?= count($modes) ?> g-2 mb-3" id="mode-select">
+                <?php foreach ($modes as $key => $m): ?>
+                <div class="col">
+                    <input type="radio" class="btn-check" name="mode_select" id="mode_<?= $key ?>" autocomplete="off"
+                           data-pane="mode-<?= $key ?>-pane" <?= $default_mode === $key ? 'checked' : '' ?>>
+                    <label class="btn btn-outline-primary w-100" for="mode_<?= $key ?>"><i class="bi <?= $m['icon'] ?> me-1"></i><?= $m['label'] ?></label>
+                </div>
+                <?php endforeach; ?>
             </div>
-            <div id="dir-other-options" class="<?= $is_math_preset ? 'd-none' : '' ?>">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="direction" id="dir_ba" value="b_to_a">
-                    <label class="form-check-label" for="dir_ba" id="label_ba"><?= $lang_b ?> → <?= $lang_a ?></label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="direction" id="dir_mix" value="mixed">
-                    <label class="form-check-label" for="dir_mix">Gemischt</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="direction" id="dir_random" value="random" <?= $is_math_preset ? '' : 'checked' ?>>
-                    <label class="form-check-label" for="dir_random">Zufall</label>
+            <?php endif; ?>
+
+            <?php if ($preset_list): ?>
+            <!-- Vorausgewählte Liste (von Startseite) -->
+            <div id="mode-liste-pane" class="mode-pane" style="<?= $default_mode === 'liste' ? '' : 'display:none;' ?>">
+                <input type="hidden" name="list_ids[]" value="<?= $preset_list['id'] ?>" <?= $avail_attrs($preset_list['id']) ?>>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-journal-text text-muted fs-4"></i>
+                    <div>
+                        <div class="fw-semibold"><?= htmlspecialchars($preset_list['name']) ?></div>
+                        <div class="text-muted small"><?= $lang_a ?> / <?= $lang_b ?></div>
+                    </div>
                 </div>
             </div>
-            <p class="text-muted small mb-0 <?= $is_math_preset ? '' : 'd-none' ?>" id="dir-math-hint">Bei Mathe-Listen ist nur "Aufgabe → Ergebnis" sinnvoll.</p>
+            <?php else: ?>
+            <!-- Listen je Typ als volle, klickbare Zeilen (list-group). Initial ist bewusst keine
+                 Liste angehakt (siehe Checkliste). -->
+            <?php if ($math_lists): ?>
+            <div id="mode-math-pane" class="mode-pane" style="<?= $default_mode === 'math' ? '' : 'display:none;' ?>">
+                <div class="list-group">
+                    <?php foreach ($math_lists as $list): ?>
+                    <label class="list-group-item d-flex align-items-center gap-2" for="list_<?= $list['id'] ?>">
+                        <input class="form-check-input mt-0 flex-shrink-0" type="checkbox" name="list_ids[]"
+                               value="<?= $list['id'] ?>" id="list_<?= $list['id'] ?>" data-math="1"
+                               <?= $avail_attrs($list['id']) ?>>
+                        <span><?= htmlspecialchars($list['name']) ?>
+                            <span class="text-muted small">(<?= htmlspecialchars($list['language_a']) ?> / <?= htmlspecialchars($list['language_b']) ?>)</span>
+                        </span>
+                    </label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+            <?php if ($word_lists): ?>
+            <div id="mode-word-pane" class="mode-pane" style="<?= $default_mode === 'word' ? '' : 'display:none;' ?>">
+                <div class="list-group">
+                    <?php foreach ($word_lists as $list): ?>
+                    <label class="list-group-item d-flex align-items-center gap-2" for="list_<?= $list['id'] ?>">
+                        <input class="form-check-input mt-0 flex-shrink-0" type="checkbox" name="list_ids[]"
+                               value="<?= $list['id'] ?>" id="list_<?= $list['id'] ?>" data-math="0"
+                               <?= $avail_attrs($list['id']) ?>>
+                        <span><?= htmlspecialchars($list['name']) ?>
+                            <span class="text-muted small">(<?= htmlspecialchars($list['language_a']) ?> / <?= htmlspecialchars($list['language_b']) ?>)</span>
+                        </span>
+                    </label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+            <?php endif; ?>
+
+            <?php if ($available_tags): ?>
+            <!-- Themen-Session: listenübergreifend über alle eigenen Karten mit diesem Tag, siehe
+                 begin-Handler. Bei Checkbox-Mehrfachauswahl (kein Preset) blendet JS unten Tags aus,
+                 die zu keiner der gerade angehakten Listen gehören. -->
+            <div id="mode-tag-pane" class="mode-pane" style="<?= $default_mode === 'tag' ? '' : 'display:none;' ?>">
+                <div id="tag-cloud-section">
+                    <div class="d-flex gap-2 flex-wrap mb-2" id="tag-cloud">
+                        <?php foreach ($available_tags as $t): $tid = 'tag_' . md5($t); ?>
+                        <div data-tag="<?= htmlspecialchars($t) ?>">
+                            <input type="radio" class="btn-check" name="tag" id="<?= $tid ?>" autocomplete="off"
+                                   value="<?= htmlspecialchars($t) ?>" <?= $preset_tag === $t ? 'checked' : '' ?>>
+                            <label class="btn btn-outline-secondary btn-sm rounded-pill" for="<?= $tid ?>">#<?= htmlspecialchars($t) ?></label>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="form-text">
+                        Gilt listenübergreifend über alle eigenen Karten mit diesem Tag — unabhängig von der Liste, aus der sie stammen.
+                        <a href="#" id="clear-tag-link" style="<?= $preset_tag === '' ? 'display:none;' : '' ?>">Thema entfernen</a>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Lernrichtung: bei Mathe-Auswahl ist sie immer dieselbe (Aufgabe→Ergebnis) — die ganze
+         Sektion ist dann überflüssig statt nur eine "eingefrorene" Auswahl zu zeigen. Serverseitig
+         ohnehin erzwungen (begin-Handler), unabhängig davon ob überhaupt ein direction-Wert
+         übermittelt wird — das Formularfeld darf also komplett fehlen. Segmentierte Toggle-Buttons
+         (Bootstrap btn-check) statt gestapelter Radios — kompakter, bekanntes Muster für eine
+         kleine Menge sich ausschliessender Optionen. -->
+    <div class="card shadow-sm mb-3" id="direction-section" style="<?= $is_math_preset ? 'display:none;' : '' ?>">
+        <div class="card-body">
+            <label class="form-label fw-semibold">Lernrichtung</label>
+            <div class="row row-cols-2 g-2">
+                <div class="col">
+                    <input type="radio" class="btn-check" name="direction" id="dir_ab" value="a_to_b" autocomplete="off">
+                    <label class="btn btn-outline-primary w-100" for="dir_ab" id="label_ab"><?= $lang_a ?> → <?= $lang_b ?></label>
+                </div>
+                <div class="col">
+                    <input type="radio" class="btn-check" name="direction" id="dir_ba" value="b_to_a" autocomplete="off">
+                    <label class="btn btn-outline-primary w-100" for="dir_ba" id="label_ba"><?= $lang_b ?> → <?= $lang_a ?></label>
+                </div>
+                <div class="col">
+                    <input type="radio" class="btn-check" name="direction" id="dir_mix" value="mixed" autocomplete="off">
+                    <label class="btn btn-outline-primary w-100" for="dir_mix">Gemischt</label>
+                </div>
+                <div class="col">
+                    <input type="radio" class="btn-check" name="direction" id="dir_random" value="random" autocomplete="off" checked>
+                    <label class="btn btn-outline-primary w-100" for="dir_random">Zufall</label>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Kartenanzahl -->
-    <div class="mb-4">
-        <label class="form-label fw-semibold">Kartenanzahl</label>
-        <div class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-outline-secondary" onclick="adjustCards(-5)">−5</button>
-            <input type="number" name="card_limit" id="card_limit" class="form-control text-center" value="<?= LEITNER_DEFAULT_CARDS ?>" min="1" max="200" style="width:80px;">
-            <button type="button" class="btn btn-outline-secondary" onclick="adjustCards(5)">+5</button>
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <label class="form-label fw-semibold">Kartenanzahl</label>
+            <div class="input-group" style="max-width:220px;">
+                <button type="button" class="btn btn-outline-secondary" onclick="adjustCards(-5)">−5</button>
+                <input type="number" name="card_limit" id="card_limit" class="form-control text-center" value="<?= LEITNER_DEFAULT_CARDS ?>" min="1" max="200">
+                <button type="button" class="btn btn-outline-secondary" onclick="adjustCards(5)">+5</button>
+            </div>
+            <div class="form-text">App zeigt alle fälligen Karten. Du kannst die Zahl anpassen.</div>
+
+            <?php if ($available_tags): ?>
+            <!-- Tageslimit-Hinweis/-Bestätigung nur relevant, solange ein Thema gewählt ist (siehe
+                 Modus "Thema" oben) — bewusst nicht dort platziert, damit der Modus rein die
+                 Themenauswahl bleibt. Kein separates Zahlenfeld: die Menge steuert sich über das
+                 ohnehin vorhandene "Kartenanzahl"-Feld oben — die Checkbox bestätigt nur, dass
+                 dafür auch mehr als die empfohlenen <?= DAILY_CARD_LIMIT ?> neuen Karten aus der
+                 Warteschlange geladen werden dürfen, statt ein zweites, redundantes Feld danach zu
+                 fragen. -->
+            <div class="mt-3 p-3 bg-body-tertiary rounded" id="daily-limit-block" style="<?= $preset_tag === '' ? 'display:none;' : '' ?>">
+                <div class="d-flex gap-2">
+                    <i class="bi bi-info-circle text-muted"></i>
+                    <div class="form-text mb-0">
+                        Bei einer Themen-Session werden für den besten Lerneffekt standardmässig nur <?= DAILY_CARD_LIMIT ?> neue Karten pro Tag aus der Warteschlange aktiviert — das schützt vor zu vielen neuen Karten auf einmal. Bereits fällige Karten sind davon nicht betroffen. Falls "Kartenanzahl" oben höher als <?= DAILY_CARD_LIMIT ?> eingestellt ist, kannst du diesen Schutz für diese Session bewusst umgehen:
+                    </div>
+                </div>
+                <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" id="daily_limit_override" name="daily_limit_override" value="1">
+                    <label class="form-check-label" for="daily_limit_override">Ich bin einverstanden, dass heute mehr als <?= DAILY_CARD_LIMIT ?> neue Karten geladen werden (bis zur oben eingestellten Kartenanzahl)</label>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
-        <div class="form-text">App zeigt alle fälligen Karten. Du kannst die Zahl anpassen.</div>
     </div>
 
     <div class="alert alert-info small d-none" id="availability-hint"></div>
 
-    <button type="submit" class="btn btn-primary btn-lg">Session starten</button>
+    <button type="submit" class="btn btn-primary btn-lg w-100"><i class="bi bi-play-fill me-1"></i>Session starten</button>
 </form>
 <?php endif; ?>
 
@@ -899,6 +1081,27 @@ function adjustCards(delta) {
     updateAvailabilityHint();
 }
 
+// "Was lernen": Mathe/Sprachen/Thema-Segmentbuttons schalten die zugehörige Sektion sichtbar,
+// alle anderen aus — genau ein mode-pane ist je Auswahl sichtbar. Kein PHP-Guard nötig: existiert
+// die Radiogruppe nicht (nur ein einziger Modus verfügbar), ist die NodeList einfach leer.
+// Ein Moduswechsel setzt Listen- und Themenauswahl komplett zurück — sonst könnte eine unsichtbare,
+// aber weiterhin angehakte Liste/ein Tag aus dem vorherigen Modus mit abgeschickt werden (z.B.
+// Mathe-Liste + Sprachliste gleichzeitig, obwohl sie nie zusammen sichtbar sind).
+document.querySelectorAll('input[name="mode_select"]').forEach(function (r) {
+    r.addEventListener('change', function () {
+        document.querySelectorAll('.mode-pane').forEach(function (p) { p.style.display = 'none'; });
+        var pane = document.getElementById(r.dataset.pane);
+        if (pane) pane.style.display = '';
+
+        document.querySelectorAll('input[name="list_ids[]"]').forEach(function (cb) { cb.checked = false; });
+        document.querySelectorAll('input[name="tag"]').forEach(function (t) { t.checked = false; });
+
+        if (typeof updateAvailabilityHint === 'function') updateAvailabilityHint();
+        if (typeof updateDirLabels === 'function') updateDirLabels();
+        if (typeof window.__updateTagUI === 'function') window.__updateTagUI();
+    });
+});
+
 <?php if (!$state && $all_lists): ?>
 // Verfügbarkeits-Hinweis (Infobox unter "Kartenanzahl") — summiert über alle ausgewählten Listen
 // (Preset: das einzelne versteckte Feld; Checkbox-Auswahl: alle angehakten). Macht sichtbar, warum
@@ -912,6 +1115,13 @@ function updateAvailabilityHint() {
     const hint = document.getElementById('availability-hint');
     if (!hint) return;
     const inputs = document.querySelectorAll('input[name="list_ids[]"]:checked, input[name="list_ids[]"][type="hidden"]');
+    // Initial ist keine Liste angehakt (siehe Checkliste) — ohne Auswahl gäbe es sonst fälschlich
+    // "Die Warteschlange ist leer", obwohl schlicht noch nichts gewählt wurde.
+    if (inputs.length === 0) {
+        hint.classList.add('d-none');
+        hint.innerHTML = '';
+        return;
+    }
     let due = 0, queued = 0, activated = 0;
     inputs.forEach(function (el) {
         due       += parseInt(el.dataset.due || '0', 10);
@@ -973,19 +1183,61 @@ function updateDirLabels() {
     document.getElementById('label_ba').textContent = langs.b + ' → ' + langs.a;
 
     // Nur wenn AUSSCHLIESSLICH Mathe-Listen ausgewählt sind, ist "Aufgabe → Ergebnis" die einzig
-    // sinnvolle Richtung — bei Mischauswahl mit Wortlisten bleiben alle Optionen verfügbar.
+    // sinnvolle Richtung — die ganze Lernrichtung-Sektion ist dann überflüssig (serverseitig
+    // ohnehin erzwungen, siehe begin-Handler). Bei Mischauswahl mit Wortlisten (aktuell durch die
+    // Typ-Sperre ausgeschlossen) bliebe sie sichtbar.
     const allMath = checked.length > 0 && checked.every(cb => langMap[cb.value] && langMap[cb.value].math);
-    document.getElementById('dir-other-options').classList.toggle('d-none', allMath);
-    document.getElementById('dir-math-hint').classList.toggle('d-none', !allMath);
-    if (allMath) {
-        document.getElementById('dir_ab').checked = true;
-    }
+    document.getElementById('direction-section').style.display = allMath ? 'none' : '';
 }
 
 document.querySelectorAll('input[name="list_ids[]"]').forEach(cb => {
     cb.addEventListener('change', updateDirLabels);
 });
 updateDirLabels();
+<?php endif; ?>
+
+<?php if (!$state && $available_tags): ?>
+// Themen-Session: Tageslimit-Block (Hinweis + Bestätigungs-Checkbox) nur einblenden, solange ein
+// Thema gewählt ist, und den listenbasierten Verfügbarkeits-Hinweis währenddessen ausblenden (er
+// würde sonst Zahlen zur Listenauswahl zeigen, die im Tag-Modus gar nicht gelten — der Tag hat
+// serverseitig Vorrang).
+(function () {
+    var tagRadios     = document.querySelectorAll('input[name="tag"]');
+    var dailyBlock     = document.getElementById('daily-limit-block');
+    var dailyOverride  = document.getElementById('daily_limit_override');
+    var clearLink      = document.getElementById('clear-tag-link');
+    var availHint      = document.getElementById('availability-hint');
+
+    function updateTagUI() {
+        var anyChecked = Array.from(tagRadios).some(function (r) { return r.checked; });
+        if (dailyBlock) dailyBlock.style.display = anyChecked ? '' : 'none';
+        if (clearLink)  clearLink.style.display  = anyChecked ? '' : 'none';
+        if (!anyChecked && dailyOverride) {
+            // Auswahl zurückgesetzt: Bestätigung nicht "scharf" stehen lassen, sonst würde ein
+            // wieder unsichtbares, aber weiterhin angehaktes Kästchen beim erneuten Wählen eines
+            // Themas ungewollt sofort das Tageslimit überschreiten.
+            dailyOverride.checked = false;
+        }
+        if (anyChecked) {
+            if (availHint) { availHint.classList.add('d-none'); availHint.innerHTML = ''; }
+        } else if (typeof updateAvailabilityHint === 'function') {
+            updateAvailabilityHint();
+        }
+    }
+
+    tagRadios.forEach(function (r) { r.addEventListener('change', updateTagUI); });
+    if (clearLink) {
+        clearLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            tagRadios.forEach(function (r) { r.checked = false; });
+            updateTagUI();
+        });
+    }
+
+    // Vom mode_select-Handler (Mathe/Sprachen/Thema-Umschalter) aufgerufen, wenn der Thema-Modus
+    // verlassen/betreten wird und die Tag-Auswahl entsprechend zurückgesetzt werden muss.
+    window.__updateTagUI = updateTagUI;
+})();
 <?php endif; ?>
 </script>
 </body>

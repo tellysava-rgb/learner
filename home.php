@@ -138,7 +138,7 @@ $_SESSION['streak_date'] = today();
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', '']]) ?></div>
 
-<div class="container mt-2">
+<div class="container mt-2 mb-5">
 
 <?php if ($error): ?>
     <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>

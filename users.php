@@ -172,7 +172,7 @@ $admin_count = (int) $pdo->query("SELECT COUNT(*) FROM persons WHERE is_admin = 
 
 <div class="container mt-3"><?= breadcrumb([['Startseite', 'home.php'], ['Benutzerverwaltung', '']]) ?></div>
 
-<div class="container mt-2" style="max-width:760px;">
+<div class="container mt-2 mb-5" style="max-width:760px;">
 
     <h1 class="h4 mb-4">Benutzerverwaltung</h1>
 

@@ -155,6 +155,7 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 - **Danach nicht mehr änderbar:** Ist eine Liste als Mathe-Liste erkannt (`language_a === 'Aufgabe'`) — egal ob über diesen Listentyp oder über den Mathe-Generator entstanden —, zeigt das Bearbeiten-Formular (`lists.php?edit=X`) Sprache A/B nur noch als gesperrte (disabled) Felder und blendet das Aussprache-Feld aus. Serverseitig werden abweichende POST-Werte für diese Felder ignoriert (bleiben auf den gespeicherten Werten), unabhängig vom übermittelten Formularinhalt — verhindert, dass die Lernrichtungs-Sperre bei Mathe-Listen (siehe "Lernrichtung bei Mathe-Listen") durch Umbenennen ausgehebelt wird
 - Name, Beschreibung und Öffentlich/Privat bleiben bei Mathe-Listen normal editierbar
 - Eine über den Listentyp "Aufgabe" erstellte Liste ist zunächst **leer** (keine automatisch generierten Karten wie beim Mathe-Generator) — Karten werden wie bei jeder Liste manuell über `edit.php` oder per CSV-Import hinzugefügt
+- **Karten-Formular bei Mathe-Listen** _(v3.9.0)_: In `edit.php` blendet dieselbe `is_math_list()`-Prüfung (identische Grundlage wie bei der Lernrichtungs-Einschränkung in `learn.php`/`drill.php`) zusätzlich zum Lautschrift-Feld (weiterhin über `speech_lang_b`, bei Mathe-Listen nie gesetzt) auch **Beschreibung A/B und Tags** aus dem "Neue Karte hinzufügen"- und dem Bearbeiten-Formular aus — bei Rechenaufgaben ergeben beide keinen Sinn. Serverseitig ebenfalls erzwungen (nicht nur im Formular ausgeblendet): abweichende POST-Werte werden ignoriert, beim Bearbeiten bleibt ein zuvor gesetzter Wert unverändert (analog zur Lautschrift-Regel) statt durch ein leeres Formularfeld überschrieben zu werden
 
 ### Aussprache (Audio) _(v2.2.0)_
 - Pro Liste kann ein **Sprachcode für die Aussprache** hinterlegt werden — ausschliesslich für **Sprache B** (die Fremdsprache), nicht für Sprache A
@@ -190,6 +191,7 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 | Beschreibung A | optional |
 | Beschreibung B | optional |
 | Lautschrift (Sprache B) | optional |
+| Tags | optional |
 
 ### Lautschrift pro Karte _(v2.3.0)_
 - Zusätzliches Feld `phonetic_b` pro Karte — manuell erfasste Lautschrift für den Begriff in **Sprache B**
@@ -198,6 +200,18 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 - Ergänzt die Audio-Wiedergabe, ersetzt sie nicht — beide Mechanismen sind unabhängig nutzbar
 - **CSV-Import/-Export** unterstützen `phonetic_b` als optionale 5. Spalte _(v2.4.0)_ — siehe Abschnitt "CSV-Format"
 - **MCP `add_cards`** unterstützt `phonetik_b` als optionales Feld, mit derselben vereinfachten Lautschrift-Konvention wie manuell erfasst (Silben mit Bindestrich, betonte Silbe GROSS, keine IPA-Zeichen) — nur befüllen wenn die Liste ein `speech_lang_b` hat, reine Agent-Anweisung ohne serverseitige Validierung _(v2.4.0)_
+
+### Tags pro Karte _(v3.9.0)_
+- Freie, mit `#` eingegebene Stichworte pro Karte (z.B. `#Wetter #Business`) — Eingabefeld leerzeichengetrennt, mehrere Tags pro Karte möglich
+- **Nur für Sprach-/Wortlisten** — bei Mathe-Listen (`is_math_list()`) ist das Tags-Feld ausgeblendet, siehe "Karten-Formular bei Mathe-Listen" im Abschnitt "Listentyp: Wortliste / Aufgabe"
+- **Datenmodell:** eigene `tags`-Tabelle (Tags sind **pro Person eigenständig**, kein globaler Pool) + n:m-Verknüpfungstabelle `card_tags` — bewusst **kein** Freitextfeld auf `cards`, um Substring-Fehltreffer beim Filtern zu vermeiden (ein Freitextfeld mit `LIKE`-Suche würde z.B. `#Wetter` auch in `#Wetterbericht` fälschlich finden) und um Schreibweisen konsistent zu halten (sonst z.B. `wetter`/`Wetter`/`Wetter-Vokabeln` als drei getrennte Tags)
+- Tag-Namen case-insensitiv dedupliziert (DB-Standard-Collation `utf8mb4_*_ci`) — die zuerst erfasste Schreibweise eines Tags wird bei Wiederverwendung beibehalten
+- Verwaiste Tags (letzte Karte entfernt) bleiben bewusst in der `tags`-Tabelle bestehen statt automatisch gelöscht zu werden — leichter wiederverwendbar
+- **Bearbeitbar ausschliesslich über `edit.php`** — im selben Formular wie Begriff A/B, Beschreibung A/B, Lautschrift (Hinzufügen- und Inline-Bearbeiten-Formular). **MCP-Tools bleiben unangetastet** (auch `list_cards` zeigt keine Tags an) — Tags sind bewusst eine reine Web-UI-Angelegenheit
+- **Filter in `edit.php`:** anklickbare Tag-Leiste unter dem Status-/Fach-Filter, zeigt nur tatsächlich in der Liste vorkommende Tags. Gilt **zusätzlich** zum Status-/Fach-Filter (beide Dimensionen gleichzeitig), nicht als Ersatz
+- **CSV-Export** enthält Tags als zusätzliche, letzte Spalte (Backup-/Portabilitätszweck) — **CSV-Import liest diese Spalte bewusst nicht ein**, Tags bleiben ausschliesslich über `edit.php` pflegbar
+- **Kopieren einer öffentlichen Liste** (`discover.php`): Tags der Quellkarten werden für die kopierende Person übernommen (als deren eigene Tags neu angelegt/verknüpft) — konsistent damit, dass auch der übrige Karteninhalt kopiert wird
+- Anzeige als Badges (`#Tag`) unter dem Begriff in Sprache A, in der Kartenübersicht von `edit.php`
 
 ### Sprachen
 - Frei definierbar pro Liste (z.B. Deutsch/Englisch, Deutsch/Japanisch)
@@ -211,10 +225,12 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 - Radio-Buttons stehen untereinander (nicht mehr nebeneinander in einer Zeile) — Reihenfolge von oben nach unten: A→B, B→A, Gemischt, Zufall
 - Die tatsächlich ausgewürfelte Richtung wird nirgends separat angezeigt (kein Debug- oder Info-Hinweis) — für den User macht sich das nur darin bemerkbar, welche Sprache auf der jeweiligen Karte oben bzw. unten erscheint
 
-### Lernrichtung bei Mathe-Listen _(v3.3.25)_
-- Bei Mathe-Listen (siehe "Mathe-Generator") ist nur "Aufgabe → Ergebnis" sinnvoll — die drei anderen Richtungen (Ergebnis→Aufgabe, Gemischt, Zufall) ergeben bei Rechenaufgaben keinen Sinn und werden auf der Konfigurationsseite (Leitner **und** Drill) ausgeblendet, sobald **ausschliesslich** Mathe-Listen ausgewählt sind — "Aufgabe → Ergebnis" ist dann fest vorausgewählt, dazu ein Hinweistext. Wird zusätzlich mindestens eine Wortliste ausgewählt (Listen mischen), bleiben alle vier Optionen verfügbar
+### Lernrichtung bei Mathe-Listen _(v3.3.25, Typ-Sperre + Sektion ausgeblendet v3.9.0)_
+- Bei Mathe-Listen (siehe "Mathe-Generator") ist nur "Aufgabe → Ergebnis" sinnvoll — es gibt dafür serverseitig gar keinen anderen gültigen Wert
+- **Die komplette "Lernrichtung"-Sektion (Leitner **und** Drill) ist ausgeblendet, sobald eine Mathe-Liste ausgewählt ist** — nicht nur die drei anderen Optionen (Ergebnis→Aufgabe, Gemischt, Zufall), auch "Aufgabe → Ergebnis" selbst wird nicht mehr als (eingefrorene) Auswahl angezeigt, da sie ohnehin die einzig mögliche ist. Bei einer Einzellisten-Vorauswahl (`?list_id=…`) serverseitig direkt per `style="display:none;"` auf der Sektion (`#direction-section`), bei Checkbox-Mehrfachauswahl per JS (`updateDirLabels()`), sobald ausschliesslich Mathe-Listen angehakt sind — verschwindet die Sektion wieder, sobald stattdessen eine Sprachliste gewählt wird
+- **Mathe- und Sprachlisten sind seit v3.9.0 nicht mehr gleichzeitig auswählbar** (siehe "Listenauswahl: Typ-Sperre" unter "Decks mischen") — bei einer Mathe-Auswahl ist immer ausschliesslich "Aufgabe → Ergebnis" relevant
 - Erkennung einer Mathe-Liste: `language_a === 'Aufgabe'` (Marker, den `math.php` beim Erstellen setzt) — kein eigenes DB-Feld, bewusst einfach gehalten, da `math.php` aktuell die einzige Stelle ist, die solche Listen erzeugt (`is_math_list()` in `includes/auth.php`)
-- Serverseitig zusätzlich erzwungen (nicht nur im Formular ausgeblendet): Ist die tatsächlich ausgewählte Listen-Kombination beim Session-Start ausschliesslich Mathe, wird die Richtung unabhängig vom übermittelten Formularwert auf `a_to_b` gesetzt
+- **Serverseitig ohnehin erzwungen, unabhängig vom Formular:** Ist die tatsächlich ausgewählte Listen-Kombination beim Session-Start ausschliesslich Mathe, wird die Richtung auf `a_to_b` gesetzt — egal ob überhaupt ein `direction`-Wert übermittelt wurde (die Sektion kann komplett fehlen) oder welcher
 
 ### Karten-Identität
 - Jede Karte erhält beim Erstellen eine **stabile `card_id`** in der Datenbank
@@ -222,8 +238,17 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 - Keine geteilten Karten zwischen Personen — kein Fortschrittsverlust durch fremde Änderungen
 
 ### Decks mischen
-- Beim Sessionstart können **mehrere eigene Listen gleichzeitig** ausgewählt werden
+- Beim Sessionstart können **mehrere eigene Listen gleichzeitig** ausgewählt werden — aber nur innerhalb desselben Typs, siehe "Listenauswahl: Typ-Sperre" unten
 - Lernfortschritt ist immer **persönlich** pro Person und pro `card_id`
+
+### Setup-Seite: Mathe/Sprachen/Thema als Segmentbuttons _(v3.9.0, Segmentbuttons v3.9.1)_
+- Auf der Leitner-/Drill-Setup-Seite (kein `list_id`-Preset) sind die möglichen Wege, eine Session zusammenzustellen, als **segmentierte Toggle-Buttons** (Bootstrap `btn-check`, gleiches Muster wie bei "Lernrichtung") oben in der Karte "Was lernen" dargestellt: **Mathe**, **Sprachen**, **Thema** — jeder Button nur sichtbar, wenn dafür überhaupt etwas existiert (z.B. kein "Mathe"-Button ohne Mathe-Listen). Existiert nur eine einzige Option insgesamt, entfällt die Button-Leiste komplett, der Inhalt steht direkt da
+- Jeder Modus hat eine eigene Sektion (`.mode-pane`, nur eine gleichzeitig sichtbar) — Mathe- und Sprachlisten stehen dadurch nie in derselben Auswahl, ganz ohne eine JS-Sperre einzelner Checkboxen (Vorgängerlösung bis v3.9.0: gemeinsame Liste mit `disabled`-Checkboxen des jeweils anderen Typs — durch die getrennten Sektionen hinfällig)
+- **Moduswechsel setzt die Auswahl zurück**: Umschalten auf einen anderen Button leert alle Listen-Checkboxen und die Tag-Auswahl — verhindert, dass eine unsichtbare, aber weiterhin angehakte Liste/ein Tag aus dem vorherigen Modus unbemerkt mit abgeschickt wird
+- Default-Modus: ein per URL vorgewählter Tag (z.B. über den "Nochmal"-Link nach einer Themen-Session) > erster verfügbarer Nicht-Thema-Modus in der Reihenfolge Mathe → Sprachen > Thema als letzter Fallback
+- Bei vorausgewählter Einzelliste (`?list_id=…`) entfällt die Mathe/Sprachen-Aufteilung (es gibt nur die eine, bereits feststehende Liste) — dort ggf. weiterhin "Liste" + "Thema" als zwei Modi, falls die Liste Tags hat
+- Innerhalb eines Listen-Modus: Listen als volle, klickbare Zeilen (`list-group`) — anklickbar ist die ganze Zeile, nicht nur die kleine Checkbox
+- Rein clientseitige Komfortfunktion (kein Sicherheitsmerkmal) — bei einer über ein manipuliertes Formular dennoch eingereichten gemischten Auswahl greift serverseitig nur die bestehende Regel "ausschliesslich Mathe erzwingt Aufgabe→Ergebnis" (siehe "Lernrichtung bei Mathe-Listen"), eine gemischte Kombination selbst wird nicht zurückgewiesen — betrifft nur die eigenen Karten der einreichenden Person, keine Datenintegrität anderer
 
 ### Bearbeitung im Browser
 - Einzelne Einträge **hinzufügen**, **ändern**, **löschen**
@@ -358,6 +383,19 @@ card_progress Tabelle:
 
   **Die Box selbst erscheint nur, wenn die eingestellte Kartenanzahl grösser ist als die tatsächlich verfügbare Zahl (X)** — sind genug fällige/aktivierbare Karten vorhanden, um die gewünschte Kartenanzahl zu erreichen, bleibt die Box unsichtbar (`d-none`). Reagiert live auf Änderungen sowohl der Listenauswahl als auch der Kartenanzahl (inkl. der ±5-Buttons). Bei Checkbox-Mehrfachauswahl aktualisiert sich die Box automatisch beim An-/Abwählen (Summe über alle ausgewählten Listen, serverseitig pro Liste vorberechnet, keine Nachlade-Anfrage nötig). Das Tageslimit gilt dabei **pro Listen-Auswahl der jeweiligen Session**, nicht global über den ganzen Account — zwei Listen einzeln gelernt ergeben bis zu 2×N neue Karten am Tag, gemeinsam ausgewählt teilen sie sich ein Kontingent von N (bewusst so belassen). Rein informativ — die Mechanik (Tageslimit, Drosselung neuer Karten) selbst bleibt unverändert, siehe Abschnitt oben.
 
+### Themen-Session (Tag-Cloud) _(v3.9.0)_
+- Auf der Leitner-Setup-Seite steht eine **Tag-Cloud** als eigener Modus "Thema" neben Mathe/Sprachen zur Wahl (siehe "Setup-Seite: Mathe/Sprachen/Thema als Segmentbuttons") — alle Wege bestehen nebeneinander, keiner ersetzt die anderen dauerhaft, pro Session ist aber immer nur einer aktiv
+- Nur **ein Tag pro Session** wählbar (Radio-Buttons, kein UND/ODER mehrerer Tags)
+- Wird ein Tag gewählt, hat er **serverseitig Vorrang** vor einer evtl. zusätzlich angehakten Listenauswahl — die Session läuft dann **listenübergreifend** über alle eigenen Karten (aus aktiven Listen) mit diesem Tag, unabhängig davon aus welcher Liste sie stammen
+- Tag-Cloud zeigt nur Tags, die auf mindestens einer Karte einer **aktiven** eigenen Liste vorkommen (`get_person_tags()` in `includes/tags.php`) — inaktive Listen stehen auch hier nicht zur Wahl, analog zur normalen Listenauswahl
+- **Kontextabhängige Vorschläge:** Wird die Setup-Seite über eine bestimmte Liste aufgerufen (`?list_id=…`, z.B. über den "Leitner"/"Drill"-Button einer einzelnen Liste), zeigt die Tag-Cloud **nur die Tags dieser Liste** (`get_list_tags()`) statt aller Tags der Person — ohne `list_id` (allgemeiner Einstieg über `learn.php`/`drill.php`) werden weiterhin alle Tags über sämtliche eigenen aktiven Listen hinweg angeboten. Betrifft nur die angebotene Auswahl — einmal gewählt, läuft die Session immer listenübergreifend über alle eigenen Karten mit diesem Tag, unabhängig vom Einstiegskontext
+- **Kein Vermischen mit der Listenauswahl mehr nötig** _(seit Segmentbuttons v3.9.1)_: Thema ist ein eigener, exklusiver Modus neben Mathe/Sprachen (siehe "Setup-Seite: Mathe/Sprachen/Thema als Segmentbuttons") — die Tag-Cloud zeigt deshalb immer einfach `$available_tags` wie server-seitig ermittelt, ohne zusätzliche client-seitige Einschränkung nach angehakten Listen (diese Mechanik aus v3.9.0, `get_person_tags_by_list()`, entfiel mit der Trennung in eigene Modi als gegenstandslos)
+- **Tageslimit im Tag-Modus überschreibbar, mit expliziter Bestätigung — ohne eigenes Zahlenfeld** _(v3.9.0, auf bestehendes Kartenanzahl-Feld vereinfacht v3.9.2)_: Das Override sitzt bewusst **nicht** in der Tag-Cloud-Sektion (die bleibt rein die Themenauswahl), sondern erscheint — sobald ein Thema gewählt ist — unterhalb von "Kartenanzahl" als eigener Hinweisblock mit **nur einer Checkbox** ("Ich bin einverstanden, dass heute mehr als N neue Karten geladen werden (bis zur oben eingestellten Kartenanzahl)"). Kein separates "Wie viele?"-Feld — die Menge wird direkt vom ohnehin vorhandenen "Kartenanzahl"-Feld übernommen, ein zweites, redundantes Zahlenfeld entfällt dadurch. Serverseitig: ist die Checkbox (`daily_limit_override`) gesetzt, wird `$daily_limit = $card_limit` (Wert aus "Kartenanzahl") verwendet, sonst bleibt es beim festen `DAILY_CARD_LIMIT`-Default — ohne die Checkbox wird das Feld "Kartenanzahl" für die Tageslimit-Frage ignoriert, auch bei einem manipulierten Formular. **Gilt nur im Tag-Modus** — die normale listenbasierte Session hat weiterhin ein festes, nicht überschreibbares Tageslimit
+- Das Tageslimit gilt im Tag-Modus als **ein gemeinsamer Topf über alle beteiligten Listen** (nicht pro Liste wie im normalen Listen-Modus) — verhindert, dass ein Thema mit vielen beteiligten Listen das Tageslimit faktisch aushebelt. Kann dazu führen, dass eine grosse Themen-Session sich über mehrere Tage aufbaut statt an Tag 1 vollständig verfügbar zu sein
+- `last_used_at` wird für **alle** Listen aktualisiert, die mindestens eine Karte mit dem gewählten Tag haben — unabhängig davon, ob an diesem Tag tatsächlich eine Karte aus jeder einzelnen Liste gezogen wurde (konsistent mit dem bestehenden Mehrfach-Listen-Verhalten bei Checkbox-Auswahl)
+- **"Neue Session"-Button nach einer Themen-Session** verlinkt wieder auf dasselbe Thema (`learn.php?tag=…`), analog zum bestehenden `?list_id=…` bei einer Einzellisten-Session
+- Implementiert über einen optionalen `card_ids_filter`-Parameter in `activate_daily_cards()`/`build_leitner_queue()` (Filter-Fragment `card_id_filter_sql()` in `includes/tags.php`, gemeinsam mit `drill.php` genutzt) — schränkt zusätzlich zur Listen-Zugehörigkeit auf die konkret getaggten Karten ein, sonst identische Scheduling-Logik wie im normalen Listen-Modus
+
 ### Kartendarstellung
 - Karte zentriert, max. Breite 540px (`max-width:540px; margin: 0 auto`)
 - Innenabstand `p-5`, Mindesthöhe 280px
@@ -402,6 +440,14 @@ Geeignet für: Mathe-Fakten, häufig vergessene Vokabeln, neue Wörter festigen.
 - Auf der Konfigurationsseite vor dem Start wählbar, analog zum Leitner-System: **Lernrichtung** (A→B, B→A, Gemischt oder Zufall — bei "Gemischt" pro Karte deterministisch über die Karten-ID bestimmt, damit dieselbe Karte innerhalb einer Session nicht zwischen den Richtungen hin- und herspringt; Details zu "Zufall" siehe eigener Abschnitt weiter unten) sowie **Timer** in Minuten.
 - Beide Werte gelten **nur für die jeweilige Session** und werden nicht dauerhaft gespeichert — der Timer-Standardwert stammt aus den Einstellungen (`DRILL_SESSION_SECONDS`), lässt sich aber pro Start frei anpassen (1–120 Min.).
 - Frage-/Antwortseite und die Zuordnung von Audio/Lautschrift (immer an Sprache B gebunden, unabhängig von Frage- oder Antwortposition) folgen derselben Logik wie im Leitner-System (`get_question_answer()`, gemeinsam genutzt von `learn.php` und `drill.php`).
+
+### Themen-Session (Tag-Cloud) _(v3.9.0)_
+- Gleiches Prinzip wie im Leitner-System (siehe dort) — ergänzt die Listenauswahl auf der Drill-Setup-Seite um eine Tag-Cloud, nur ein Tag pro Session wählbar, Tag hat serverseitig Vorrang vor einer zusätzlich angehakten Listenauswahl
+- Session läuft listenübergreifend über alle eigenen Karten (aus aktiven Listen) mit diesem Tag — inkl. vorgemerkter Karten: eine "für Drill vorgemerkte" Karte **ohne** den gewählten Tag ist in dieser Themen-Session ebenfalls aussen vor (gleiche strikte Tag-Einschränkung wie für alle anderen Karten, keine Ausnahme für Pins)
+- **Kein Tageslimit-Pendant** — anders als beim Leitner-System gibt es im Drill-Modus keine "neue Karten pro Tag"-Bremse, die im Tag-Modus überschreibbar wäre; die Session-Länge (Timer) begrenzt die Kartenzahl bereits ausreichend (siehe "Aktiver Pool an Session-Länge gekoppelt")
+- `last_used_at` wird für alle Listen aktualisiert, die mindestens eine Karte mit dem gewählten Tag haben (analog Leitner-System)
+- "Erneut starten" nach einer Themen-Session verlinkt wieder auf dasselbe Thema (`drill.php?tag=…`)
+- Implementiert über einen optionalen `card_ids_filter`-Parameter in `load_drill_pool()` (geteilte Filter-Logik mit `learn.php` über `card_id_filter_sql()` in `includes/tags.php`)
 
 ### Ablauf (eine Karte nach der anderen)
 1. Karte wird angezeigt (nur Vorderseite / Frage, gemäss gewählter Lernrichtung)
@@ -749,17 +795,21 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 | `card_progress` | Fortschritt pro Person/Karte (status, leitner_box, next_due_date, drill_mastery, drill_too_hard) |
 | `learning_events` | Einzelne Karten-Antworten — Person, Karte, Ergebnis, Datum (für Statistik und Streak-Berechnung) _(bis v3.2.19 zusätzlich über `learning_sessions`/`session_lists` gruppiert, seit v3.2.20 direkter Fremdschlüssel auf `persons`, da die Session-Gruppierung nie ausgewertet wurde)_ |
 | `auth_attempts` | Fehlversuche für das Rate-Limiting von Login und „Passwort vergessen" (Scope, IP, Zeitpunkt) — keine Personenzuordnung _(v3.2.23)_ |
+| `tags` | Stichworte pro Person (Name, Besitzer) — kein globaler Pool, jede Person hat ihre eigenen Tags _(v3.9.0)_ |
+| `card_tags` | n:m-Verknüpfung Karte ↔ Tag _(v3.9.0)_ |
 
 ### Lösch-Verhalten
-- Karte löschen → `card_progress` Einträge dieser Karte werden **physisch mitgelöscht** (kaskadierend)
-- Liste löschen → alle Karten + deren `card_progress` werden **physisch mitgelöscht**
+- Karte löschen → `card_progress`- und `card_tags`-Einträge dieser Karte werden **physisch mitgelöscht** (kaskadierend)
+- Liste löschen → alle Karten + deren `card_progress`/`card_tags` werden **physisch mitgelöscht**
+- Tag löschen: geschieht **nie automatisch** — ein Tag ohne verknüpfte Karte bleibt in `tags` bestehen (leichter wiederverwendbar)
 - Kopien anderer Personen sind unabhängig — nicht betroffen
 
 ---
 
 ## CSV-Export
 
-- Exportiert nur **Kartendaten** (Sprache A, Sprache B, Beschreibung A, Beschreibung B)
+- Exportiert nur **Kartendaten** (Sprache A, Sprache B, Beschreibung A, Beschreibung B, Lautschrift, Tags)
+- Tags-Spalte dient nur der Portabilität/dem Backup — beim Reimport wird sie **nicht** eingelesen (siehe "Tags pro Karte")
 - Erste Zeile: Kommentar `# Listenname (Sprache A / Sprache B)` — zur menschenlesbaren Dokumentation, wird beim Import ignoriert
 - Zweite Zeile: Kopfzeile mit echten Sprachnamen (z.B. `Deutsch;Englisch;Beschreibung Deutsch;Beschreibung Englisch`)
 - Dateiname = Listenname (Sonderzeichen ersetzt durch `_`)
@@ -802,6 +852,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
     config-runtime.php         ← Laufzeit-Einstellungen pro Umgebung (gitignored, nie deployed, schreibt settings.php)
     migrations.php             ← Auto-Migrationen: fehlende DB-Spalten werden beim Start automatisch ergänzt
     auth.php                   ← Session-Start, Timeout, CSRF-Funktionen, require_login/person, today()
+    tags.php                   ← Tag-Verwaltung: Parsing, Find-or-Create pro Person, Zuordnung zu Karten (v3.9.0)
     db.php                     ← Umgebungserkennung + DB-Verbindung + Migrationen
     db-credentials.php         ← Zugangsdaten Dev + Prod (gitignored, nie committen)
     db-credentials.example.php ← Vorlage für db-credentials.php (committet)

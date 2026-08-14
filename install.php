@@ -106,6 +106,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+                CREATE TABLE IF NOT EXISTS tags (
+                    id         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    person_id  INT          NOT NULL,
+                    name       VARCHAR(100) NOT NULL,
+                    created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE KEY unique_person_tag (person_id, name),
+                    FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+                CREATE TABLE IF NOT EXISTS card_tags (
+                    card_id INT NOT NULL,
+                    tag_id  INT NOT NULL,
+                    PRIMARY KEY (card_id, tag_id),
+                    FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE,
+                    FOREIGN KEY (tag_id)  REFERENCES tags(id)  ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
                 CREATE TABLE IF NOT EXISTS auth_attempts (
                     id           INT         NOT NULL AUTO_INCREMENT PRIMARY KEY,
                     scope        VARCHAR(20) NOT NULL,
