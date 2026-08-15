@@ -10,6 +10,7 @@ mcp-config.php
 Checkliste.md
 CLAUDE.md
 Testing.md
+studien/*
 
 # Eigenes Session-Verzeichnis: nur die .htaccess-Schutzdatei wird versioniert, keine Session-Daten
 includes/sessions/*
