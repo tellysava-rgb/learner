@@ -5,6 +5,18 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.10.0] - 2026-08-15
+
+### Neu
+- **MCP-Server: Chunk-Modell statt Einzelwort, feste Beschreibung-Rollen, Tags-Unterstützung.** Begriff A/B sind jetzt standardmässig eine natürliche Phrase mit Verwendungskontext statt eines isolierten Einzelworts (Ausnahme: User verlangt explizit ein einzelnes Wort) — inkl. Rückübersetzungs-Konsistenz-Check. Beschreibung A/B haben neu feste, sprachunabhängige Rollen (A = kognitiver Hinweis ohne den Begriff selbst, B = Beispielsatz mit dem exakten Begriff) statt der bisherigen Fremdsprache/Deutsch-Logik. Lautschrift (`phonetik_b`) unterstützt neu zwei Stile (vereinfacht/IPA), abgeleitet aus bestehenden Einträgen der Liste. Neues Tool `list_person_tags`, neues Feld `tags` bei `add_cards`/`list_cards`/`update_card` (Format wie im Web-Formular, serverseitig über dieselbe Logik wie `edit.php` geparst/validiert). Zusätzliche Regeln: Mehrdeutigkeit vor dem Übersetzen klären, allgemeine Übersetzungsqualität, Tags immer auf Deutsch.
+- **Tag-Autovervollständigung in `edit.php`.** Schlägt beim Eintippen bestehende Tags der Person vor (über alle ihre Listen hinweg), token-bewusst filternd nach dem Wort an der Cursorposition — per Klick oder Pfeiltasten+Enter übernehmbar. Beugt Schreibweisen-Divergenz vor (`#Reise` vs. `#Reisen`), erzwingt aber nichts.
+
+### Behoben
+- **Tag-Autovervollständigung zeigte keine Vorschläge an.** `open()` rief zum Entfernen einer vorherigen Vorschlagsbox `close()` auf, welche dabei auch die gerade berechnete Trefferliste zurücksetzte — die neue Box blieb dadurch immer leer. Box-Entfernung (`closeBox()`) und vollständiger State-Reset (`close()`) sind jetzt getrennt.
+- **Ungültiges HTML im Inline-Bearbeiten-Formular** (`edit.php`): "Abbrechen"-Link war mit `<a>` geöffnet, aber mit `</button>` geschlossen.
+
+---
+
 ## [3.9.0] - 2026-08-14
 
 ### Neu

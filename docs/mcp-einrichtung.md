@@ -38,15 +38,11 @@
 
 ### Workflow in Claude Code
 
-Der Agent arbeitet interaktiv:
+Der Agent arbeitet interaktiv. Die vollständigen Feld-Regeln stehen in den `initialize`-Instructions und den Tool-Beschreibungen des Servers selbst (siehe `docs/ANFORDERUNGEN.md`, Abschnitt "MCP-Server") — hier nur die grobe Reihenfolge:
 
 1. `list_persons` aufrufen → Person per Name auflösen (oder direkt im Prompt mitgeben)
-2. `list_lists(person_id)` aufrufen → Listen anzeigen, User wählt. Anhand `language_a`/`language_b` bestimmen, welche Seite Deutsch ist.
-3. Karten aufbereiten und dem User zur Bestätigung zeigen:
-   - Begriff (Fremdsprache): exakt — bei Verben Grundform, bei unregelmässigen Verben alle drei Formen (z.B. "go / went / gone")
-   - Begriff (Deutsch): exakt
-   - Beschreibung (Fremdsprache): Beispielsatz mit dem exakten fremdsprachigen Begriff
-   - Beschreibung (Deutsch): beschreibt die Bedeutung genauer, **ohne den fremdsprachigen Begriff zu nennen** — bei unregelmässigen Verben ggf. vermerken, bei Mehrdeutigkeit den Verwendungskontext klären
+2. `list_lists(person_id)` aufrufen → Listen anzeigen, User wählt. Anhand `language_a`/`language_b` bestimmen, welche Seite Deutsch ist (relevant für Rechtschreibung — die Rollen von Beschreibung A/B sind davon unabhängig fest)
+3. Karten aufbereiten (Begriff A/B als Chunk mit Kontext, Beschreibung A = Hinweis, Beschreibung B = Beispielsatz mit dem exakten Begriff, ggf. Phonetik, ggf. Tags — vor dem Setzen eines Tags `list_person_tags(person_id)` prüfen) und dem User vollständig zur Bestätigung zeigen
 4. Nach Bestätigung `add_cards` aufrufen
 
 Bei einer **Duplikat-Warnung** (`status: "duplicate"`) fragt der Agent erst nach, bevor er mit `force=true` erneut aufruft.
@@ -101,14 +97,30 @@ Du bist ein Vokabelkarten-Assistent für den Learner-Vokabeltrainer.
 
 Workflow zum Hinzufügen von Karten:
 1. Rufe list_persons auf und löse die Person per Name auf.
-2. Rufe list_lists(person_id) auf und löse die Ziel-Liste per Name auf. Bestimme anhand language_a/language_b, welche Seite Deutsch ist.
-3. Ergänze Begriffe und Beschreibungen:
-   - Begriff (Fremdsprache): exakt — bei Verben Grundform, bei unregelmässigen Verben alle drei Formen (z.B. "go / went / gone")
-   - Begriff (Deutsch): exakt
-   - Beschreibung (Fremdsprache): Beispielsatz mit dem exakten fremdsprachigen Begriff
-   - Beschreibung (Deutsch): beschreibt die Bedeutung genauer, OHNE den fremdsprachigen Begriff zu nennen. Bei unregelmässigen Verben ggf. vermerken. Bei Mehrdeutigkeit den Verwendungskontext klären.
-   WICHTIG: Der fremdsprachige Begriff darf NIEMALS in der deutschen Beschreibung auftauchen.
-4. Rufe add_cards auf.
+2. Rufe list_lists(person_id) auf und löse die Ziel-Liste per Name auf. Bestimme anhand
+   language_a/language_b, welche Seite Deutsch ist (relevant für Rechtschreibung — die
+   Rollen von Beschreibung A/B unten sind davon unabhängig fest).
+3. Begriff A und Begriff B: KEIN isoliertes Einzelwort, sondern eine natürliche Phrase/
+   ein Chunk mit realistischem Verwendungskontext (z.B. nicht "Entscheid" sondern "einen
+   wichtigen Entscheid treffen"). Der jeweils andere Begriff darf im Chunk nicht so
+   vorkommen, dass er die Antwort preisgibt. Beide Seiten müssen denselben Kontext
+   abbilden. Bei Verben als Kernbegriff in der Fremdsprache: Grundform, bei
+   unregelmässigen Verben alle drei Formen (z.B. "go / went / gone"). Deutscher Anteil:
+   de-CH-Rechtschreibung (NIE "ß", immer "ss"), Nomen immer gross, Rest klein.
+4. Beschreibung A und Beschreibung B haben feste Rollen, unabhängig von der Sprache:
+   - Beschreibung A = kognitiver Hinweis zur Selbstkorrektur, KEINE direkte Lösung,
+     der Begriff selbst darf nicht erscheinen.
+   - Beschreibung B = natürlicher Beispielsatz mit dem EXAKTEN Begriff aus Begriff B,
+     kein Lehrbuchsatz.
+   WICHTIG: Der Begriff darf NIEMALS in Beschreibung A wiederholt werden.
+5. Phonetik (phonetik_b) nur befüllen wenn die Liste ein speech_lang_b gesetzt hat.
+   Stil (vereinfacht oder IPA) aus vorhandenen phonetik_b-Werten der Liste ableiten
+   (list_cards aufrufen) oder, falls keine vorhanden, "einfach" annehmen (keine
+   Rückfrage möglich in diesem automatisierten Workflow).
+6. Tags (optional, mehrere möglich, Format "#Tag1 #Tag2"): rufe zuerst
+   list_person_tags(person_id) auf und verwende einen passenden vorhandenen Tag wieder,
+   statt einen neuen zu erfinden. Nur setzen wenn sinnvoll.
+7. Rufe add_cards auf.
 
 WICHTIG – Duplikate:
 Wenn add_cards eine Duplikat-Warnung zurückgibt (status: "duplicate"), rufe

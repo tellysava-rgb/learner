@@ -268,6 +268,11 @@ if ($tag_filter !== '' && !in_array($tag_filter, $all_tags_in_list, true)) {
     $filter_qs  = '&filter=' . urlencode($filter);
 }
 
+// Alle Tags der Person über sämtliche ihre Listen hinweg — Grundlage für die
+// Autovervollständigung in den Tags-Eingabefeldern unten (nicht nur diese Liste, damit
+// listenübergreifend konsistente Schreibweisen entstehen, siehe Diskussion zu Tags allgemein).
+$person_tags_for_autocomplete = get_person_tags($pdo, $person_id);
+
 // Edit-Formular: welche Karte?
 $edit_card_id = intval($_GET['edit'] ?? 0);
 
@@ -373,9 +378,9 @@ if ($tag_filter !== '') {
                 </div>
                 <?php endif; ?>
                 <?php if (!$is_math): ?>
-                <div class="col-md-2">
-                    <input type="text" name="tags" class="form-control form-control-sm"
-                           placeholder="#Tag1 #Tag2" maxlength="300">
+                <div class="col-md-2 position-relative tag-autocomplete-wrap">
+                    <input type="text" name="tags" class="form-control form-control-sm tag-autocomplete-input"
+                           placeholder="#Tag1 #Tag2" maxlength="300" autocomplete="off">
                 </div>
                 <?php endif; ?>
                 <div class="col-md-1">
@@ -479,16 +484,16 @@ if ($tag_filter !== '') {
                             </div>
                             <?php endif; ?>
                             <?php if (!$is_math): ?>
-                            <div class="col">
-                                <input type="text" name="tags" class="form-control form-control-sm"
-                                       value="<?= htmlspecialchars(format_tags_for_input($card['tags'])) ?>" placeholder="#Tag1 #Tag2" maxlength="300">
+                            <div class="col position-relative tag-autocomplete-wrap">
+                                <input type="text" name="tags" class="form-control form-control-sm tag-autocomplete-input"
+                                       value="<?= htmlspecialchars(format_tags_for_input($card['tags'])) ?>" placeholder="#Tag1 #Tag2" maxlength="300" autocomplete="off">
                             </div>
                             <?php endif; ?>
                             <div class="col-auto d-flex gap-1">
                                 <button type="submit" class="btn btn-sm btn-success"
                                         data-bs-toggle="tooltip" title="Speichern"><i class="bi bi-check-lg"></i></button>
                                 <a href="edit.php?list_id=<?= $list_id ?><?= $filter_qs ?>#card-row-<?= $card['id'] ?>" class="btn btn-sm btn-outline-secondary"
-                                   data-bs-toggle="tooltip" title="Abbrechen"><i class="bi bi-x-lg"></i></button>
+                                   data-bs-toggle="tooltip" title="Abbrechen"><i class="bi bi-x-lg"></i></a>
                             </div>
                         </form>
                     </td>
@@ -651,6 +656,109 @@ if ($tag_filter !== '') {
 document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
     new bootstrap.Tooltip(el, { trigger: 'hover' });
 });
+
+// Tags-Autovervollständigung: schlägt beim Tippen bestehende Tags der Person vor (über alle ihre
+// Listen hinweg, nicht nur diese). Token-bewusst — filtert nach dem Wort an der Cursorposition,
+// nicht nach dem gesamten Feldinhalt, damit es auch beim zweiten/dritten Tag im selben Feld
+// funktioniert (ein einfaches <datalist> würde dort nicht mehr sauber filtern). Verhindert
+// Rechtschreib-Divergenz wie "#Reise" vs. "#Reisen" — eigene, neue Tags bleiben trotzdem jederzeit
+// frei eintippbar, es wird nichts erzwungen.
+(function() {
+    var allTags = <?= json_encode($person_tags_for_autocomplete, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    if (!allTags.length) return;
+
+    document.querySelectorAll('.tag-autocomplete-input').forEach(function (input) {
+        var wrap = input.closest('.tag-autocomplete-wrap');
+        var box = null;
+        var matches = [];
+        var tokenStart = 0, tokenEnd = 0;
+        var activeIndex = -1;
+
+        function closeBox() {
+            if (box) { box.remove(); box = null; }
+        }
+
+        function close() {
+            closeBox();
+            matches = [];
+            activeIndex = -1;
+        }
+
+        // Liefert Start/Ende/Text des Worts an der aktuellen Cursorposition (ohne führendes "#").
+        function currentToken() {
+            var pos = input.selectionStart;
+            var val = input.value;
+            var start = val.lastIndexOf(' ', pos - 1) + 1;
+            var end = val.indexOf(' ', pos);
+            if (end === -1) end = val.length;
+            return { start: start, end: end, term: val.slice(start, end).replace(/^#/, '') };
+        }
+
+        function pick(tag) {
+            var val = input.value;
+            var before = val.slice(0, tokenStart);
+            var after = val.slice(tokenEnd).replace(/^\s+/, '');
+            var insert = '#' + tag + ' ';
+            input.value = before + insert + after;
+            var pos = (before + insert).length;
+            input.setSelectionRange(pos, pos);
+            input.focus();
+            close();
+        }
+
+        function setActive(i) {
+            box.querySelectorAll('.list-group-item').forEach(function (el, idx) {
+                el.classList.toggle('active', idx === i);
+            });
+            activeIndex = i;
+        }
+
+        function open() {
+            closeBox();
+            box = document.createElement('div');
+            box.className = 'list-group position-absolute shadow-sm';
+            box.style.cssText = 'z-index:1000; top:100%; left:0; right:0; max-height:180px; overflow-y:auto;';
+            matches.forEach(function (tag) {
+                var item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'list-group-item list-group-item-action py-1 px-2 small';
+                item.textContent = '#' + tag;
+                item.addEventListener('mousedown', function (e) {
+                    e.preventDefault(); // vor dem blur des Inputs feuern
+                    pick(tag);
+                });
+                box.appendChild(item);
+            });
+            wrap.appendChild(box);
+        }
+
+        input.addEventListener('input', function () {
+            var tok = currentToken();
+            tokenStart = tok.start;
+            tokenEnd = tok.end;
+            if (!tok.term) { close(); return; }
+            var term = tok.term.toLowerCase();
+            var used = input.value.toLowerCase().split(/\s+/).map(function (t) { return t.replace(/^#/, ''); });
+            matches = allTags.filter(function (tag) {
+                var t = tag.toLowerCase();
+                return t.indexOf(term) === 0 && t !== term && used.indexOf(t) === -1;
+            }).slice(0, 8);
+            if (matches.length) open(); else close();
+        });
+
+        input.addEventListener('keydown', function (e) {
+            if (!box) return;
+            if (e.key === 'ArrowDown') { e.preventDefault(); setActive(Math.min(activeIndex + 1, matches.length - 1)); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(Math.max(activeIndex - 1, 0)); }
+            else if (e.key === 'Enter' && activeIndex >= 0) { e.preventDefault(); pick(matches[activeIndex]); }
+            else if (e.key === 'Escape') { close(); }
+        });
+
+        input.addEventListener('blur', function () {
+            setTimeout(close, 150);
+        });
+    });
+})();
 
 (function() {
     const _key = 'edit_scroll_<?= $list_id ?>';

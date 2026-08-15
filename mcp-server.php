@@ -17,6 +17,7 @@ header('Cache-Control: no-store');
 
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/tags.php';
 
 $_mcp_cfg = __DIR__ . '/includes/mcp-config.php';
 if (!file_exists($_mcp_cfg)) {
@@ -65,13 +66,17 @@ switch ($method) {
             'serverInfo'      => ['name' => 'learner-mcp', 'version' => APP_VERSION],
             'instructions'    => 'Workflow zum Hinzufügen von Vokabeln: '
                 . '1. list_persons aufrufen, dem User die Personen zeigen und fragen für wen. '
-                . '2. list_lists aufrufen (zeigt standardmässig nur AKTIVE Listen), dem User diese anzeigen und explizit fragen in welche Liste. Anhand language_a/language_b bestimmen, welche Seite Deutsch ist. Nennt der User eine Liste beim Namen, die nicht in den aktiven Listen auftaucht: list_lists erneut mit include_inactive=true aufrufen, bevor angenommen wird die Liste existiere nicht — Karten dürfen auch in eine explizit genannte inaktive Liste eingefügt werden. '
-                . '3. Begriff (Fremdsprache): exakter Begriff — bei Verben die Grundform (Infinitiv), bei unregelmässigen Verben alle drei Formen (z.B. "go / went / gone"). Begriff (Deutsch): exakter Begriff, Gross-/Kleinschreibung nach deutscher Rechtschreibung — Nomen IMMER gross (z.B. "Haus", "Tisch"), alle anderen Wortarten (Verben in Grundform, Adjektive, Adverbien etc.) klein (z.B. "laufen", "schnell", "oft"), ausser am Satzanfang bei mehrteiligen Begriffen/Wendungen (dann nur das erste Wort gross, unabhängig von der Wortart). Deutsche Rechtschreibung ist auf Schweizer Konventionen (de-CH) ausgerichtet: NIE "ß" verwenden, immer "ss" (z.B. "Strasse" nicht "Straße", "dass" bleibt "dass"). '
-                . '4. Beschreibung (Fremdsprache): Beispielsatz mit dem exakten fremdsprachigen Begriff. Beschreibung (Deutsch): beschreibt die Bedeutung genauer, OHNE den fremdsprachigen Begriff zu nennen — bei unregelmässigen Verben ggf. vermerken, dass es sich um ein unregelmässiges Verb handelt; bei mehrdeutigen Begriffen den konkreten Verwendungskontext angeben. NIEMALS den fremdsprachigen Begriff in der deutschen Beschreibung wiederholen — das ist ein Fehler, der Lernkarten unbrauchbar macht. '
-                . '5. Ist Sprache B Englisch: Hat die Liste ein speech_lang_b (z.B. "en-GB" vs. "en-US") gesetzt, müssen Schreibweise und Wortwahl von Begriff UND Beispielsatz in Sprache B zu diesem Dialekt passen (z.B. en-GB → "colour", "lorry", "flat"; en-US → "color", "truck", "apartment") — diese Listen-Definition hat Vorrang vor allem anderen. Hat die Liste KEIN speech_lang_b gesetzt, gilt als Standard BRITISCHES Englisch (en-GB), ausser der User verlangt im Gespräch ausdrücklich einen anderen Dialekt (z.B. "amerikanisches Englisch"). Das wiederkehrende Fehlerbild "US-Begriffe statt gewünschter britischer Begriffe" muss durch diese Regel verhindert werden. Zusätzlich phonetik_b mit vereinfachter Lautschrift füllen (Silben mit Bindestrich, betonte Silbe GROSS, keine IPA-Zeichen, z.B. "toh-ken-eye-ZAY-shun") — hat die Liste kein speech_lang_b, phonetik_b leer lassen. WICHTIG: Diese Lautschrift muss in den Lesekonventionen der Muttersprache der lernenden Person geschrieben sein, damit diese Person die Aussprache intuitiv lesen kann (die Beispiele in dieser Anleitung gehen von einer deutschsprachigen Person aus). Standardannahme für die Muttersprache: Sprache A der Liste (das ist in aller Regel die Sprache, die die lernende Person bereits kann) — NICHT bei jeder Liste pauschal nachfragen. Nur explizit beim User erfragen, wenn diese Annahme keinen Sinn ergibt (z.B. beide Sprachen der Liste sind für die Person fremd) oder der User im Gespräch widerspricht. Bei NICHT-rhotischen Dialekten (en-GB und ähnliche wie en-AU/en-NZ/en-ZA): "r" nach Vokal vor Konsonant oder am Wortende NICHT mitschreiben — "-er"/"-or" wird zu "-uh"/"aw" (z.B. "thunder" → "THUN-duh", "forecast" → "FAW-kahst", "storm" → "stawm"); "r" nur schreiben wenn direkt ein Vokal folgt (Silbenanfang wie "rain" → "rayn", oder verbindendes R zwischen Wörtern wie "for a" → "fer uh"). Bei rhotischen Dialekten (z.B. en-US) "r" normal mitschreiben. '
-                . '6. Die einzufügenden Karten (Begriff + Übersetzung + Beschreibungen + ggf. Lautschrift) dem User zur Bestätigung zeigen, BEVOR add_cards aufgerufen wird. '
-                . '7. Erst nach Bestätigung des Users add_cards aufrufen. '
-                . 'Workflow zum Prüfen/Korrigieren BESTEHENDER Karten (z.B. Schreibweise, Gross-/Kleinschreibung des deutschen Begriffs, fehlende Lautschrift): list_cards(list_id) aufrufen, Änderungen (alt → neu) dem User pro Karte zeigen und Bestätigung abwarten, danach erst update_card je Karte aufrufen. Niemals list_cards-Ergebnisse ungefragt automatisch mit update_card ändern.',
+                . '2. list_lists aufrufen (zeigt standardmässig nur AKTIVE Listen), dem User diese anzeigen und explizit fragen in welche Liste. Anhand language_a/language_b bestimmen, welche Seite Deutsch ist (relevant für die Rechtschreibregeln in Punkt 4 — die Rollen von Beschreibung A/B in Punkt 5 sind davon unabhängig fest). Nennt der User eine Liste beim Namen, die nicht in den aktiven Listen auftaucht: list_lists erneut mit include_inactive=true aufrufen, bevor angenommen wird die Liste existiere nicht — Karten dürfen auch in eine explizit genannte inaktive Liste eingefügt werden. '
+                . '3. Mehrdeutigkeit klären: Hat ein Begriff mehrere stark unterschiedliche Bedeutungen (z.B. "bank" = Geldinstitut vs. Flussufer), zuerst beim User nachfragen welche Bedeutung gemeint ist, bevor übersetzt wird. Bei nur minimalen Nuancen nicht nachfragen. '
+                . '4. Begriff A und Begriff B: KEIN isoliertes Einzelwort, sondern immer eine natürliche Phrase/ein Chunk mit realistischem Verwendungskontext (mindestens ein Adjektiv oder eine Ergänzung) — z.B. nicht "Entscheid" sondern "einen wichtigen Entscheid treffen". Das ist der DEFAULT, kein starres Muss: Verlangt der User im Gespräch ausdrücklich ein einzelnes Wort statt eines Chunks (z.B. "nur das Wort", "ohne Kontextsatz", "einfach nur X"), gilt diese explizite Anweisung — nicht gegen den ausdrücklichen Wunsch des Users einen Chunk erzwingen. Der jeweils andere (Lösungs-)Begriff darf im Chunk nicht so vorkommen, dass er die Antwort preisgibt. Begriff A und Begriff B müssen denselben Kontext/dieselbe Situation abbilden — Konsistenz-Check: zurückübersetzt muss Begriff B sinngleich mit Begriff A sein, bei Abweichung den User vor der Bestätigung warnen. Ist der Kernbegriff des Chunks in der Fremdsprache ein Verb: Grundform (Infinitiv); bei unregelmässigen Verben alle drei Formen (z.B. "go / went / gone"). Für den deutschen Anteil gilt weiterhin exakte de-CH-Rechtschreibung: Nomen IMMER gross (z.B. "Haus"), alle anderen Wortarten (Verben Grundform, Adjektive, Adverbien etc.) klein, ausser am Satzanfang bei mehrteiligen Chunks (dann nur das erste Wort gross) — NIE "ß", immer "ss" (z.B. "Strasse" nicht "Straße"). Fremdsprachige Chunks: Originalschreibweise, kein automatisches Grossschreiben ausser bei echtem Satzanfang. Übersetzungen müssen exakt, idiomatisch und natürlich sein, nicht wörtlich — bei Unsicherheit den User fragen, nicht raten. '
+                . '5. Beschreibung A und Beschreibung B haben FESTE, sprachunabhängige Rollen (gilt unabhängig davon, welche Seite laut Punkt 2 Deutsch ist): Beschreibung A ist ein kognitiver Hinweis zur aktiven Selbstkorrektur — KEINE direkte Lösung, der Begriff selbst darf darin nicht erscheinen (z.B. "Gegenteil von X", "unregelmässige Form von Y", "wird verwendet wenn man Z ausdrücken will"), bei Mehrdeutigkeit den konkreten Verwendungskontext angeben. Beschreibung B ist ein natürlicher, alltagstauglicher Beispielsatz mit dem EXAKTEN Begriff aus Begriff B — kein Lehrbuchsatz, insbesondere keine reinen Konjugations-Sätze ohne echten Inhalt (z.B. "wir werden kaufen" ist unzulässig), der Satz muss eine echte Situation beschreiben. '
+                . '6. Dialekt-Logik (gilt für Begriff B, Beschreibung B und Phonetik): Hat die Liste ein speech_lang_b (z.B. "en-GB" vs. "en-US") gesetzt, müssen Schreibweise und Wortwahl in Sprache B zu diesem Dialekt passen (z.B. en-GB → "colour", "lorry", "flat"; en-US → "color", "truck", "apartment") — diese Listen-Definition hat Vorrang vor allem anderen. Ist Sprache B Englisch und KEIN speech_lang_b gesetzt: Standard ist BRITISCHES Englisch (en-GB), ausser der User verlangt im Gespräch ausdrücklich einen anderen Dialekt. '
+                . '7. Phonetik (phonetik_b): NUR befüllen wenn die Liste ein speech_lang_b gesetzt hat, sonst leer lassen — auch bei Sprachen ausser Englisch. Stil ableiten: list_cards der Zielliste aufrufen und vorhandene phonetik_b-Einträge analysieren — werden IPA-Zeichen verwendet (z.B. "/biːt/"), IPA-Stil weiterführen; wird vereinfachte Lautschrift verwendet (z.B. "biit"), diesen Stil weiterführen; Konsistenz innerhalb der Liste hat Vorrang. Existieren noch keine Einträge: dem User ein Beispiel BEIDER Varianten für den aktuellen Begriff zeigen und EINMALIG fragen, ob "einfach" (vereinfachte Lautschrift) oder "eindeutig" (IPA) gewünscht ist — der Entscheid gilt dann für die ganze Liste/Session, nicht erneut pro Karte fragen. Vereinfachte Lautschrift: Silben mit Bindestrich, betonte Silbe GROSS, keine IPA-Sonderzeichen, geschrieben in der Lesekonvention der Muttersprache der lernenden Person (Standardannahme: Sprache A der Liste — nur bei Unstimmigkeit, z.B. beide Sprachen sind für die Person fremd, oder bei Widerspruch des Users nachfragen, nicht bei jeder Liste pauschal). Bei nicht-rhotischen Dialekten (en-GB/en-AU/en-NZ/en-ZA): "r" nach Vokal vor Konsonant/am Wortende weglassen ("thunder" → "THUN-duh", "storm" → "stawm"); bei rhotischen Dialekten (z.B. en-US) "r" normal schreiben. Diese detaillierten rhotisch/nicht-rhotisch-Regeln gelten für Englisch als Sprache B — bei anderen Zielsprachen sinngemäss eine vereinfachte, zur jeweiligen Zielsprache passende Lautschrift verwenden (keine ausformulierten Detailregeln dafür hinterlegt). IPA: Standard-IPA-Notation (z.B. "/biːt/"), Dialekt muss zu speech_lang_b passen. Bei Unsicherheit über die korrekte Phonetik (egal welcher Stil): leer lassen — lieber kein Eintrag als ein falscher. '
+                . '8. Tags: list_person_tags(person_id) aufrufen und vorhandene Tags DIESER PERSON über ALLE ihre Listen hinweg prüfen, bevor ein Tag gesetzt wird — einen passenden vorhandenen Tag wiederverwenden statt einen neuen mit leicht abweichender Schreibweise zu erfinden (Ziel: die Tag-Liste der Person bleibt überschaubar und konsistent). Passt keiner der vorhandenen Tags: den User fragen, welchen Tag er verwenden möchte — NIEMALS selbst einen neuen Tag erfinden ohne Rückfrage. Tags sind thematische Schlagworte (z.B. "Wetter", "Business", "Reise"), immer auf Deutsch (de-CH), unabhängig von der Lernsprache der Karte. Nur setzen wenn sinnvoll, nicht zwingend bei jeder Karte. Mehrere Tags pro Karte möglich, gleiches Format wie in der Web-Oberfläche: leerzeichengetrennt mit "#"-Präfix (z.B. "#Wetter #Reise"). '
+                . '9. Alle Felder der einzufügenden Karten (Begriff A, Begriff B, Beschreibung A, Beschreibung B, Tags, Phonetik) dem User vollständig zur Bestätigung zeigen, explizit auf Korrektheit der Übersetzung hinweisen, BEVOR add_cards aufgerufen wird. '
+                . '10. Erst nach expliziter Bestätigung des Users add_cards aufrufen. '
+                . 'Workflow zum Prüfen/Korrigieren BESTEHENDER Karten (z.B. Schreibweise, Gross-/Kleinschreibung des deutschen Begriffs, fehlende Lautschrift, fehlende/inkonsistente Tags): list_cards(list_id) aufrufen, Änderungen (alt → neu) dem User pro Karte zeigen und Bestätigung abwarten, danach erst update_card je Karte aufrufen. Niemals list_cards-Ergebnisse ungefragt automatisch mit update_card ändern. Gleiche Feld-Regeln wie bei add_cards gelten auch für update_card. '
+                . 'Duplikat-Behandlung bei add_cards: in Claude Code erst nach Rückfrage mit force=true, in n8n immer direkt force=true.',
         ]);
 
     case 'notifications/initialized':
@@ -86,12 +91,13 @@ switch ($method) {
         $name = (string)($params['name'] ?? '');
         $args = is_array($params['arguments'] ?? null) ? $params['arguments'] : [];
         $result = match ($name) {
-            'list_persons' => tool_list_persons($pdo),
-            'list_lists'   => tool_list_lists($pdo, $args),
-            'add_cards'    => tool_add_cards($pdo, $args),
-            'list_cards'   => tool_list_cards($pdo, $args),
-            'update_card'  => tool_update_card($pdo, $args),
-            default        => tool_error("Unbekanntes Tool: $name"),
+            'list_persons'     => tool_list_persons($pdo),
+            'list_lists'       => tool_list_lists($pdo, $args),
+            'list_person_tags' => tool_list_person_tags($pdo, $args),
+            'add_cards'        => tool_add_cards($pdo, $args),
+            'list_cards'       => tool_list_cards($pdo, $args),
+            'update_card'      => tool_update_card($pdo, $args),
+            default            => tool_error("Unbekanntes Tool: $name"),
         };
         mcp_ok($id, $result);
 
@@ -132,6 +138,30 @@ function tool_list_lists(PDO $pdo, array $args): array {
     $lists = $stmt->fetchAll();
 
     return mcp_text(['person' => $person, 'lists' => $lists]);
+}
+
+// Alle Tags dieser Person über sämtliche ihre Listen hinweg — dient dazu, vor dem Setzen eines
+// Tags in add_cards/update_card einen passenden vorhandenen wiederzuverwenden statt einen neuen,
+// leicht abweichend geschriebenen zu erfinden (Tags sind pro Person eigenständig, kein globaler
+// Pool — siehe includes/tags.php).
+function tool_list_person_tags(PDO $pdo, array $args): array {
+    $person_id = isset($args['person_id']) ? (int)$args['person_id'] : 0;
+    if ($person_id <= 0) {
+        return tool_error('person_id ist erforderlich (positive Ganzzahl)');
+    }
+
+    $stmt = $pdo->prepare("SELECT id, name FROM persons WHERE id = ?");
+    $stmt->execute([$person_id]);
+    $person = $stmt->fetch();
+    if (!$person) {
+        return tool_error("Person mit id=$person_id nicht gefunden");
+    }
+
+    $stmt = $pdo->prepare("SELECT name FROM tags WHERE person_id = ? ORDER BY name");
+    $stmt->execute([$person_id]);
+    $tags = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    return mcp_text(['person' => $person, 'tags' => $tags]);
 }
 
 function tool_add_cards(PDO $pdo, array $args): array {
@@ -180,6 +210,7 @@ function tool_add_cards(PDO $pdo, array $args): array {
         $da = trim((string)($card['beschreibung_a'] ?? ''));
         $db = trim((string)($card['beschreibung_b'] ?? ''));
         $ph = trim((string)($card['phonetik_b'] ?? ''));
+        $tags_parsed = parse_tag_input((string)($card['tags'] ?? ''));
 
         if ($wa === '' || $wb === '') {
             $results[] = ['index' => $i, 'status' => 'error', 'message' => 'sprache_a_begriff und sprache_b_begriff sind Pflichtfelder'];
@@ -195,6 +226,10 @@ function tool_add_cards(PDO $pdo, array $args): array {
         }
         if (mb_strlen($ph) > 200) {
             $results[] = ['index' => $i, 'status' => 'error', 'message' => 'phonetik_b darf maximal 200 Zeichen haben'];
+            continue;
+        }
+        if ($tags_parsed['error']) {
+            $results[] = ['index' => $i, 'status' => 'error', 'message' => $tags_parsed['error']];
             continue;
         }
 
@@ -213,8 +248,9 @@ function tool_add_cards(PDO $pdo, array $args): array {
         $insert->execute([$list_id, $wa, $wb, $da !== '' ? $da : null, $db !== '' ? $db : null, $ph !== '' ? $ph : null]);
         $card_id = (int) $pdo->lastInsertId();
         $insert_progress->execute([(int) $list['person_id'], $card_id]);
+        set_card_tags($pdo, (int) $list['person_id'], $card_id, $tags_parsed['names']);
         $existing[$key] = ['word_a' => $wa, 'word_b' => $wb];
-        $results[] = ['index' => $i, 'status' => 'inserted', 'card' => ['sprache_a_begriff' => $wa, 'sprache_b_begriff' => $wb]];
+        $results[] = ['index' => $i, 'status' => 'inserted', 'card' => ['sprache_a_begriff' => $wa, 'sprache_b_begriff' => $wb, 'tags' => $tags_parsed['names']]];
     }
 
     $n_inserted  = count(array_filter($results, fn($r) => $r['status'] === 'inserted'));
@@ -241,7 +277,13 @@ function tool_list_cards(PDO $pdo, array $args): array {
         return tool_error("Liste mit id=$list_id nicht gefunden");
     }
 
-    $stmt = $pdo->prepare("SELECT id, word_a, word_b, desc_a, desc_b, phonetic_b FROM cards WHERE list_id = ? ORDER BY created_at");
+    $stmt = $pdo->prepare("
+        SELECT c.id, c.word_a, c.word_b, c.desc_a, c.desc_b, c.phonetic_b,
+               (SELECT GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ' ')
+                FROM card_tags ct JOIN tags t ON t.id = ct.tag_id
+                WHERE ct.card_id = c.id) AS tags
+        FROM cards c WHERE c.list_id = ? ORDER BY c.created_at
+    ");
     $stmt->execute([$list_id]);
     $cards = array_map(fn($c) => [
         'card_id'           => (int)$c['id'],
@@ -250,6 +292,7 @@ function tool_list_cards(PDO $pdo, array $args): array {
         'beschreibung_a'    => $c['desc_a'],
         'beschreibung_b'    => $c['desc_b'],
         'phonetik_b'        => $c['phonetic_b'],
+        'tags'              => $c['tags'] ? explode(' ', $c['tags']) : [],
     ], $stmt->fetchAll());
 
     return mcp_text(['list' => $list, 'cards' => $cards]);
@@ -283,6 +326,16 @@ function tool_update_card(PDO $pdo, array $args): array {
         }
     }
 
+    // tags ist keine Spalte auf cards (n:m über card_tags) — separat behandelt, greift beim
+    // Speichern unten nicht in dieselbe dynamische UPDATE-Spaltenliste ein.
+    $tags_parsed = null;
+    if (array_key_exists('tags', $args)) {
+        $tags_parsed = parse_tag_input((string) $args['tags']);
+        if ($tags_parsed['error']) {
+            return tool_error($tags_parsed['error']);
+        }
+    }
+
     $updates = [];
     $params  = [];
     foreach ($fields as $arg_key => [$column, $max_len]) {
@@ -295,15 +348,31 @@ function tool_update_card(PDO $pdo, array $args): array {
         $params[]  = $val !== '' ? $val : null;
     }
 
-    if (!$updates) {
+    if (!$updates && $tags_parsed === null) {
         return tool_error('Mindestens ein zu änderndes Feld ist erforderlich');
     }
 
-    $params[] = $card_id;
-    $stmt = $pdo->prepare("UPDATE cards SET " . implode(', ', $updates) . " WHERE id = ?");
-    $stmt->execute($params);
+    if ($updates) {
+        $params[] = $card_id;
+        $stmt = $pdo->prepare("UPDATE cards SET " . implode(', ', $updates) . " WHERE id = ?");
+        $stmt->execute($params);
+    }
 
-    $stmt = $pdo->prepare("SELECT id, word_a, word_b, desc_a, desc_b, phonetic_b FROM cards WHERE id = ?");
+    if ($tags_parsed !== null) {
+        // person_id kommt über die Liste — cards hat keine eigene person_id-Spalte.
+        $stmt = $pdo->prepare("SELECT person_id FROM lists WHERE id = ?");
+        $stmt->execute([$card['list_id']]);
+        $person_id = (int) $stmt->fetchColumn();
+        set_card_tags($pdo, $person_id, $card_id, $tags_parsed['names']);
+    }
+
+    $stmt = $pdo->prepare("
+        SELECT c.id, c.word_a, c.word_b, c.desc_a, c.desc_b, c.phonetic_b,
+               (SELECT GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ' ')
+                FROM card_tags ct JOIN tags t ON t.id = ct.tag_id
+                WHERE ct.card_id = c.id) AS tags
+        FROM cards c WHERE c.id = ?
+    ");
     $stmt->execute([$card_id]);
     $updated = $stmt->fetch();
 
@@ -316,6 +385,7 @@ function tool_update_card(PDO $pdo, array $args): array {
             'beschreibung_a'    => $updated['desc_a'],
             'beschreibung_b'    => $updated['desc_b'],
             'phonetik_b'        => $updated['phonetic_b'],
+            'tags'              => $updated['tags'] ? explode(' ', $updated['tags']) : [],
         ],
     ]);
 }
@@ -344,8 +414,19 @@ function mcp_tools_schema(): array {
             ],
         ],
         [
+            'name'        => 'list_person_tags',
+            'description' => 'Gibt alle Tags dieser Person zurück, über sämtliche ihre Listen hinweg (Tags sind pro Person eigenständig, kein globaler Pool). Vor dem Setzen eines Tags in add_cards/update_card IMMER zuerst hier prüfen, ob ein passender Tag schon existiert, und diesen wiederverwenden — nie einen inhaltlich passenden, aber leicht anders geschriebenen neuen Tag erfinden (z.B. "Reise" vs. "Reisen"). Passt keiner der vorhandenen Tags zur aktuellen Karte, den User fragen, welchen Tag er verwenden möchte, statt selbst einen neuen zu erfinden.',
+            'inputSchema' => [
+                'type'       => 'object',
+                'properties' => [
+                    'person_id' => ['type' => 'integer', 'description' => 'ID der Person (von list_persons)'],
+                ],
+                'required' => ['person_id'],
+            ],
+        ],
+        [
             'name'        => 'add_cards',
-            'description' => 'Fügt Vokabelkarten in eine Liste ein. Regeln für die Felder: Begriff (Fremdsprache) exakt, bei Verben Grundform, bei unregelmässigen Verben alle drei Formen. Begriff (Deutsch) exakt, Gross-/Kleinschreibung nach deutscher Rechtschreibung (de-CH: NIE "ß", immer "ss") — Nomen IMMER gross, alle anderen Wortarten (Verben Grundform, Adjektive, Adverbien etc.) klein, ausser am Satzanfang bei mehrteiligen Begriffen. Beschreibung (Fremdsprache): Beispielsatz mit dem exakten fremdsprachigen Begriff. Beschreibung (Deutsch): beschreibt die Bedeutung genauer OHNE den fremdsprachigen Begriff zu nennen, vermerkt ggf. unregelmässiges Verb, klärt bei Mehrdeutigkeit den Verwendungskontext. WICHTIG: Der fremdsprachige Begriff darf NIEMALS in der deutschen Beschreibung auftauchen. Ist die Fremdsprache Englisch: Hat die Zielliste (aus list_lists) ein speech_lang_b gesetzt, müssen Schreibweise und Wortwahl des Begriffs und Beispielsatzes zu diesem Dialekt passen (z.B. en-GB vs. en-US) — diese Listen-Definition hat Vorrang. Ist KEIN speech_lang_b gesetzt, gilt als Standard BRITISCHES Englisch (en-GB), nicht US-Englisch, ausser der User verlangt ausdrücklich einen anderen Dialekt. UND phonetik_b sollte mit vereinfachter Lautschrift befüllt werden (siehe Feldbeschreibung). Diese Lautschrift muss in den Lesekonventionen der Muttersprache der lernenden Person geschrieben sein — Standardannahme: Muttersprache = Sprache A der Liste, nur bei Unstimmigkeit (z.B. beide Sprachen sind für die Person fremd) oder Widerspruch des Users explizit nachfragen. WICHTIG: Alle Karten (Begriff A, Begriff B, Beschreibungen, Lautschrift) dem User zur Sichtprüfung vorlegen und Bestätigung abwarten, bevor dieses Tool aufgerufen wird. Bei Duplikat-Warnung: in Claude Code erst nach Rückfrage mit force=true, in n8n immer direkt force=true.',
+            'description' => 'Fügt Vokabelkarten in eine Liste ein. Begriff A/B: kein isoliertes Einzelwort, sondern per Default eine natürliche Phrase/ein Chunk mit realistischem Verwendungskontext (mind. ein Adjektiv oder eine Ergänzung) — z.B. nicht "Entscheid" sondern "einen wichtigen Entscheid treffen". Verlangt der User ausdrücklich ein einzelnes Wort statt eines Chunks, gilt diese Anweisung — kein Chunk gegen den ausdrücklichen Wunsch erzwingen. Der jeweils andere (Lösungs-)Begriff darf im Chunk nicht so vorkommen, dass er die Antwort preisgibt. Begriff A und Begriff B müssen denselben Kontext/dieselbe Situation abbilden (Rückübersetzungs-Konsistenz-Check). Bei Verben als Kernbegriff in der Fremdsprache: Grundform, bei unregelmässigen Verben alle drei Formen. Deutscher Anteil: de-CH-Rechtschreibung (NIE "ß", immer "ss"), Nomen IMMER gross, alle anderen Wortarten klein, ausser am Satzanfang bei mehrteiligen Chunks. Beschreibung A und Beschreibung B haben FESTE, sprachunabhängige Rollen: Beschreibung A ist ein kognitiver Hinweis zur aktiven Selbstkorrektur (KEINE direkte Lösung, der Begriff selbst darf nicht erscheinen), Beschreibung B ist ein natürlicher Beispielsatz mit dem EXAKTEN Begriff aus Begriff B (kein Lehrbuchsatz, keine reinen Konjugations-Sätze ohne Inhalt). Ist die Zielliste (aus list_lists) Englisch als Sprache B: Hat sie ein speech_lang_b gesetzt, müssen Schreibweise/Wortwahl in Sprache B dazu passen; ist KEIN speech_lang_b gesetzt, gilt Standard BRITISCHES Englisch (en-GB). phonetik_b NUR befüllen wenn die Zielliste ein speech_lang_b gesetzt hat (siehe Feldbeschreibung für Stilwahl einfach/IPA). tags: vor dem Setzen mit list_person_tags prüfen, ob ein passender vorhandener Tag der Person wiederverwendet werden kann. WICHTIG: Alle Karten (Begriff A/B, Beschreibungen, Tags, Lautschrift) dem User zur Sichtprüfung vorlegen und Bestätigung abwarten, bevor dieses Tool aufgerufen wird. Bei Duplikat-Warnung: in Claude Code erst nach Rückfrage mit force=true, in n8n immer direkt force=true.',
             'inputSchema' => [
                 'type'       => 'object',
                 'properties' => [
@@ -356,11 +437,12 @@ function mcp_tools_schema(): array {
                         'items'    => [
                             'type'       => 'object',
                             'properties' => [
-                                'sprache_a_begriff' => ['type' => 'string', 'maxLength' => 500, 'description' => 'Exakter Begriff in Sprache A. Falls Sprache A die Fremdsprache ist und es sich um ein Verb handelt: Grundform (Infinitiv); bei unregelmässigen Verben alle drei Formen (z.B. "go / went / gone"). Falls Sprache A Deutsch ist: exakter deutscher Begriff, Gross-/Kleinschreibung nach deutscher Rechtschreibung (de-CH: NIE "ß", immer "ss") — Nomen IMMER gross (z.B. "Haus"), alle anderen Wortarten (Verben Grundform, Adjektive, Adverbien etc.) klein (z.B. "laufen", "schnell"), ausser am Satzanfang bei mehrteiligen Begriffen.'],
-                                'sprache_b_begriff' => ['type' => 'string', 'maxLength' => 500, 'description' => 'Exakter Begriff in Sprache B. Falls Sprache B die Fremdsprache ist und es sich um ein Verb handelt: Grundform (Infinitiv); bei unregelmässigen Verben alle drei Formen (z.B. "go / went / gone"). Falls Sprache B Deutsch ist: exakter deutscher Begriff, Gross-/Kleinschreibung nach deutscher Rechtschreibung (de-CH: NIE "ß", immer "ss") — Nomen IMMER gross (z.B. "Haus"), alle anderen Wortarten (Verben Grundform, Adjektive, Adverbien etc.) klein (z.B. "laufen", "schnell"), ausser am Satzanfang bei mehrteiligen Begriffen.'],
-                                'beschreibung_a'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Optionale Beschreibung zu Sprache A. Falls Sprache A die Fremdsprache ist: Beispielsatz mit dem exakten fremdsprachigen Begriff. Falls Sprache A Deutsch ist: beschreibt die Bedeutung genauer OHNE den fremdsprachigen Begriff zu nennen (NIEMALS den fremdsprachigen Begriff hier wiederholen), vermerkt ggf. unregelmässiges Verb, klärt bei Mehrdeutigkeit den Verwendungskontext.'],
-                                'beschreibung_b'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Optionale Beschreibung zu Sprache B. Falls Sprache B die Fremdsprache ist: Beispielsatz mit dem exakten fremdsprachigen Begriff. Falls Sprache B Deutsch ist: beschreibt die Bedeutung genauer OHNE den fremdsprachigen Begriff zu nennen (NIEMALS den fremdsprachigen Begriff hier wiederholen), vermerkt ggf. unregelmässiges Verb, klärt bei Mehrdeutigkeit den Verwendungskontext.'],
-                                'phonetik_b'        => ['type' => 'string', 'maxLength' => 200, 'description' => 'Optionale vereinfachte Lautschrift für sprache_b_begriff — NUR ausfüllen wenn die Zielliste (aus list_lists) ein speech_lang_b gesetzt hat, sonst leer lassen. Muss in den Lesekonventionen der Muttersprache der lernenden Person geschrieben sein, damit diese Person die Aussprache intuitiv lesen kann. Standardannahme: Muttersprache = Sprache A der Liste — nur bei Unstimmigkeit (z.B. beide Sprachen sind für die Person fremd) oder Widerspruch des Users explizit nachfragen, nicht bei jeder Liste pauschal. Stil (Beispiele für eine deutschsprachige Person): Silben mit Bindestrich getrennt, betonte Silbe in GROSSBUCHSTABEN, keine IPA-Sonderzeichen, z.B. "toh-ken-eye-ZAY-shun" für "Tokenisation". Dialekt (z.B. en-GB vs. en-US) muss zum speech_lang_b der Liste passen. Bei nicht-rhotischen Dialekten (en-GB, en-AU, en-NZ, en-ZA): "r" nach Vokal vor Konsonant/am Wortende weglassen ("-er"→"-uh", "or"→"aw", z.B. "thunder"→"THUN-duh", "storm"→"stawm"), "r" nur vor einem direkt folgenden Vokal schreiben (Silbenanfang oder verbindendes R). Bei rhotischen Dialekten (z.B. en-US) "r" normal schreiben. Diese detaillierten Regeln gelten für Englisch als Sprache B — bei anderen Zielsprachen sinngemäss vereinfachte, für die Zielsprache passende Lautschrift verwenden.'],
+                                'sprache_a_begriff' => ['type' => 'string', 'maxLength' => 500, 'description' => 'Begriff A als natürliche Phrase/Chunk mit realistischem Verwendungskontext (kein isoliertes Einzelwort) — z.B. nicht "Entscheid" sondern "einen wichtigen Entscheid treffen". Das ist der Default; verlangt der User ausdrücklich ein einzelnes Wort statt eines Chunks, gilt diese Anweisung. Muss denselben Kontext wie sprache_b_begriff abbilden. Ist der Kernbegriff in der Fremdsprache ein Verb: Grundform (Infinitiv); bei unregelmässigen Verben alle drei Formen (z.B. "go / went / gone"). Ist Sprache A Deutsch: de-CH-Rechtschreibung (NIE "ß", immer "ss"), Nomen IMMER gross (z.B. "Haus"), alle anderen Wortarten klein, ausser am Satzanfang bei mehrteiligen Chunks. Ist Sprache A die Fremdsprache: Originalschreibweise, kein automatisches Grossschreiben ausser bei echtem Satzanfang.'],
+                                'sprache_b_begriff' => ['type' => 'string', 'maxLength' => 500, 'description' => 'Begriff B als natürliche Phrase/Chunk (Default, siehe sprache_a_begriff für die Ausnahme bei explizitem User-Wunsch nach einem Einzelwort) — gleiche Regeln wie sprache_a_begriff, muss denselben Kontext/dieselbe Situation wie sprache_a_begriff abbilden (Rückübersetzung sollte sinngleich mit sprache_a_begriff sein, sonst vor der Bestätigung warnen). Ist Sprache B Englisch: Dialekt richtet sich nach speech_lang_b der Liste, ohne speech_lang_b gilt BRITISCHES Englisch (en-GB) als Standard.'],
+                                'beschreibung_a'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Kognitiver Hinweis zur aktiven Selbstkorrektur (feste Rolle, unabhängig davon welche Sprache A ist) — KEINE direkte Lösung, der Begriff (sprache_a_begriff) darf hier nicht erscheinen. Regt zum Nachdenken an, z.B. "Gegenteil von X", "unregelmässige Form von Y", "wird verwendet wenn man Z ausdrücken will". Bei Mehrdeutigkeit den konkreten Verwendungskontext angeben.'],
+                                'beschreibung_b'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Natürlicher, alltagstauglicher Beispielsatz mit dem EXAKTEN Begriff aus sprache_b_begriff (feste Rolle, unabhängig davon welche Sprache B ist) — kein Lehrbuchsatz, keine reinen Konjugations-Sätze ohne echten Inhalt (z.B. "wir werden kaufen" ist unzulässig). Muss eine echte Situation beschreiben.'],
+                                'phonetik_b'        => ['type' => 'string', 'maxLength' => 200, 'description' => 'Lautschrift für sprache_b_begriff — NUR ausfüllen wenn die Zielliste (aus list_lists) ein speech_lang_b gesetzt hat, sonst leer lassen. Stil (einfach oder IPA) aus vorhandenen phonetik_b-Einträgen der Liste ableiten (list_cards aufrufen); existieren noch keine, den User einmalig pro Liste fragen ("einfach" vs. "eindeutig"/IPA). Vereinfachte Lautschrift: Silben mit Bindestrich, betonte Silbe GROSS, keine IPA-Zeichen, in der Lesekonvention der Muttersprache der lernenden Person (Standardannahme: Sprache A der Liste), z.B. "toh-ken-eye-ZAY-shun". Bei nicht-rhotischen Dialekten (en-GB, en-AU, en-NZ, en-ZA): "r" nach Vokal vor Konsonant/am Wortende weglassen ("thunder"→"THUN-duh", "storm"→"stawm"); bei rhotischen Dialekten (z.B. en-US) "r" normal schreiben. Diese rhotisch/nicht-rhotisch-Regeln gelten für Englisch als Sprache B — bei anderen Zielsprachen sinngemäss eine vereinfachte, passende Lautschrift verwenden. IPA: Standard-IPA-Notation (z.B. "/biːt/"), Dialekt muss zu speech_lang_b passen. Bei Unsicherheit über die korrekte Phonetik: leer lassen.'],
+                                'tags'              => ['type' => 'string', 'maxLength' => 300, 'description' => 'Optionale Tags, leerzeichengetrennt mit "#"-Präfix (z.B. "#Wetter #Reise") — gleiches Format wie im Web. Vor dem Setzen mit list_person_tags(person_id) prüfen, ob ein passender vorhandener Tag der Person wiederverwendet werden kann, statt einen neuen mit leicht abweichender Schreibweise zu erfinden. Passt keiner, den User fragen statt selbst zu entscheiden. Tags immer auf Deutsch (de-CH), unabhängig von der Lernsprache. Nur setzen wenn sinnvoll, nicht zwingend bei jeder Karte.'],
                             ],
                             'required' => ['sprache_a_begriff', 'sprache_b_begriff'],
                         ],
@@ -372,7 +454,7 @@ function mcp_tools_schema(): array {
         ],
         [
             'name'        => 'list_cards',
-            'description' => 'Gibt alle bestehenden Karten einer Liste zurück (inkl. card_id, Begriffe, Beschreibungen, phonetik_b). Zum Prüfen/Korrigieren bestehender Karten (z.B. Schreibweise, fehlende Lautschrift) — danach update_card pro zu ändernder Karte aufrufen. NIEMALS Karten ungefragt automatisch ändern: dem User immer zuerst zeigen was sich ändern würde und Bestätigung abwarten, bevor update_card aufgerufen wird.',
+            'description' => 'Gibt alle bestehenden Karten einer Liste zurück (inkl. card_id, Begriffe, Beschreibungen, phonetik_b, tags). Zum Prüfen/Korrigieren bestehender Karten (z.B. Schreibweise, fehlende Lautschrift, fehlende/inkonsistente Tags) — danach update_card pro zu ändernder Karte aufrufen. Auch nützlich, um VOR dem Hinzufügen neuer Karten den in dieser Liste bereits verwendeten Lautschrift-Stil (einfach vs. IPA) an vorhandenen phonetik_b-Werten abzulesen. NIEMALS Karten ungefragt automatisch ändern: dem User immer zuerst zeigen was sich ändern würde und Bestätigung abwarten, bevor update_card aufgerufen wird.',
             'inputSchema' => [
                 'type'       => 'object',
                 'properties' => [
@@ -383,16 +465,17 @@ function mcp_tools_schema(): array {
         ],
         [
             'name'        => 'update_card',
-            'description' => 'Ändert einzelne Felder einer bestehenden Karte (von list_cards). Nur die übergebenen Felder werden geändert, alle anderen bleiben unverändert. sprache_a_begriff/sprache_b_begriff dürfen nicht leer sein falls angegeben. Gleiche Feld-Regeln wie bei add_cards (Dialekt-Konsistenz, Lautschrift-Stil, de-CH-Rechtschreibung ohne "ß"). Bei phonetik_b gilt ebenfalls: muss in den Lesekonventionen der Muttersprache der lernenden Person geschrieben sein — Standardannahme Sprache A der Liste, nur bei Unstimmigkeit oder Widerspruch des Users nachfragen. WICHTIG: dem User vor dem Aufruf immer zeigen, was sich pro Karte ändert (alt → neu), und Bestätigung abwarten.',
+            'description' => 'Ändert einzelne Felder einer bestehenden Karte (von list_cards). Nur die übergebenen Felder werden geändert, alle anderen bleiben unverändert. sprache_a_begriff/sprache_b_begriff dürfen nicht leer sein falls angegeben. Gleiche Feld-Regeln wie bei add_cards (Chunk-Modell für Begriff A/B, feste Beschreibung-Rollen A=Hinweis/B=Beispielsatz, Dialekt-Konsistenz, Lautschrift-Stil, de-CH-Rechtschreibung, Tags über list_person_tags abgleichen). WICHTIG: dem User vor dem Aufruf immer zeigen, was sich pro Karte ändert (alt → neu), und Bestätigung abwarten.',
             'inputSchema' => [
                 'type'       => 'object',
                 'properties' => [
                     'card_id'           => ['type' => 'integer', 'description' => 'ID der Karte (card_id von list_cards)'],
-                    'sprache_a_begriff' => ['type' => 'string', 'maxLength' => 500, 'description' => 'Neuer Begriff Sprache A (optional, nicht leer falls angegeben). Gleiche Gross-/Kleinschreibungs-Regel wie bei add_cards, falls Deutsch (de-CH: NIE "ß", immer "ss").'],
-                    'sprache_b_begriff' => ['type' => 'string', 'maxLength' => 500, 'description' => 'Neuer Begriff Sprache B (optional, nicht leer falls angegeben). Gleiche Gross-/Kleinschreibungs-Regel wie bei add_cards, falls Deutsch (de-CH: NIE "ß", immer "ss").'],
-                    'beschreibung_a'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Neue Beschreibung Sprache A (optional, leerer String löscht sie)'],
-                    'beschreibung_b'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Neue Beschreibung Sprache B (optional, leerer String löscht sie)'],
-                    'phonetik_b'        => ['type' => 'string', 'maxLength' => 200, 'description' => 'Neue Lautschrift (optional, leerer String löscht sie), gleicher Stil wie bei add_cards — Lesekonventionen der Muttersprache der lernenden Person, Standardannahme Sprache A der Liste, nur bei Unstimmigkeit nachfragen'],
+                    'sprache_a_begriff' => ['type' => 'string', 'maxLength' => 500, 'description' => 'Neuer Begriff A (optional, nicht leer falls angegeben) — gleiche Chunk-Regeln wie bei add_cards (natürliche Phrase mit Kontext statt Einzelwort), gleiche Gross-/Kleinschreibungs-Regel falls Deutsch (de-CH: NIE "ß", immer "ss").'],
+                    'sprache_b_begriff' => ['type' => 'string', 'maxLength' => 500, 'description' => 'Neuer Begriff B (optional, nicht leer falls angegeben) — gleiche Chunk-Regeln wie bei add_cards, muss weiterhin denselben Kontext wie sprache_a_begriff abbilden.'],
+                    'beschreibung_a'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Neue Beschreibung A (optional, leerer String löscht sie) — feste Rolle wie bei add_cards: kognitiver Hinweis, keine direkte Lösung.'],
+                    'beschreibung_b'    => ['type' => 'string', 'maxLength' => 1000, 'description' => 'Neue Beschreibung B (optional, leerer String löscht sie) — feste Rolle wie bei add_cards: natürlicher Beispielsatz mit dem exakten Begriff B.'],
+                    'phonetik_b'        => ['type' => 'string', 'maxLength' => 200, 'description' => 'Neue Lautschrift (optional, leerer String löscht sie), gleicher Stil wie bei add_cards (einfach oder IPA, konsistent mit den übrigen Karten der Liste)'],
+                    'tags'              => ['type' => 'string', 'maxLength' => 300, 'description' => 'Neue Tags, leerzeichengetrennt mit "#"-Präfix (optional, leerer String entfernt alle Tags der Karte) — ersetzt die komplette bisherige Tag-Zuordnung dieser Karte. Vor dem Setzen mit list_person_tags(person_id) vorhandene Tags der Person prüfen.'],
                 ],
                 'required' => ['card_id'],
             ],
