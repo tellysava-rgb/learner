@@ -73,7 +73,7 @@ switch ($method) {
                 . '6. Dialekt-Logik (gilt für Begriff B, Beschreibung B und Phonetik): Hat die Liste ein speech_lang_b (z.B. "en-GB" vs. "en-US") gesetzt, müssen Schreibweise und Wortwahl in Sprache B zu diesem Dialekt passen (z.B. en-GB → "colour", "lorry", "flat"; en-US → "color", "truck", "apartment") — diese Listen-Definition hat Vorrang vor allem anderen. Ist Sprache B Englisch und KEIN speech_lang_b gesetzt: Standard ist BRITISCHES Englisch (en-GB), ausser der User verlangt im Gespräch ausdrücklich einen anderen Dialekt. '
                 . '7. Phonetik (phonetik_b): NUR befüllen wenn die Liste ein speech_lang_b gesetzt hat, sonst leer lassen — auch bei Sprachen ausser Englisch. Stil ableiten: list_cards der Zielliste aufrufen und vorhandene phonetik_b-Einträge analysieren — werden IPA-Zeichen verwendet (z.B. "/biːt/"), IPA-Stil weiterführen; wird vereinfachte Lautschrift verwendet (z.B. "biit"), diesen Stil weiterführen; Konsistenz innerhalb der Liste hat Vorrang. Existieren noch keine Einträge: dem User ein Beispiel BEIDER Varianten für den aktuellen Begriff zeigen und EINMALIG fragen, ob "einfach" (vereinfachte Lautschrift) oder "eindeutig" (IPA) gewünscht ist — der Entscheid gilt dann für die ganze Liste/Session, nicht erneut pro Karte fragen. Vereinfachte Lautschrift: Silben mit Bindestrich, betonte Silbe GROSS, keine IPA-Sonderzeichen, geschrieben in der Lesekonvention der Muttersprache der lernenden Person (Standardannahme: Sprache A der Liste — nur bei Unstimmigkeit, z.B. beide Sprachen sind für die Person fremd, oder bei Widerspruch des Users nachfragen, nicht bei jeder Liste pauschal). Bei nicht-rhotischen Dialekten (en-GB/en-AU/en-NZ/en-ZA): "r" nach Vokal vor Konsonant/am Wortende weglassen ("thunder" → "THUN-duh", "storm" → "stawm"); bei rhotischen Dialekten (z.B. en-US) "r" normal schreiben. Diese detaillierten rhotisch/nicht-rhotisch-Regeln gelten für Englisch als Sprache B — bei anderen Zielsprachen sinngemäss eine vereinfachte, zur jeweiligen Zielsprache passende Lautschrift verwenden (keine ausformulierten Detailregeln dafür hinterlegt). IPA: Standard-IPA-Notation (z.B. "/biːt/"), Dialekt muss zu speech_lang_b passen. Bei Unsicherheit über die korrekte Phonetik (egal welcher Stil): leer lassen — lieber kein Eintrag als ein falscher. '
                 . '8. Tags: list_person_tags(person_id) aufrufen und vorhandene Tags DIESER PERSON über ALLE ihre Listen hinweg prüfen, bevor ein Tag gesetzt wird — einen passenden vorhandenen Tag wiederverwenden statt einen neuen mit leicht abweichender Schreibweise zu erfinden (Ziel: die Tag-Liste der Person bleibt überschaubar und konsistent). Passt keiner der vorhandenen Tags: den User fragen, welchen Tag er verwenden möchte — NIEMALS selbst einen neuen Tag erfinden ohne Rückfrage. Tags sind thematische Schlagworte (z.B. "Wetter", "Business", "Reise"), immer auf Deutsch (de-CH), unabhängig von der Lernsprache der Karte. Nur setzen wenn sinnvoll, nicht zwingend bei jeder Karte. Mehrere Tags pro Karte möglich, gleiches Format wie in der Web-Oberfläche: leerzeichengetrennt mit "#"-Präfix (z.B. "#Wetter #Reise"). '
-                . '9. Alle Felder der einzufügenden Karten (Begriff A, Begriff B, Beschreibung A, Beschreibung B, Tags, Phonetik) dem User vollständig zur Bestätigung zeigen, explizit auf Korrektheit der Übersetzung hinweisen, BEVOR add_cards aufgerufen wird. '
+                . '9. Alle Felder der einzufügenden Karten (Begriff A, Begriff B, Beschreibung A, Beschreibung B, Tags, Phonetik) dem User vollständig zur Bestätigung zeigen, BEVOR add_cards aufgerufen wird. WICHTIG: Pro Karte zusätzlich sichtbar die Rückübersetzung von Begriff B in die Sprache von Begriff A anzeigen (z.B. "Begriff B [\'a great icebreaker\'] zurückübersetzt: \'ein grossartiger Eisbrecher\' — passt das zu Begriff A?"), nicht nur intern prüfen — weicht die Bedeutung ab und ist es keine Redewendung, das VOR der Anzeige selbst korrigieren statt es dem User unkommentiert vorzulegen. Antwortet ein Tool-Aufruf mit "warnings", diese dem User ebenfalls zeigen und eine eigene Einschätzung dazu abgeben, nicht stillschweigend übergehen. '
                 . '10. Erst nach expliziter Bestätigung des Users add_cards aufrufen. '
                 . 'Workflow zum Prüfen/Korrigieren BESTEHENDER Karten (z.B. Schreibweise, Gross-/Kleinschreibung des deutschen Begriffs, fehlende Lautschrift, fehlende/inkonsistente Tags): list_cards(list_id) aufrufen, Änderungen (alt → neu) dem User pro Karte zeigen und Bestätigung abwarten, danach erst update_card je Karte aufrufen. Niemals list_cards-Ergebnisse ungefragt automatisch mit update_card ändern. Gleiche Feld-Regeln wie bei add_cards gelten auch für update_card. '
                 . 'Duplikat-Behandlung bei add_cards: in Claude Code erst nach Rückfrage mit force=true, in n8n immer direkt force=true.',
@@ -164,7 +164,117 @@ function tool_list_person_tags(PDO $pdo, array $args): array {
     return mcp_text(['person' => $person, 'tags' => $tags]);
 }
 
+// -------------------------------------------------------
+// Hilfsfunktionen: Parameter-Normalisierung, Kernbegriff-Check, Tag-Check
+// -------------------------------------------------------
+
+// Normalisiert übergebene Parameter-Namen case-insensitiv gegen die bekannten Feldnamen und meldet
+// abweichende Schreibweisen bzw. unbekannte Namen als Warnung, statt sie stillschweigend zu verwerfen
+// (z.B. "sprache_b_Begriff" statt "sprache_b_begriff" wurde bisher kommentarlos ignoriert — das Feld
+// blieb dann unverändert, ohne dass Client oder Agent das bemerkt hätten).
+function mcp_normalize_args(array $args, array $known_keys): array {
+    $lookup = [];
+    foreach ($known_keys as $k) {
+        $lookup[strtolower($k)] = $k;
+    }
+
+    $normalized = [];
+    $warnings = [];
+    foreach ($args as $key => $value) {
+        if (in_array($key, $known_keys, true)) {
+            $normalized[$key] = $value;
+            continue;
+        }
+        $lower = strtolower((string) $key);
+        if (isset($lookup[$lower])) {
+            $correct = $lookup[$lower];
+            $normalized[$correct] = $value;
+            $warnings[] = "Parameter '$key' wurde als '$correct' interpretiert (abweichende Gross-/Kleinschreibung).";
+            continue;
+        }
+        $closest = null;
+        $closest_dist = null;
+        foreach ($known_keys as $k) {
+            $dist = levenshtein($lower, strtolower($k));
+            if ($closest_dist === null || $dist < $closest_dist) {
+                $closest_dist = $dist;
+                $closest = $k;
+            }
+        }
+        $hint = ($closest !== null && $closest_dist <= 4) ? " Meinten Sie '$closest'?" : '';
+        $warnings[] = "Unbekannter Parameter: '$key'.$hint Wert wurde ignoriert.";
+    }
+    return [$normalized, $warnings];
+}
+
+// Stoppwörter/Kurzwörter, die bei der Kernbegriff-Prüfung (siehe mcp_check_core_leak) ignoriert werden —
+// englischsprachig, da Sprache B in der Praxis meist Englisch ist; bei anderen Sprachen greift die Liste
+// einfach nicht (kein Schaden, nur weniger Filterung). Als Funktion statt top-level const, da const-
+// Statements (anders als Funktionsdeklarationen) sequenziell ausgeführt werden — hier stünde die
+// Konstante sonst hinter dem tools/call-Dispatch und wäre zur Aufrufzeit noch nicht definiert.
+function mcp_stopwords(): array {
+    return ['a', 'an', 'the', 'to', 'for', 'of', 'on', 'in', 'at', 'by', 'with', 'from', 'up', 'out', 'it', 'is', 'as', 'be', 'do', 'go', 'get'];
+}
+
+function mcp_core_words(string $text): array {
+    $words = preg_split('/[^\p{L}\p{N}]+/u', $text, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    $stop = array_flip(mcp_stopwords());
+    $core = [];
+    foreach ($words as $w) {
+        if (mb_strlen($w) <= 3) continue;
+        if (isset($stop[mb_strtolower($w)])) continue;
+        $core[] = $w;
+    }
+    return array_values(array_unique($core));
+}
+
+// Prüft, ob Kernbegriffe aus Begriff A oder Begriff B (ohne Stoppwörter/Kurzwörter) wörtlich in
+// Beschreibung A auftauchen und damit die Lösung verraten würden ("der Begriff selbst darf nicht
+// erscheinen" — bisher nur Agent-Anweisung, hier zusätzlich serverseitig als Warnung geprüft).
+function mcp_check_core_leak(string $begriff_a, string $begriff_b, string $beschreibung_a): array {
+    if (trim($beschreibung_a) === '') return [];
+    $warnings = [];
+    $hay = mb_strtolower($beschreibung_a);
+    foreach (['sprache_a_begriff' => $begriff_a, 'sprache_b_begriff' => $begriff_b] as $label => $term) {
+        foreach (mcp_core_words($term) as $core) {
+            if (mb_strpos($hay, mb_strtolower($core)) !== false) {
+                $warnings[] = "beschreibung_a enthält den Kernbegriff '$core' aus $label — verrät ggf. die Lösung, bitte prüfen.";
+            }
+        }
+    }
+    return $warnings;
+}
+
+// Warnt, wenn Tags gesetzt werden, die bei dieser Person noch nicht existieren — Tag wird trotzdem
+// gesetzt (find_or_create_tag bleibt frei erfindbar, siehe Tags-Konzept), die Warnung soll nur helfen,
+// Schreibweisen-Divergenz zu bemerken, falls list_person_tags vorher nicht geprüft wurde.
+function mcp_check_unknown_tags(PDO $pdo, int $person_id, array $tag_names): ?string {
+    if (!$tag_names) return null;
+    $stmt = $pdo->prepare("SELECT name FROM tags WHERE person_id = ? ORDER BY name");
+    $stmt->execute([$person_id]);
+    $known = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $known_lower = array_map('mb_strtolower', $known);
+
+    $unknown = array_values(array_filter($tag_names, fn($t) => !in_array(mb_strtolower($t), $known_lower, true)));
+    if (!$unknown) return null;
+
+    $unknown_list = implode(', ', array_map(fn($t) => '#' . $t, $unknown));
+    $known_list = $known ? implode(', ', $known) : '(keine)';
+    return "Neue(r) Tag(s) $unknown_list existiert/existieren noch nicht bei dieser Person und wurde/wurden trotzdem gesetzt — bitte auf Schreibweisen-Divergenz prüfen. Bekannte Tags: $known_list";
+}
+
+// Hängt $warnings (falls vorhanden) unter dem Schlüssel 'warnings' an $data an — leeres Array bleibt weg,
+// damit unauffällige Antworten nicht unnötig mit einer leeren Liste vollgestopft werden.
+function mcp_with_warnings(array $data, array $warnings): array {
+    if ($warnings) {
+        $data['warnings'] = $warnings;
+    }
+    return $data;
+}
+
 function tool_add_cards(PDO $pdo, array $args): array {
+    [$args, $top_warnings] = mcp_normalize_args($args, ['list_id', 'cards', 'force']);
+
     $list_id = isset($args['list_id']) ? (int)$args['list_id'] : 0;
     $cards   = $args['cards'] ?? [];
     $force   = (bool)($args['force'] ?? false);
@@ -203,8 +313,16 @@ function tool_add_cards(PDO $pdo, array $args): array {
         ON DUPLICATE KEY UPDATE status = status
     ");
 
+    $known_card_keys = ['sprache_a_begriff', 'sprache_b_begriff', 'beschreibung_a', 'beschreibung_b', 'phonetik_b', 'tags'];
+
     $results = [];
     foreach ($cards as $i => $card) {
+        if (!is_array($card)) {
+            $results[] = ['index' => $i, 'status' => 'error', 'message' => 'Kartendaten müssen ein Objekt sein'];
+            continue;
+        }
+        [$card, $warnings] = mcp_normalize_args($card, $known_card_keys);
+
         $wa = trim((string)($card['sprache_a_begriff'] ?? ''));
         $wb = trim((string)($card['sprache_b_begriff'] ?? ''));
         $da = trim((string)($card['beschreibung_a'] ?? ''));
@@ -213,36 +331,43 @@ function tool_add_cards(PDO $pdo, array $args): array {
         $tags_parsed = parse_tag_input((string)($card['tags'] ?? ''));
 
         if ($wa === '' || $wb === '') {
-            $results[] = ['index' => $i, 'status' => 'error', 'message' => 'sprache_a_begriff und sprache_b_begriff sind Pflichtfelder'];
+            $results[] = mcp_with_warnings(['index' => $i, 'status' => 'error', 'message' => 'sprache_a_begriff und sprache_b_begriff sind Pflichtfelder'], $warnings);
             continue;
         }
         if (mb_strlen($wa) > 500 || mb_strlen($wb) > 500) {
-            $results[] = ['index' => $i, 'status' => 'error', 'message' => 'Begriff darf maximal 500 Zeichen haben'];
+            $results[] = mcp_with_warnings(['index' => $i, 'status' => 'error', 'message' => 'Begriff darf maximal 500 Zeichen haben'], $warnings);
             continue;
         }
         if (mb_strlen($da) > 1000 || mb_strlen($db) > 1000) {
-            $results[] = ['index' => $i, 'status' => 'error', 'message' => 'Beschreibung darf maximal 1000 Zeichen haben'];
+            $results[] = mcp_with_warnings(['index' => $i, 'status' => 'error', 'message' => 'Beschreibung darf maximal 1000 Zeichen haben'], $warnings);
             continue;
         }
         if (mb_strlen($ph) > 200) {
-            $results[] = ['index' => $i, 'status' => 'error', 'message' => 'phonetik_b darf maximal 200 Zeichen haben'];
+            $results[] = mcp_with_warnings(['index' => $i, 'status' => 'error', 'message' => 'phonetik_b darf maximal 200 Zeichen haben'], $warnings);
             continue;
         }
         if ($tags_parsed['error']) {
-            $results[] = ['index' => $i, 'status' => 'error', 'message' => $tags_parsed['error']];
+            $results[] = mcp_with_warnings(['index' => $i, 'status' => 'error', 'message' => $tags_parsed['error']], $warnings);
             continue;
         }
+
+        $warnings = array_merge($warnings, mcp_check_core_leak($wa, $wb, $da));
 
         $key = strtolower($wa) . '§' . strtolower($wb);
         if (isset($existing[$key]) && !$force) {
             $dup = $existing[$key];
-            $results[] = [
+            $results[] = mcp_with_warnings([
                 'index'   => $i,
                 'status'  => 'duplicate',
                 'message' => "Duplikat: «{$dup['word_a']}» / «{$dup['word_b']}» — mit force=true trotzdem einfügen",
                 'card'    => ['sprache_a_begriff' => $wa, 'sprache_b_begriff' => $wb],
-            ];
+            ], $warnings);
             continue;
+        }
+
+        $tag_warning = mcp_check_unknown_tags($pdo, (int) $list['person_id'], $tags_parsed['names']);
+        if ($tag_warning) {
+            $warnings[] = $tag_warning;
         }
 
         $insert->execute([$list_id, $wa, $wb, $da !== '' ? $da : null, $db !== '' ? $db : null, $ph !== '' ? $ph : null]);
@@ -250,18 +375,18 @@ function tool_add_cards(PDO $pdo, array $args): array {
         $insert_progress->execute([(int) $list['person_id'], $card_id]);
         set_card_tags($pdo, (int) $list['person_id'], $card_id, $tags_parsed['names']);
         $existing[$key] = ['word_a' => $wa, 'word_b' => $wb];
-        $results[] = ['index' => $i, 'status' => 'inserted', 'card' => ['sprache_a_begriff' => $wa, 'sprache_b_begriff' => $wb, 'tags' => array_map(fn($t) => '#' . $t, $tags_parsed['names'])]];
+        $results[] = mcp_with_warnings(['index' => $i, 'status' => 'inserted', 'card' => ['sprache_a_begriff' => $wa, 'sprache_b_begriff' => $wb, 'tags' => array_map(fn($t) => '#' . $t, $tags_parsed['names'])]], $warnings);
     }
 
     $n_inserted  = count(array_filter($results, fn($r) => $r['status'] === 'inserted'));
     $n_duplicate = count(array_filter($results, fn($r) => $r['status'] === 'duplicate'));
     $n_error     = count(array_filter($results, fn($r) => $r['status'] === 'error'));
 
-    return mcp_text([
+    return mcp_text(mcp_with_warnings([
         'summary' => "$n_inserted eingefügt, $n_duplicate Duplikate übersprungen, $n_error Fehler",
         'list'    => ['id' => (int)$list['id'], 'name' => $list['name']],
         'results' => $results,
-    ]);
+    ], $top_warnings));
 }
 
 function tool_list_cards(PDO $pdo, array $args): array {
@@ -299,6 +424,8 @@ function tool_list_cards(PDO $pdo, array $args): array {
 }
 
 function tool_update_card(PDO $pdo, array $args): array {
+    [$args, $warnings] = mcp_normalize_args($args, ['card_id', 'sprache_a_begriff', 'sprache_b_begriff', 'beschreibung_a', 'beschreibung_b', 'phonetik_b', 'tags']);
+
     $card_id = isset($args['card_id']) ? (int)$args['card_id'] : 0;
     if ($card_id <= 0) {
         return tool_error('card_id ist erforderlich (positive Ganzzahl)');
@@ -338,18 +465,61 @@ function tool_update_card(PDO $pdo, array $args): array {
 
     $updates = [];
     $params  = [];
+    $changed_fields = [];
     foreach ($fields as $arg_key => [$column, $max_len]) {
         if (!array_key_exists($arg_key, $args)) continue;
         $val = trim((string)$args[$arg_key]);
         if (mb_strlen($val) > $max_len) {
             return tool_error("$arg_key darf maximal $max_len Zeichen haben");
         }
+        $new_val = $val !== '' ? $val : null;
+        if ($new_val !== $card[$column]) {
+            $changed_fields[] = $arg_key;
+        }
         $updates[] = "`$column` = ?";
-        $params[]  = $val !== '' ? $val : null;
+        $params[]  = $new_val;
     }
 
     if (!$updates && $tags_parsed === null) {
-        return tool_error('Mindestens ein zu änderndes Feld ist erforderlich');
+        // Genau der Fall aus Problem 1: wird NUR ein falsch geschriebener/unbekannter Parameter übergeben,
+        // bleiben nach der Normalisierung keine bekannten Felder übrig — die Warnung dazu muss hier sichtbar
+        // sein, sonst wirkt der Fehler wie "kein Feld angegeben" statt "Feld nicht erkannt".
+        $msg = 'Mindestens ein zu änderndes Feld ist erforderlich';
+        if ($warnings) {
+            $msg .= ' (' . implode(' ', $warnings) . ')';
+        }
+        return tool_error($msg);
+    }
+
+    // Kernbegriff-Leck-Check (Problem 3): mit den EFFEKTIVEN Werten nach diesem Update prüfen — auch wenn
+    // z.B. nur beschreibung_a geändert wird, aber Begriff A/B unverändert bleiben, soll die Prüfung
+    // trotzdem gegen die (unveränderten) Begriffe laufen.
+    $eff_wa = array_key_exists('sprache_a_begriff', $args) ? trim((string)$args['sprache_a_begriff']) : $card['word_a'];
+    $eff_wb = array_key_exists('sprache_b_begriff', $args) ? trim((string)$args['sprache_b_begriff']) : $card['word_b'];
+    $eff_da = array_key_exists('beschreibung_a', $args) ? trim((string)$args['beschreibung_a']) : ($card['desc_a'] ?? '');
+    $warnings = array_merge($warnings, mcp_check_core_leak((string)$eff_wa, (string)$eff_wb, (string)$eff_da));
+
+    // person_id kommt über die Liste — cards hat keine eigene person_id-Spalte.
+    $stmt = $pdo->prepare("SELECT person_id FROM lists WHERE id = ?");
+    $stmt->execute([$card['list_id']]);
+    $person_id = (int) $stmt->fetchColumn();
+
+    if ($tags_parsed !== null) {
+        $stmt = $pdo->prepare("SELECT t.name FROM card_tags ct JOIN tags t ON t.id = ct.tag_id WHERE ct.card_id = ? ORDER BY t.name");
+        $stmt->execute([$card_id]);
+        $old_tags = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        $new_tags_sorted = $tags_parsed['names'];
+        sort($new_tags_sorted, SORT_STRING | SORT_FLAG_CASE);
+        $old_tags_sorted = $old_tags;
+        sort($old_tags_sorted, SORT_STRING | SORT_FLAG_CASE);
+        if (array_map('mb_strtolower', $new_tags_sorted) !== array_map('mb_strtolower', $old_tags_sorted)) {
+            $changed_fields[] = 'tags';
+        }
+
+        $tag_warning = mcp_check_unknown_tags($pdo, $person_id, $tags_parsed['names']);
+        if ($tag_warning) {
+            $warnings[] = $tag_warning;
+        }
     }
 
     if ($updates) {
@@ -359,10 +529,6 @@ function tool_update_card(PDO $pdo, array $args): array {
     }
 
     if ($tags_parsed !== null) {
-        // person_id kommt über die Liste — cards hat keine eigene person_id-Spalte.
-        $stmt = $pdo->prepare("SELECT person_id FROM lists WHERE id = ?");
-        $stmt->execute([$card['list_id']]);
-        $person_id = (int) $stmt->fetchColumn();
         set_card_tags($pdo, $person_id, $card_id, $tags_parsed['names']);
     }
 
@@ -376,8 +542,9 @@ function tool_update_card(PDO $pdo, array $args): array {
     $stmt->execute([$card_id]);
     $updated = $stmt->fetch();
 
-    return mcp_text([
-        'summary' => "Karte $card_id aktualisiert",
+    return mcp_text(mcp_with_warnings([
+        'summary'        => "Karte $card_id aktualisiert",
+        'changed_fields' => $changed_fields,
         'card'    => [
             'card_id'           => (int)$updated['id'],
             'sprache_a_begriff' => $updated['word_a'],
@@ -387,7 +554,7 @@ function tool_update_card(PDO $pdo, array $args): array {
             'phonetik_b'        => $updated['phonetic_b'],
             'tags'              => $updated['tags'] ? array_map(fn($t) => '#' . $t, explode(' ', $updated['tags'])) : [],
         ],
-    ]);
+    ], $warnings));
 }
 
 // -------------------------------------------------------
@@ -426,7 +593,7 @@ function mcp_tools_schema(): array {
         ],
         [
             'name'        => 'add_cards',
-            'description' => 'Fügt Vokabelkarten in eine Liste ein. Begriff A/B: kein isoliertes Einzelwort, sondern per Default eine natürliche Phrase/ein Chunk mit realistischem Verwendungskontext (mind. ein Adjektiv oder eine Ergänzung) — z.B. nicht "Entscheid" sondern "einen wichtigen Entscheid treffen". Verlangt der User ausdrücklich ein einzelnes Wort statt eines Chunks, gilt diese Anweisung — kein Chunk gegen den ausdrücklichen Wunsch erzwingen. Der jeweils andere (Lösungs-)Begriff darf im Chunk nicht so vorkommen, dass er die Antwort preisgibt. Begriff A und Begriff B müssen exakt dieselbe Bedeutung tragen (WICHTIGSTE Regel, Fundament des Sprachenlernens) — Ausnahme nur bei Sprichwörtern/Redewendungen ohne wörtliche Entsprechung, dort sinngemäss statt wörtlich, aber Kernaussage weiterhin exakt gleich. Rückübersetzungs-Konsistenz-Check ist Pflicht vor jeder Bestätigung; weicht die Bedeutung ab (ausser bei Redewendungen), ist das vor der Bestätigung zu korrigieren, nicht nur zu melden. Bei Verben als Kernbegriff in der Fremdsprache: Grundform, bei unregelmässigen Verben alle drei Formen. Deutscher Anteil: de-CH-Rechtschreibung (NIE "ß", immer "ss"), Nomen IMMER gross, alle anderen Wortarten klein, ausser am Satzanfang bei mehrteiligen Chunks. Beschreibung A und Beschreibung B haben FESTE, sprachunabhängige Rollen: Beschreibung A ist ein kognitiver Hinweis zur aktiven Selbstkorrektur (KEINE direkte Lösung, der Begriff selbst darf nicht erscheinen), Beschreibung B ist ein natürlicher Beispielsatz mit dem EXAKTEN Begriff aus Begriff B (kein Lehrbuchsatz, keine reinen Konjugations-Sätze ohne Inhalt). Ist die Zielliste (aus list_lists) Englisch als Sprache B: Hat sie ein speech_lang_b gesetzt, müssen Schreibweise/Wortwahl in Sprache B dazu passen; ist KEIN speech_lang_b gesetzt, gilt Standard BRITISCHES Englisch (en-GB). phonetik_b NUR befüllen wenn die Zielliste ein speech_lang_b gesetzt hat (siehe Feldbeschreibung für Stilwahl einfach/IPA). tags: vor dem Setzen mit list_person_tags prüfen, ob ein passender vorhandener Tag der Person wiederverwendet werden kann. WICHTIG: Alle Karten (Begriff A/B, Beschreibungen, Tags, Lautschrift) dem User zur Sichtprüfung vorlegen und Bestätigung abwarten, bevor dieses Tool aufgerufen wird. Bei Duplikat-Warnung: in Claude Code erst nach Rückfrage mit force=true, in n8n immer direkt force=true.',
+            'description' => 'Fügt Vokabelkarten in eine Liste ein. Begriff A/B: kein isoliertes Einzelwort, sondern per Default eine natürliche Phrase/ein Chunk mit realistischem Verwendungskontext (mind. ein Adjektiv oder eine Ergänzung) — z.B. nicht "Entscheid" sondern "einen wichtigen Entscheid treffen". Verlangt der User ausdrücklich ein einzelnes Wort statt eines Chunks, gilt diese Anweisung — kein Chunk gegen den ausdrücklichen Wunsch erzwingen. Der jeweils andere (Lösungs-)Begriff darf im Chunk nicht so vorkommen, dass er die Antwort preisgibt. Begriff A und Begriff B müssen exakt dieselbe Bedeutung tragen (WICHTIGSTE Regel, Fundament des Sprachenlernens) — Ausnahme nur bei Sprichwörtern/Redewendungen ohne wörtliche Entsprechung, dort sinngemäss statt wörtlich, aber Kernaussage weiterhin exakt gleich. Rückübersetzungs-Konsistenz-Check ist Pflicht vor jeder Bestätigung; weicht die Bedeutung ab (ausser bei Redewendungen), ist das vor der Bestätigung zu korrigieren, nicht nur zu melden. Bei Verben als Kernbegriff in der Fremdsprache: Grundform, bei unregelmässigen Verben alle drei Formen. Deutscher Anteil: de-CH-Rechtschreibung (NIE "ß", immer "ss"), Nomen IMMER gross, alle anderen Wortarten klein, ausser am Satzanfang bei mehrteiligen Chunks. Beschreibung A und Beschreibung B haben FESTE, sprachunabhängige Rollen: Beschreibung A ist ein kognitiver Hinweis zur aktiven Selbstkorrektur (KEINE direkte Lösung, der Begriff selbst darf nicht erscheinen), Beschreibung B ist ein natürlicher Beispielsatz mit dem EXAKTEN Begriff aus Begriff B (kein Lehrbuchsatz, keine reinen Konjugations-Sätze ohne Inhalt). Ist die Zielliste (aus list_lists) Englisch als Sprache B: Hat sie ein speech_lang_b gesetzt, müssen Schreibweise/Wortwahl in Sprache B dazu passen; ist KEIN speech_lang_b gesetzt, gilt Standard BRITISCHES Englisch (en-GB). phonetik_b NUR befüllen wenn die Zielliste ein speech_lang_b gesetzt hat (siehe Feldbeschreibung für Stilwahl einfach/IPA). tags: vor dem Setzen mit list_person_tags prüfen, ob ein passender vorhandener Tag der Person wiederverwendet werden kann. Parameter-Namen exakt wie im Schema (Gross-/Kleinschreibung zählt) — abweichende Namen werden zwar per Warnung erkannt, aber Feldwerte grundsätzlich lieber korrekt benennen statt sich auf die Warnung zu verlassen. WICHTIG: Alle Karten (Begriff A/B, Beschreibungen, Tags, Lautschrift) inkl. Rückübersetzung von Begriff B dem User zur Sichtprüfung vorlegen und Bestätigung abwarten, bevor dieses Tool aufgerufen wird. Die Antwort kann pro Karte "warnings" enthalten (z.B. Kernbegriff aus Begriff A/B in Beschreibung A gefunden, unbekannter Tag gesetzt, unbekannter Parametername) — diese immer dem User zeigen, nicht stillschweigend übergehen. Bei Duplikat-Warnung: in Claude Code erst nach Rückfrage mit force=true, in n8n immer direkt force=true.',
             'inputSchema' => [
                 'type'       => 'object',
                 'properties' => [
@@ -465,7 +632,7 @@ function mcp_tools_schema(): array {
         ],
         [
             'name'        => 'update_card',
-            'description' => 'Ändert einzelne Felder einer bestehenden Karte (von list_cards). Nur die übergebenen Felder werden geändert, alle anderen bleiben unverändert. sprache_a_begriff/sprache_b_begriff dürfen nicht leer sein falls angegeben. Gleiche Feld-Regeln wie bei add_cards (Chunk-Modell für Begriff A/B, feste Beschreibung-Rollen A=Hinweis/B=Beispielsatz, Dialekt-Konsistenz, Lautschrift-Stil, de-CH-Rechtschreibung, Tags über list_person_tags abgleichen). WICHTIG: dem User vor dem Aufruf immer zeigen, was sich pro Karte ändert (alt → neu), und Bestätigung abwarten.',
+            'description' => 'Ändert einzelne Felder einer bestehenden Karte (von list_cards). Nur die übergebenen Felder werden geändert, alle anderen bleiben unverändert — Parameter-Namen müssen exakt wie im Schema geschrieben sein, ein falsch geschriebener/unbekannter Name wird per "warnings" gemeldet und NICHT übernommen. sprache_a_begriff/sprache_b_begriff dürfen nicht leer sein falls angegeben. Gleiche Feld-Regeln wie bei add_cards (Chunk-Modell für Begriff A/B, feste Beschreibung-Rollen A=Hinweis/B=Beispielsatz, Dialekt-Konsistenz, Lautschrift-Stil, de-CH-Rechtschreibung, Tags über list_person_tags abgleichen). Die Antwort enthält "changed_fields" (welche Felder sich WERTMÄSSIG tatsächlich geändert haben, nicht nur welche übergeben wurden) — damit prüfen, ob die Änderung wie erwartet ankam. Kann zusätzlich "warnings" enthalten (Kernbegriff-Leck, unbekannter Tag, unbekannter Parametername) — immer dem User zeigen. WICHTIG: dem User vor dem Aufruf immer zeigen, was sich pro Karte ändert (alt → neu), und Bestätigung abwarten.',
             'inputSchema' => [
                 'type'       => 'object',
                 'properties' => [

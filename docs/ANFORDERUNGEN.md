@@ -925,9 +925,13 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 - Duplikat + `force = false`: Karte wird nicht eingefügt, Warnung mit gefundener Karte zurückgegeben
 - Duplikat + `force = true`: Karte wird trotzdem eingefügt
 - Limits: max. 50 Karten/Aufruf, Begriff max. 500 Zeichen, Beschreibung max. 1000 Zeichen, Tags-Feld max. 300 Zeichen (Einzeltag zusätzlich auf `TAG_NAME_MAX_LENGTH`, 100 Zeichen, begrenzt)
-- Antwort: `{ summary, list: { id, name }, results: [{ index, status, card, message? }] }` — `card` enthält bei `inserted` zusätzlich `tags: [name, ...]`
+- Antwort: `{ summary, list: { id, name }, results: [{ index, status, card, message?, warnings? }] }` — `card` enthält bei `inserted` zusätzlich `tags: [tag, ...]`
   - `status`: `inserted` / `duplicate` / `error`
-- **Agent-Pflicht:** alle Felder der einzufügenden Karten (Begriff A/B, Beschreibung A/B, Tags, Phonetik) dem User vollständig zur Bestätigung zeigen und explizit auf Korrektheit der Übersetzung hinweisen — erst nach expliziter Bestätigung wird `add_cards` aufgerufen
+- **Agent-Pflicht:** alle Felder der einzufügenden Karten (Begriff A/B, Beschreibung A/B, Tags, Phonetik) inkl. sichtbarer Rückübersetzung von Begriff B dem User vollständig zur Bestätigung zeigen — erst nach expliziter Bestätigung wird `add_cards` aufgerufen. Enthält die Antwort `warnings`, diese dem User zeigen statt zu übergehen _(v3.10.3)_
+- **Serverseitige Absicherungen** _(v3.10.3, gelten identisch für `update_card`)_:
+  - **Parameter-Normalisierung**: unbekannte Feldnamen (Tippfehler, falsche Gross-/Kleinschreibung wie `sprache_b_Begriff`) werden nicht mehr stillschweigend verworfen — case-insensitive Treffer werden automatisch korrekt zugeordnet, alles andere landet als `warnings`-Eintrag mit Formulierungsvorschlag (Levenshtein-Distanz), der Feldwert wird dabei NICHT übernommen. Vorher: der Agent konnte ein Feld absichtlich ändern wollen, ohne dass etwas passierte — kein Fehler, keine Rückmeldung
+  - **Kernbegriff-Leck-Check**: prüft, ob Kernbegriffe aus Begriff A **oder** Begriff B (Stoppwörter/Wörter ≤ 3 Zeichen ausgeschlossen: "a, an, the, to, for, of, on, in, at, by, with, from, up, out, it, is, as, be, do, go, get") wörtlich in Beschreibung A auftauchen und dort die Lösung verraten — reine Warnung, blockiert die Operation nicht
+  - **Unbekannte-Tags-Warnung**: Tags, die bei dieser Person noch nicht existieren, werden weiterhin normal angelegt/gesetzt (Tags bleiben frei erfindbar, siehe Abschnitt "Tags pro Karte") — zusätzlich aber als `warnings`-Eintrag gemeldet, inkl. Liste der bereits bekannten Tags, damit Schreibweisen-Divergenz auffällt, falls `list_person_tags` nicht vorher geprüft wurde
 
 **`list_cards(list_id)`** _(v2.6.0, Tags v3.10.0)_ — Pflichtfeld: `list_id` (integer)
 - Gibt Listen-Metadaten plus alle bestehenden Karten zurück: `{ list: { id, name, language_a, language_b, speech_lang_b }, cards: [{ card_id, sprache_a_begriff, sprache_b_begriff, beschreibung_a, beschreibung_b, phonetik_b, tags: [tag, ...] }] }` (Tags mit `#`-Präfix _(v3.10.2)_)
@@ -938,8 +942,9 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 - `sprache_a_begriff`/`sprache_b_begriff` dürfen, falls angegeben, nicht leer sein — `beschreibung_a/b`/`phonetik_b`/`tags` können mit leerem String geleert werden (bei `tags`: entfernt alle Tags der Karte)
 - `tags`, falls angegeben, **ersetzt die komplette bisherige Tag-Zuordnung** der Karte (kein Hinzufügen/Entfernen einzelner Tags) — gleiche Parsing-/Validierungslogik wie `add_cards` (`includes/tags.php`)
 - Gleiche Feld-Regeln wie `add_cards` (Chunk-Modell, feste Beschreibung-Rollen, Dialekt-Konsistenz, Lautschrift-Stil), gleiche Zeichenlimits
-- **Agent-Pflicht:** vor dem Aufruf dem User pro Karte zeigen was sich ändert (alt → neu) und Bestätigung abwarten — niemals `list_cards`-Ergebnisse ungefragt automatisch mit `update_card` ändern
-- Antwort: `{ summary, card: { card_id, sprache_a_begriff, sprache_b_begriff, beschreibung_a, beschreibung_b, phonetik_b, tags: [name, ...] } }` (Werte nach der Änderung)
+- **Agent-Pflicht:** vor dem Aufruf dem User pro Karte zeigen was sich ändert (alt → neu) und Bestätigung abwarten — niemals `list_cards`-Ergebnisse ungefragt automatisch mit `update_card` ändern. Enthält die Antwort `warnings`, diese ebenfalls zeigen _(v3.10.3)_
+- Antwort: `{ summary, changed_fields: [feld, ...], card: { card_id, sprache_a_begriff, sprache_b_begriff, beschreibung_a, beschreibung_b, phonetik_b, tags: [tag, ...] }, warnings? }` (Werte nach der Änderung) _(`changed_fields`/`warnings` seit v3.10.3)_
+  - `changed_fields` listet nur Felder, deren **Wert sich tatsächlich geändert hat** (Alt- vs. Neu-Vergleich) — wird z.B. derselbe Text erneut übergeben, taucht das Feld dort NICHT auf, obwohl es im Request stand
 
 ### Sicherheit
 - Prepared Statements für alle DB-Zugriffe

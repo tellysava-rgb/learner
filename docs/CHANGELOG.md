@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.10.3] - 2026-08-15
+
+### Neu
+- **MCP-Server: robustere Absicherungen bei `add_cards`/`update_card`.** Unbekannte/falsch geschriebene Parameternamen (z.B. `sprache_b_Begriff` statt `sprache_b_begriff`) werden nicht mehr stillschweigend verworfen — case-insensitive Treffer werden automatisch korrekt zugeordnet, alles andere landet als `warnings`-Eintrag mit Formulierungsvorschlag. Neue Kernbegriff-Leck-Prüfung warnt, wenn Kernbegriffe aus Begriff A oder Begriff B (ohne Stoppwörter) wörtlich in Beschreibung A auftauchen und damit die Lösung verraten. Tags, die bei der Person noch nicht existieren, werden weiterhin gesetzt (Tags bleiben frei erfindbar), zusätzlich aber als Warnung gemeldet. `update_card` liefert neu `changed_fields` (nur Felder mit tatsächlich geändertem Wert). `initialize`-Instructions verlangen jetzt, dass der Agent die Rückübersetzung von Begriff B sichtbar in der Bestätigung zeigt (statt nur intern zu prüfen) und alle `warnings` dem User vorlegt.
+
+---
+
 ## [3.10.2] - 2026-08-15
 
 ### Verbessert

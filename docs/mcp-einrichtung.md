@@ -42,8 +42,8 @@ Der Agent arbeitet interaktiv. Die vollständigen Feld-Regeln stehen in den `ini
 
 1. `list_persons` aufrufen → Person per Name auflösen (oder direkt im Prompt mitgeben)
 2. `list_lists(person_id)` aufrufen → Listen anzeigen, User wählt. Anhand `language_a`/`language_b` bestimmen, welche Seite Deutsch ist (relevant für Rechtschreibung — die Rollen von Beschreibung A/B sind davon unabhängig fest)
-3. Karten aufbereiten (Begriff A/B als Chunk mit Kontext, Beschreibung A = Hinweis, Beschreibung B = Beispielsatz mit dem exakten Begriff, ggf. Phonetik, ggf. Tags — vor dem Setzen eines Tags `list_person_tags(person_id)` prüfen) und dem User vollständig zur Bestätigung zeigen
-4. Nach Bestätigung `add_cards` aufrufen
+3. Karten aufbereiten (Begriff A/B als Chunk mit Kontext, Beschreibung A = Hinweis, Beschreibung B = Beispielsatz mit dem exakten Begriff, ggf. Phonetik, ggf. Tags — vor dem Setzen eines Tags `list_person_tags(person_id)` prüfen) und dem User vollständig zur Bestätigung zeigen, inkl. sichtbarer Rückübersetzung von Begriff B
+4. Nach Bestätigung `add_cards`/`update_card` aufrufen. Enthält die Antwort `warnings` (z.B. Kernbegriff aus Begriff A/B in Beschreibung A gefunden, unbekannter Tag gesetzt, unbekannter Parametername), diese dem User zeigen statt zu übergehen. Bei `update_card` zusätzlich `changed_fields` prüfen, um zu bestätigen dass die Änderung wie erwartet ankam
 
 Bei einer **Duplikat-Warnung** (`status: "duplicate"`) fragt der Agent erst nach, bevor er mit `force=true` erneut aufruft.
 
@@ -125,7 +125,11 @@ Workflow zum Hinzufügen von Karten:
 6. Tags (optional, mehrere möglich, Format "#Tag1 #Tag2"): rufe zuerst
    list_person_tags(person_id) auf und verwende einen passenden vorhandenen Tag wieder,
    statt einen neuen zu erfinden. Nur setzen wenn sinnvoll.
-7. Rufe add_cards auf.
+7. Rufe add_cards auf. Enthält die Antwort ein "warnings"-Feld pro Karte (z.B. Kernbegriff
+   aus Begriff A/B in Beschreibung A gefunden, unbekannter Tag gesetzt, unbekannter
+   Parametername in der eigenen Anfrage): da in diesem automatisierten Workflow kein Mensch
+   die Warnung sieht, selbst korrigieren und die betroffene Karte per update_card
+   nachbessern, statt die Warnung zu ignorieren.
 
 WICHTIG – Duplikate:
 Wenn add_cards eine Duplikat-Warnung zurückgibt (status: "duplicate"), rufe
