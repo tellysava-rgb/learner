@@ -103,10 +103,15 @@ Workflow zum Hinzufügen von Karten:
 3. Begriff A und Begriff B: KEIN isoliertes Einzelwort, sondern eine natürliche Phrase/
    ein Chunk mit realistischem Verwendungskontext (z.B. nicht "Entscheid" sondern "einen
    wichtigen Entscheid treffen"). Der jeweils andere Begriff darf im Chunk nicht so
-   vorkommen, dass er die Antwort preisgibt. Beide Seiten müssen denselben Kontext
-   abbilden. Bei Verben als Kernbegriff in der Fremdsprache: Grundform, bei
-   unregelmässigen Verben alle drei Formen (z.B. "go / went / gone"). Deutscher Anteil:
-   de-CH-Rechtschreibung (NIE "ß", immer "ss"), Nomen immer gross, Rest klein.
+   vorkommen, dass er die Antwort preisgibt. WICHTIGSTE Regel: Begriff A und Begriff B
+   müssen exakt dieselbe Bedeutung tragen (Fundament des Sprachenlernens) — Ausnahme nur
+   bei Sprichwörtern/Redewendungen ohne wörtliche Entsprechung (z.B. "once in a blue moon"
+   ↔ "alle Jubeljahre"), dort sinngemäss statt wörtlich, aber die Kernaussage muss
+   weiterhin exakt übereinstimmen. Rückübersetzung von Begriff B muss bedeutungsgleich mit
+   Begriff A sein, sonst vor dem Aufruf von add_cards korrigieren. Bei Verben als
+   Kernbegriff in der Fremdsprache: Grundform, bei unregelmässigen Verben alle drei Formen
+   (z.B. "go / went / gone"). Deutscher Anteil: de-CH-Rechtschreibung (NIE "ß", immer
+   "ss"), Nomen immer gross, Rest klein.
 4. Beschreibung A und Beschreibung B haben feste Rollen, unabhängig von der Sprache:
    - Beschreibung A = kognitiver Hinweis zur Selbstkorrektur, KEINE direkte Lösung,
      der Begriff selbst darf nicht erscheinen.

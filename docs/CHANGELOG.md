@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.10.1] - 2026-08-15
+
+### Verbessert
+- **MCP-Server: Bedeutungsgleichheit zwischen Begriff A und Begriff B als wichtigste Regel geschärft.** Bisher nur ein weicher "Konsistenz-Check mit Warnung" — jetzt: exakte Bedeutungsgleichheit ist die wichtigste Regel überhaupt (Fundament des Sprachenlernens), Ausnahme nur bei Sprichwörtern/Redewendungen ohne wörtliche Entsprechung (dort sinngemäss statt wörtlich zulässig, Kernaussage muss aber weiterhin exakt übereinstimmen). Weicht die Bedeutung bei normalem Wortschatz ab, korrigiert der Agent das jetzt vor der Bestätigung statt es nur zu melden. Ausserdem in `edit.php`: Begriff der Zielsprache jetzt ebenfalls fett dargestellt (bisher nur der deutsche Begriff), Kartenliste oben statt vertikal zentriert ausgerichtet.
+
+---
+
 ## [3.10.0] - 2026-08-15
 
 ### Neu

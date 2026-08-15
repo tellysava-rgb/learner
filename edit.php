@@ -440,7 +440,7 @@ if ($tag_filter !== '') {
         <p class="text-muted">Keine Karten in dieser Ansicht.</p>
     <?php else: ?>
     <div class="table-responsive">
-        <table class="table table-hover align-middle small">
+        <table class="table table-hover align-top small">
             <thead class="table-light">
                 <tr>
                     <th><?= htmlspecialchars($list['language_a']) ?></th>
@@ -512,7 +512,7 @@ if ($tag_filter !== '') {
                         <?php endif; ?>
                     </td>
                     <td>
-                        <?= htmlspecialchars($card['word_b']) ?>
+                        <strong><?= htmlspecialchars($card['word_b']) ?></strong>
                         <?php if ($card['phonetic_b']): ?>
                         <span class="text-muted small">[<?= htmlspecialchars($card['phonetic_b']) ?>]</span>
                         <?php endif; ?>
