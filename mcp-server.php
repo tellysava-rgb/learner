@@ -159,7 +159,7 @@ function tool_list_person_tags(PDO $pdo, array $args): array {
 
     $stmt = $pdo->prepare("SELECT name FROM tags WHERE person_id = ? ORDER BY name");
     $stmt->execute([$person_id]);
-    $tags = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $tags = array_map(fn($t) => '#' . $t, $stmt->fetchAll(PDO::FETCH_COLUMN));
 
     return mcp_text(['person' => $person, 'tags' => $tags]);
 }
@@ -250,7 +250,7 @@ function tool_add_cards(PDO $pdo, array $args): array {
         $insert_progress->execute([(int) $list['person_id'], $card_id]);
         set_card_tags($pdo, (int) $list['person_id'], $card_id, $tags_parsed['names']);
         $existing[$key] = ['word_a' => $wa, 'word_b' => $wb];
-        $results[] = ['index' => $i, 'status' => 'inserted', 'card' => ['sprache_a_begriff' => $wa, 'sprache_b_begriff' => $wb, 'tags' => $tags_parsed['names']]];
+        $results[] = ['index' => $i, 'status' => 'inserted', 'card' => ['sprache_a_begriff' => $wa, 'sprache_b_begriff' => $wb, 'tags' => array_map(fn($t) => '#' . $t, $tags_parsed['names'])]];
     }
 
     $n_inserted  = count(array_filter($results, fn($r) => $r['status'] === 'inserted'));
@@ -292,7 +292,7 @@ function tool_list_cards(PDO $pdo, array $args): array {
         'beschreibung_a'    => $c['desc_a'],
         'beschreibung_b'    => $c['desc_b'],
         'phonetik_b'        => $c['phonetic_b'],
-        'tags'              => $c['tags'] ? explode(' ', $c['tags']) : [],
+        'tags'              => $c['tags'] ? array_map(fn($t) => '#' . $t, explode(' ', $c['tags'])) : [],
     ], $stmt->fetchAll());
 
     return mcp_text(['list' => $list, 'cards' => $cards]);
@@ -385,7 +385,7 @@ function tool_update_card(PDO $pdo, array $args): array {
             'beschreibung_a'    => $updated['desc_a'],
             'beschreibung_b'    => $updated['desc_b'],
             'phonetik_b'        => $updated['phonetic_b'],
-            'tags'              => $updated['tags'] ? explode(' ', $updated['tags']) : [],
+            'tags'              => $updated['tags'] ? array_map(fn($t) => '#' . $t, explode(' ', $updated['tags'])) : [],
         ],
     ]);
 }

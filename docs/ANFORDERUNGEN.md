@@ -890,7 +890,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 - Standardmässig nur aktive Listen (`is_active = 1`) — mit `include_inactive = true` auch inaktive
 
 **`list_person_tags(person_id)`** _(v3.10.0)_ — Pflichtfeld: `person_id` (integer)
-- Gibt alle Tags dieser Person zurück, über sämtliche ihre Listen hinweg: `{ person: { id, name }, tags: [name, ...] }` (alphabetisch sortiert)
+- Gibt alle Tags dieser Person zurück, über sämtliche ihre Listen hinweg: `{ person: { id, name }, tags: [tag, ...] }` (alphabetisch sortiert, Tags mit `#`-Präfix wie im Web-Formular _(v3.10.2)_)
 - Reines Lese-Tool. Zweck: Vor dem Setzen eines Tags in `add_cards`/`update_card` prüft der Agent hier immer zuerst, ob ein passender Tag der Person schon existiert, und verwendet ihn wieder — statt einen inhaltlich gleichen, aber leicht anders geschriebenen neuen Tag anzulegen (Tags sind pro Person eigenständig, siehe Abschnitt "Tags pro Karte"). Passt keiner der vorhandenen Tags, fragt der Agent den User, statt selbst einen neuen zu erfinden
 
 **`add_cards(list_id, cards[], force?)`**
@@ -930,7 +930,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 - **Agent-Pflicht:** alle Felder der einzufügenden Karten (Begriff A/B, Beschreibung A/B, Tags, Phonetik) dem User vollständig zur Bestätigung zeigen und explizit auf Korrektheit der Übersetzung hinweisen — erst nach expliziter Bestätigung wird `add_cards` aufgerufen
 
 **`list_cards(list_id)`** _(v2.6.0, Tags v3.10.0)_ — Pflichtfeld: `list_id` (integer)
-- Gibt Listen-Metadaten plus alle bestehenden Karten zurück: `{ list: { id, name, language_a, language_b, speech_lang_b }, cards: [{ card_id, sprache_a_begriff, sprache_b_begriff, beschreibung_a, beschreibung_b, phonetik_b, tags: [name, ...] }] }`
+- Gibt Listen-Metadaten plus alle bestehenden Karten zurück: `{ list: { id, name, language_a, language_b, speech_lang_b }, cards: [{ card_id, sprache_a_begriff, sprache_b_begriff, beschreibung_a, beschreibung_b, phonetik_b, tags: [tag, ...] }] }` (Tags mit `#`-Präfix _(v3.10.2)_)
 - Dient zum Prüfen bestehender Karten (z.B. Schreibweise, fehlende Lautschrift, fehlende/inkonsistente Tags) vor gezielten `update_card`-Aufrufen — reines Lese-Tool, keine Änderung. Auch Grundlage, um vor neuen Karten den in dieser Liste bereits verwendeten Lautschrift-Stil (einfach vs. IPA) abzulesen
 
 **`update_card(card_id, ...)`** _(v2.6.0, Tags v3.10.0)_ — Pflichtfeld: `card_id` (integer)

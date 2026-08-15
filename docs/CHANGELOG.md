@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.10.2] - 2026-08-15
+
+### Verbessert
+- **MCP-Server: Tags in Tool-Ausgaben jetzt mit `#`-Präfix.** `list_person_tags`, `list_cards`, sowie die Ergebnisse von `add_cards` und `update_card` gaben Tags bisher als reine Namen ohne `#` zurück, obwohl die Eingabe `#`-Präfix erwartet — jetzt konsistent auf beiden Seiten im gleichen Format wie im Web-Formular.
+
+---
+
 ## [3.10.1] - 2026-08-15
 
 ### Verbessert
