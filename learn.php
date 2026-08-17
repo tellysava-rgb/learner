@@ -283,6 +283,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
     $result    = $_POST['result'] ?? ''; // 'correct' | 'incorrect' | 'skip'
     $today     = $state['today'];
 
+    // Nur die aktuell vorderste Karte der Queue darf beantwortet werden — verhindert, dass ein
+    // doppelt gesendeter/verspäteter Request (z.B. Doppel-Tap auf "Gewusst") eine andere,
+    // inzwischen vorne stehende Karte unbeantwortet aus der Queue wirft: das array_shift() unten
+    // entfernt sonst blind die dann aktuell vorderste Karte, unabhängig von der übermittelten
+    // card_id (analog zur bestehenden Prüfung im toggle_pin-Handler oben).
+    if ($card_id !== ($state['queue'][0] ?? null)) {
+        header('Location: learn.php');
+        exit;
+    }
+
     if (!in_array($result, ['correct', 'incorrect', 'skip'])) {
         header('Location: learn.php');
         exit;
@@ -1020,6 +1030,15 @@ window.addEventListener('pageshow', function (e) {
         if (target) window.location.href = 'learn.php?action=setup&to=' + encodeURIComponent(target);
     });
 })();
+
+// Antwort-Buttons (Überspringen/Nicht gewusst/Gewusst) nach dem ersten Klick sperren — verhindert
+// einen versehentlichen Doppel-Tap (v.a. auf dem iPhone), der sonst zwei Requests für dieselbe
+// Karte auslösen würde. Serverseitig zusätzlich abgesichert (siehe answer-Handler oben).
+document.querySelectorAll('#learn-skip form, #learn-answer-buttons form').forEach(function (form) {
+    form.addEventListener('submit', function () {
+        form.querySelectorAll('button[type="submit"]').forEach(function (btn) { btn.disabled = true; });
+    });
+});
 
 // Vormerken per Fetch statt normalem Form-Submit — ein voller Seiten-Reload würde die
 // aufgedeckte Antwort (rein clientseitiger Zustand, siehe flipCard()) wieder verstecken.
