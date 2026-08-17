@@ -987,6 +987,11 @@ $is_math_preset = $preset_list && is_math_list($preset_list);
 <?php endif; ?>
 </div>
 
+<!-- Zusätzlicher leerer Bereich am Seitenende — der Container-Abstand (mb-5) allein reicht auf
+     Mobilgeräten oft nicht: Browser-UI (Adressleiste/Home-Indicator) verdeckt sonst leicht den
+     letzten Button bzw. die letzte Karte beim Scrollen. -->
+<div style="height:15vh;"></div>
+
 <?php if ($state && $current): ?>
 <div class="modal fade" id="leaveModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
