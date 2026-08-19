@@ -211,7 +211,7 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 - **Bearbeitbar über `edit.php`** (im selben Formular wie Begriff A/B, Beschreibung A/B, Lautschrift — Hinzufügen- und Inline-Bearbeiten-Formular) **und über MCP** (`add_cards`/`update_card`, seit v3.10.0 — siehe Abschnitt "MCP-Server")
 - **Autovervollständigung beim Eintippen in `edit.php`** _(v3.10.0)_: schlägt bestehende Tags der Person vor (`get_person_tags()`, über sämtliche ihre Listen hinweg, nicht nur die aktuelle) — token-bewusstes Vanilla-JS (kein `<datalist>`, da das bei mehreren Tags im selben Feld nur den ersten sauber vorschlagen könnte), filtert nach dem Wort an der aktuellen Cursorposition, per Klick oder Pfeiltasten+Enter übernehmbar. Beugt Schreibweisen-Divergenz vor (`#Reise` vs. `#Reisen`), erzwingt aber nichts — eigene, neue Tags bleiben jederzeit frei eintippbar
 - **Filter in `edit.php`:** anklickbare Tag-Leiste unter dem Status-/Fach-Filter, zeigt nur tatsächlich in der Liste vorkommende Tags. Gilt **zusätzlich** zum Status-/Fach-Filter (beide Dimensionen gleichzeitig), nicht als Ersatz
-- **CSV-Export** enthält Tags als zusätzliche, letzte Spalte (Backup-/Portabilitätszweck) — **CSV-Import liest diese Spalte bewusst nicht ein**, Tags bleiben ausschliesslich über `edit.php` pflegbar
+- **CSV-Export/-Import** unterstützen Tags als optionale, zusätzliche 6. Spalte (gleiches Format wie das Eingabefeld: leerzeichengetrennt mit `#`-Präfix) _(Import seit v3.16.0)_ — beim Import werden die Tags der jeweiligen Zeile auf der neu angelegten bzw. reaktivierten Karte gesetzt; ein einzelner zu langer Tag-Name lässt nur die Tags dieser einen Zeile leer statt den ganzen Import abzubrechen. Die Vorschau (Duplikat-Review) zeigt die Tags-Spalte mit an
 - **Kopieren einer öffentlichen Liste** (`discover.php`): Tags der Quellkarten werden für die kopierende Person übernommen (als deren eigene Tags neu angelegt/verknüpft) — konsistent damit, dass auch der übrige Karteninhalt kopiert wird
 - Anzeige als Badges (`#Tag`) unter dem Begriff in Sprache A, in der Kartenübersicht von `edit.php`
 
@@ -282,15 +282,16 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 
 ### CSV-Format
 ```
-a,b,desc_a,desc_b,phonetic_b
-Diagnose,diagnosis,medizinischer Begriff,"A conclusion, reached by examination",dy-ug-NOH-sis
-Behandlung,treatment,,,
+a,b,desc_a,desc_b,phonetic_b,tags
+Diagnose,diagnosis,medizinischer Begriff,"A conclusion, reached by examination",dy-ug-NOH-sis,#Medizin
+Behandlung,treatment,,,,
 ```
 - Trennzeichen: **Komma oder Semikolon** — App erkennt automatisch
 - **Encoding: UTF-8**
 - Erste Zeile ist die Kopfzeile (Sprachnamen oder beliebige Spaltenbezeichnungen) — wird beim Import immer übersprungen
 - Felder mit Kommas/Semikolons müssen in **doppelte Anführungszeichen** gesetzt werden
 - 5. Spalte `phonetic_b` (Lautschrift) ist **optional** — fehlt sie (nur 4 Spalten), bleibt das Feld leer; rückwärtskompatibel mit alten CSV-Dateien _(v2.4.0)_
+- 6. Spalte `tags` (Tags) ist **optional** — fehlt sie (nur 4 oder 5 Spalten), bleibt die Karte ohne Tags; rückwärtskompatibel mit alten CSV-Dateien _(v3.16.0)_. Format identisch zum Tags-Eingabefeld: leerzeichengetrennt mit `#`-Präfix
 - Kommas/Semikolons innerhalb von Feldern sind nur erlaubt wenn das Feld korrekt gequotet ist
 - Kein Listenname und keine Sprachen in der CSV — die Liste wird vorher in der App erstellt
 - Import-Seite enthält ausführliche Erklärung und Beispiel

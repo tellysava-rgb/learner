@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/tags.php';
 require_person();
 
 $person_id   = $_SESSION['person_id'];
@@ -45,6 +46,15 @@ function normalize(string $s): string {
     return preg_replace('/\s+/', ' ', mb_strtolower(trim($s)));
 }
 
+// Wandelt die rohe Tags-Spalte einer CSV-Zeile (Format wie export.php: "#Wetter #Reise") in
+// eine Tag-Namensliste um. Ein Fehler (z.B. zu langer Tag-Name) lässt beim Import bewusst nur
+// die Tags dieser Zeile leer statt den ganzen Kartenimport abzubrechen — Tags sind hier Kür.
+function import_tag_names(string $raw): array {
+    if ($raw === '') return [];
+    $parsed = parse_tag_input($raw);
+    return $parsed['error'] ? [] : $parsed['names'];
+}
+
 function parse_csv(string $content): array {
     // Trennzeichen erkennen: Semikolon dominiert wenn mehr Semikolons als Kommas
     $first_lines = implode("\n", array_slice(explode("\n", $content), 0, 5));
@@ -75,6 +85,7 @@ function parse_csv(string $content): array {
             'desc_a'     => trim($fields[2] ?? ''),
             'desc_b'     => trim($fields[3] ?? ''),
             'phonetic_b' => trim($fields[4] ?? ''),
+            'tags'       => trim($fields[5] ?? ''),
         ];
     }
     return $rows;
@@ -239,6 +250,7 @@ if ($import_stage === 'confirm' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                         if ($decision === 'reactivate') {
                             $stmt = $pdo->prepare("UPDATE card_progress SET status='active', leitner_box=1, next_due_date=? WHERE person_id=? AND card_id=?");
                             $stmt->execute([$today, $person_id, $archived_hit['id']]);
+                            set_card_tags($pdo, $person_id, (int) $archived_hit['id'], import_tag_names($row['tags']));
                             $imported++;
                         } elseif ($decision === 'new') {
                             // Neue Karte mit neuer ID
@@ -247,6 +259,7 @@ if ($import_stage === 'confirm' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                             $new_id = (int) $pdo->lastInsertId();
                             $stmt = $pdo->prepare("INSERT INTO card_progress (person_id, card_id, status) VALUES (?,?,'queued')");
                             $stmt->execute([$person_id, $new_id]);
+                            set_card_tags($pdo, $person_id, $new_id, import_tag_names($row['tags']));
                             $imported++;
                         }
                         // 'keep' → nichts tun
@@ -266,6 +279,7 @@ if ($import_stage === 'confirm' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 $new_id = (int) $pdo->lastInsertId();
                 $stmt = $pdo->prepare("INSERT INTO card_progress (person_id, card_id, status) VALUES (?,?,'queued')");
                 $stmt->execute([$person_id, $new_id]);
+                set_card_tags($pdo, $person_id, $new_id, import_tag_names($row['tags']));
                 $imported++;
             }
 
@@ -395,12 +409,13 @@ PROMPT;
                     </div>
                 </div>
                 <table class="table table-sm small">
-                    <thead><tr><th><?= htmlspecialchars($list['language_a']) ?></th><th><?= htmlspecialchars($list['language_b']) ?></th><th>Existiert in</th><th>Ausnahme</th></tr></thead>
+                    <thead><tr><th><?= htmlspecialchars($list['language_a']) ?></th><th><?= htmlspecialchars($list['language_b']) ?></th><th>Tags</th><th>Existiert in</th><th>Ausnahme</th></tr></thead>
                     <tbody>
                     <?php foreach ($duplicates as $i => $dup): ?>
                     <tr>
                         <td><?= htmlspecialchars($dup['row']['word_a']) ?></td>
                         <td><?= htmlspecialchars($dup['row']['word_b']) ?></td>
+                        <td><?= htmlspecialchars($dup['row']['tags']) ?></td>
                         <td><?= htmlspecialchars($dup['matches'][0]['list_name'] ?? '?') ?></td>
                         <td>
                             <div class="form-check">
@@ -427,6 +442,9 @@ PROMPT;
                 <?php foreach ($archived_matches as $i => $am): ?>
                 <div class="border rounded p-2 mb-2">
                     <strong><?= htmlspecialchars($am['row']['word_a']) ?></strong> / <?= htmlspecialchars($am['row']['word_b']) ?>
+                    <?php if ($am['row']['tags']): ?>
+                    <span class="text-muted small ms-2"><?= htmlspecialchars($am['row']['tags']) ?></span>
+                    <?php endif; ?>
                     <div class="mt-1 d-flex flex-wrap gap-3">
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="archived[<?= $i ?>]" value="keep" checked>
@@ -453,7 +471,7 @@ PROMPT;
             <div class="card-header bg-success text-white"><?= count($clean_rows) ?> neue Karte<?= count($clean_rows) !== 1 ? 'n' : '' ?></div>
             <div class="card-body">
                 <table class="table table-sm small mb-0">
-                    <thead><tr><th><?= htmlspecialchars($list['language_a']) ?></th><th><?= htmlspecialchars($list['language_b']) ?></th><th>Beschreibung A</th><th>Beschreibung B</th><th>Lautschrift</th></tr></thead>
+                    <thead><tr><th><?= htmlspecialchars($list['language_a']) ?></th><th><?= htmlspecialchars($list['language_b']) ?></th><th>Beschreibung A</th><th>Beschreibung B</th><th>Lautschrift</th><th>Tags</th></tr></thead>
                     <tbody>
                     <?php foreach (array_slice($clean_rows, 0, 20) as $row): ?>
                     <tr>
@@ -462,10 +480,11 @@ PROMPT;
                         <td><?= htmlspecialchars($row['desc_a']) ?></td>
                         <td><?= htmlspecialchars($row['desc_b']) ?></td>
                         <td><?= htmlspecialchars($row['phonetic_b']) ?></td>
+                        <td><?= htmlspecialchars($row['tags']) ?></td>
                     </tr>
                     <?php endforeach; ?>
                     <?php if (count($clean_rows) > 20): ?>
-                    <tr><td colspan="5" class="text-muted">… und <?= count($clean_rows) - 20 ?> weitere</td></tr>
+                    <tr><td colspan="6" class="text-muted">… und <?= count($clean_rows) - 20 ?> weitere</td></tr>
                     <?php endif; ?>
                     </tbody>
                 </table>
@@ -520,11 +539,12 @@ PROMPT;
                     <p>Die erste Zeile ist die Kopfzeile (Spaltentitel, z.B. Sprachnamen) und wird übersprungen.</p>
                     <p>Felder mit Kommas oder Semikolons müssen in <strong>doppelte Anführungszeichen</strong> gesetzt werden.</p>
                     <p>5. Spalte <strong>Lautschrift</strong> (nur Sprache B) ist optional — sinnvoll nur bei Listen mit hinterlegtem Aussprache-Sprachcode.</p>
+                    <p>6. Spalte <strong>Tags</strong> ist optional — leerzeichengetrennt mit "#"-Präfix, z.B. <code>#Wetter #Reise</code> (gleiches Format wie beim Export und bei der Karten-Bearbeitung).</p>
                     <!-- overflow-auto: die Beispielzeilen sind länger als ein Handy-Display breit ist;
                          sie sollen im Block scrollen statt die ganze Seite breiter zu machen -->
-                    <pre class="bg-white border rounded p-2 small overflow-auto"><code>Deutsch;Englisch;Beschreibung Deutsch;Beschreibung Englisch;Lautschrift
-Diagnose;diagnosis;medizinisch;"A conclusion";dy-ug-NOH-sis
-Behandlung;treatment;;;</code></pre>
+                    <pre class="bg-white border rounded p-2 small overflow-auto"><code>Deutsch;Englisch;Beschreibung Deutsch;Beschreibung Englisch;Lautschrift;Tags
+Diagnose;diagnosis;medizinisch;"A conclusion";dy-ug-NOH-sis;#Medizin
+Behandlung;treatment;;;;</code></pre>
 
                     <hr>
                     <h6 class="mb-2">🤖 Prompt für KI-generierte Wortlisten</h6>

@@ -57,8 +57,8 @@ fputcsv($out, [
 ], ';', '"', '\\');
 
 foreach ($cards as $card) {
-    // Tags-Spalte ist reine Backup/Portabilitäts-Angabe (Export/Reimport verliert sonst Tags) —
-    // import.php liest sie bewusst nicht ein, Tags bleiben ausschliesslich über edit.php pflegbar.
+    // Tags-Spalte ermöglicht verlustfreien Export/Reimport — import.php liest sie beim Import
+    // wieder ein (siehe dort).
     $tags_display = $card['tags'] ? implode(' ', array_map(fn($t) => '#' . $t, explode(' ', $card['tags']))) : '';
     fputcsv($out, [
         html_entity_decode(strip_tags($card['word_a']), ENT_QUOTES | ENT_HTML5, 'UTF-8'),

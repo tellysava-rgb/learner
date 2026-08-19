@@ -5,6 +5,18 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.16.0] - 2026-08-19
+
+### Neu
+- `import.php`: CSV-Import liest jetzt eine optionale 6. Spalte `Tags` ein (gleiches Format wie das Tags-Eingabefeld: leerzeichengetrennt mit `#`-Präfix, identisch zur bestehenden Export-Spalte) und setzt sie auf der importierten Karte — betrifft neu angelegte Karten, als „neu" importierte archivierte Duplikate sowie reaktivierte archivierte Karten. Ein einzelner zu langer Tag-Name lässt nur die Tags dieser einen CSV-Zeile leer statt den ganzen Import abzubrechen.
+- Duplikat-Review-Vorschau (Stufe 2 des Imports) zeigt die Tags jeder Zeile mit an — in der Duplikate-Tabelle, der Vorschau-Tabelle neuer Karten sowie inline bei archivierten Treffern.
+
+### Geändert
+- `templates/vorlage.csv`: Beispielzeile enthält jetzt die 6. Spalte `tags` mit Beispielwert.
+- `import.php`: CSV-Format-Erklärung und Beispiel im Info-Kasten um die Tags-Spalte ergänzt.
+
+---
+
 ## [3.15.3] - 2026-08-19
 
 ### Geändert
