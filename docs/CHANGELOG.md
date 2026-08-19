@@ -5,6 +5,132 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.15.3] - 2026-08-19
+
+### Geändert
+- `index.php` (Login-Seite): zeigt jetzt ebenfalls die zentrale Navbar (inkl. Haus-Icon zu „Wissenschaftlich Sprachen lernen") statt eines isolierten Login-Formulars ohne Zugang zu den öffentlichen Infos-Seiten. `require_once .../db.php` dafür an den Dateianfang verschoben (vorher nur im POST-Zweig geladen).
+
+---
+
+## [3.15.1] - 2026-08-19
+
+### Geändert
+- `includes/auth.php`, `render_navbar()`: Logout-Button steht wieder ganz rechts in der Icon-Leiste (letztes Icon, wie vor v3.15.0), statt links neben dem Infos-Icon. Login-Icon (für nicht angemeldete Besucher:innen) bleibt links neben dem Infos-Icon, da es dort sonst keinen rechten Icon-Block gibt.
+
+---
+
+## [3.15.0] - 2026-08-19
+
+### Geändert
+- Die sechs Seiten im Bereich „Wissenschaftlich Sprachen lernen" (`infos/wissen.php`, `mythen.php`, `studien.php`, `skala.php`, `lernplan.php`, `podcasts.php`) sind jetzt **ohne Login erreichbar** (`require_person()` entfernt).
+- `includes/auth.php`, `render_navbar()`: funktioniert jetzt sowohl mit als auch ohne aktive Session. Das Icon zum Bereich „Wissenschaftlich Sprachen lernen" (Haus-Symbol) sitzt neu ganz links direkt neben dem Logo, statt rechts in der Icon-Leiste. Direkt daneben erscheint ein Login-Icon (führt zu `index.php`) für nicht angemeldete Besucher:innen, bzw. ein Logout-Icon für angemeldete Personen — die übrigen, personenbezogenen Icons (Passwort, Person wechseln, Admin, Hilfe) werden nur noch angezeigt, wenn tatsächlich eine Person angemeldet ist.
+
+---
+
+## [3.14.2] - 2026-08-19
+
+### Geändert
+- `wissen.php`, `mythen.php`, `studien.php`, `skala.php`, `lernplan.php`, `podcasts.php` aus dem Wurzelverzeichnis in ein neues Unterverzeichnis `infos/` verschoben. Alle relativen Pfade in diesen Dateien angepasst (`require_once`, `assets/style.css`, Breadcrumb-Link „Startseite").
+- `includes/auth.php` — neue Hilfsfunktion `app_root_prefix()`: ermittelt anhand des aufrufenden Skripts, ob dieses im Wurzelverzeichnis oder in `infos/` liegt, und liefert das passende relative Prefix (`''` bzw. `'../'`). Alle von `auth.php` aus gerenderten Links (Navbar, Login-/Session-Redirects, Streak-Badge) verwenden jetzt dieses Prefix, damit sie unabhängig vom Verzeichnis des aufrufenden Skripts korrekt auflösen. Das Haus-Icon in der Navbar (Link zu `wissen.php`) berücksichtigt zusätzlich, dass sein Ziel selbst nach `infos/` verschoben wurde.
+- `includes/quellen-daten.php` — Dateipfade im Kommentarblock auf `infos/` aktualisiert.
+- `docs/ANFORDERUNGEN.md` — Projektstruktur, Navbar-Beschreibung und alle Seiten-Referenzen auf `infos/` aktualisiert.
+
+### Hinzugefügt (skala.php)
+- Der Hinweise-Block „Hinweise zur Skala" ist jetzt selbst ein einklappbarer Bereich statt einer permanent offenen Karte.
+- Die Karte „Dein Niveau" (A1–C2-Auswahl) bleibt beim Scrollen am oberen Rand kleben (`sticky-top`), damit sich die Stufe ohne Zurückscrollen ändern lässt.
+
+---
+
+## [3.14.1] - 2026-08-19
+
+### Geändert
+- `skala.php` — die drei separaten Hinweis-Boxen oben ("Methoden schliessen sich nicht aus", "Wichtiger Hinweis zur Einordnung", "Zwei getrennte Anzeigen") zu einem einzigen "Hinweise zur Skala"-Block zusammengefasst (mit Trennlinien statt einzelner Karten). Der Balken-vs-Evidenz-Hinweis zeigt jetzt zusätzlich ein konkretes Beispiel (Mock-Zeile mit 7/10 gelbem Balken + „Evidenz: hoch"-Badge), statt es nur zu beschreiben.
+
+---
+
+## [3.14.0] - 2026-08-19
+
+### Geändert
+- `skala.php` — Methodenliste grundlegend überarbeitet: von 27 teils tool-/app-/studien-spezifischen Einträgen auf 14 generische, medium-unabhängige Methoden reduziert (z.B. „Leitner-System / Spaced-Repetition-Karteikarten" statt separater Zeilen für „Karteikarten", „Spaced Repetition", „Bilder", „Deutsche Übersetzung", „2 Darstellungsformen", „Vokabel-App an sich" und „Reines Anschauen ohne Abruf" — Papier oder App spielt für den Mechanismus keine Rolle). Entfernt: „Chunks bei Kindern", „Vorlesen bei Kindern", „CLIL" (alle altersbasiert statt niveaubasiert, passen nicht zum A1–C2-Wähler), „Birkenbihl-Methode" und „Vokabel-Audio im Schlaf" (beides Mythos-Themen, bleiben `mythen.php` vorbehalten), „Gamification" als eigene Zeile (erscheint neu als Hinweis bei „Game-Based Learning", da nur indirekt über Motivation wirksam). Neuer Hinweis, dass sich die verbleibenden Methoden nicht gegenseitig ausschliessen, sondern kombinierbar sind.
+
+---
+
+## [3.13.3] - 2026-08-19
+
+### Geändert
+- `skala.php` — Eintrag „Chunking als komplett eigenständige Lehrmethode (Erwachsene)" entfernt: war ein Forschungsartefakt (isolierte Experimentalbedingung aus Studien), keine im Alltag anwendbare, mit anderen Methoden kombinierbare Technik, und sorgte für Verwirrung.
+- Neuer Hinweis oben auf der Seite: die Methoden schliessen sich nicht gegenseitig aus, sondern sind als Werkzeugkasten zum Kombinieren gedacht (z.B. Chunks lernen UND Podcasts hören UND Aussprachetraining gleichzeitig).
+
+---
+
+## [3.13.2] - 2026-08-19
+
+### Geändert
+- `skala.php` — Niveau-Werte von „Aktiver Abruf bei Einzelwörtern" und „Chunks im Kontext lernen" angepasst: statt nur Angleichung bei C1/C2 gibt es jetzt einen klaren Wechselpunkt bei B1/B2 (Einzelwörter 9→7→5, Chunks 5→8→9) — Wörter lernen bleibt bei A1/A2 vorne, Chunks lernen überholt ab B1/B2 und bleibt bis C1/C2 vorne, weil ein Chunk mehrere Wörter plus ihre richtige Kombination auf einmal abdeckt.
+
+---
+
+## [3.13.1] - 2026-08-19
+
+### Geändert
+- `skala.php` — Info-Box „Was sind Chunks?" ist nicht mehr permanent oben auf der Seite sichtbar, sondern in den einklappbaren Bereich „Chunks lernen" verschoben (erscheint nur dort, direkt über den Methoden).
+
+---
+
+## [3.13.0] - 2026-08-19
+
+### Neu
+- `skala.php` — neuer Niveau-Wähler oben auf der Seite (Buttons A1–C2). Die Wirksamkeitswerte aller Methoden passen sich jetzt live (per JS, ohne Neuladen) an drei Stufen an: A1–A2 (Anfänger), B1–B2 (Mittel), C1–C2 (Fortgeschritten) — z.B. ist „Wörter lernen" bei A1/A2 am stärksten, während „Chunks lernen" erst ab B1 und besonders ab C1 aufholt bzw. überholt, wie in der Forschung zum Verarbeitungsvorteil bekannter Chunks begründet. Methoden ohne belegten Niveau-Unterschied (z.B. Spaced Repetition, Corrective Feedback) zeigen bewusst denselben Wert auf allen drei Stufen.
+
+---
+
+## [3.12.2] - 2026-08-19
+
+### Behoben
+- `skala.php` — Evidenz-Badge (bisher „gute Evidenz" grün/gelb/grau) nutzte versehentlich dieselben Ampelfarben wie der Wirkungs-Balken, obwohl beide unterschiedliche Dinge zeigen — z.B. 7/10 mit gelbem Balken, aber grünem „gute Evidenz"-Badge las sich wie ein Widerspruch. Evidenz-Badge jetzt auf eigene Blau/Grau-Farbwelt plus Lupe-Icon umgestellt, dazu ein kurzer Erklär-Hinweis oben auf der Seite, dass Wirkungsstärke und Evidenzstärke zwei getrennte Anzeigen sind.
+
+---
+
+## [3.12.1] - 2026-08-19
+
+### Geändert
+- `studien.php` — jeder Themenabschnitt (Wortschatz, Chunks, Lesen, Vorlesen, Hören, Sprechen, Schreiben, Grammatik, Aussprache, Immersion, Spiele) beginnt jetzt mit „Wozu das gut ist": ein bis zwei Sätze, welche konkrete Kompetenz/welchen Nutzen die Methode bringt, statt nur die reine Studienlage zu referieren.
+
+---
+
+## [3.12.0] - 2026-08-19
+
+### Neu
+- `skala.php` komplett überarbeitet:
+  - Methoden neu gruppiert in sechs einklappbare Bereiche (Bootstrap-Accordion, alle standardmässig zugeklappt): Wörter lernen, Chunks lernen, Lesen, Hören, Sprechen, Weitere Methoden im Vergleich — dadurch deutlich kompaktere Seite.
+  - Jede Methode zeigt jetzt zusätzlich „So wendest du es an" mit einer konkreten, verständlichen Anleitung (z.B. was gezieltes Aussprachetraining praktisch bedeutet).
+  - Neuer Niveau-Hinweis pro Methode (welches CEFR-Niveau besonders/weniger geeignet ist), da die Wirksamkeit nicht über alle Niveaus gleich ist.
+  - Zwei neue Einträge im Bereich „Lesen": Intensive Reading und Vorlesen/Geschichten bei Kindern (Quelle `shared-book-reading-unclear`).
+
+---
+
+## [3.11.1] - 2026-08-19
+
+### Geändert
+
+### Geändert
+- `lernplan.php` — alle Aktivitätsbeschreibungen im interaktiven Rechner (Erwachsene und Kinder) auf allgemeinverständliche, konkrete Sprache umgeschrieben: Fachbegriffe wie "SRS", "Kollokationen", "Textarbeit", "Transkript", "Retelling", "hartnäckige Laute/Satzmelodie" wurden durch beispielhafte Handlungsanweisungen ersetzt (z.B. "Wörter/Begriffe in beide Richtungen lernen, en→de UND de→en").
+
+---
+
+## [3.11.0] - 2026-08-19
+
+### Neu
+- **Neuer Bereich "Wissenschaftlich Sprachen lernen"** (`wissen.php` und fünf Unterseiten), erreichbar über ein neues Haus-Icon in der Navbar (`bi-house`, neben dem Hilfe-Icon):
+  - `mythen.php` — Mythos-Check zu verbreiteten Sprachlern-Versprechen (Café-Plaudern ohne Feedback, Sprachduschen, Filme/Serien mit falschen Erwartungen, Vokabellernen im Schlaf, "einfach eintauchen reicht", "je früher desto besser", Birkenbihl-Methode).
+  - `studien.php` — Zusammenfassung der Studienlage je Sprachfertigkeit (Wortschatz, Chunks, Lesen, Hören, Sprechen, Schreiben, Grammatik, Aussprache, Immersion, Technologie) als Fliesstext.
+  - `skala.php` — Methoden-Wirksamkeit als eigene 1–10-Skala (bewusst als kommunikative Vereinfachung gekennzeichnet, keine wissenschaftlich validierte Kennzahl), getrennt nach Wörter lernen / Chunks lernen, inkl. Chunk-Definition.
+  - `lernplan.php` — interaktiver Rechner: Zielgruppe (Erwachsene/Kinder 6–12), Niveau (A1–C2 bzw. Altersgruppe) und verfügbare Minuten eingeben → konkreter Aktivitätenplan, clientseitig per JS aus evidenzbasierten Zeitbudget-Heuristiken berechnet (Grösster-Rest-Verfahren für exakte Minutensumme).
+  - `podcasts.php` — Suchbegriffe, Suchmaschinen (Listen Notes, Podchaser) und Kriterien, um passendes Hörmaterial fürs eigene Niveau zu finden, bewusst ohne konkrete Titel-Empfehlungen.
+  - Alle Inhaltsseiten enden mit einer ein-/ausklappbaren Quellenliste (Bootstrap-Accordion, standardmässig zugeklappt) — zentrale Quellendaten in neuem `includes/quellen-daten.php`, jede Quelle mit Verifikationsstatus (verifiziert/identifiziert/unklar) gegen die Originalpublikation recherchiert.
+
+---
+
 ## [3.10.3] - 2026-08-15
 
 ### Neu

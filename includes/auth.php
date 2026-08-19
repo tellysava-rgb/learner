@@ -3,6 +3,19 @@
 
 require_once __DIR__ . '/config.php';
 
+// Erkennt, ob das aktuell aufgerufene Skript in einem Unterverzeichnis liegt (aktuell nur
+// infos/) — damit Redirects und Navbar-Links auch von dort korrekt auf die Root-Seiten zeigen,
+// unabhängig vom Installationspfad der App. Nur der letzte Pfad-Teil wird geprüft, funktioniert
+// also egal ob die App unter /learner/, einer anderen Subdomain o.ä. installiert ist.
+function app_root_prefix(): string {
+    static $prefix = null;
+    if ($prefix === null) {
+        $script_dir = basename(dirname($_SERVER['SCRIPT_NAME'] ?? ''));
+        $prefix = ($script_dir === 'infos') ? '../' : '';
+    }
+    return $prefix;
+}
+
 // Eigenes Session-Verzeichnis statt System-Standardpfad: viele Hoster (v.a. Debian/Ubuntu) räumen
 // den Standardpfad per eigenem Cron-Job auf, basierend auf dem GLOBALEN php.ini-Wert — das läuft
 // unabhängig von jedem ini_set() aus der App und löscht Sessions oft schon nach ~24 Min., egal was
@@ -37,7 +50,7 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) >
     session_unset();
     session_destroy();
     session_start();
-    header('Location: index.php?timeout=1');
+    header('Location: ' . app_root_prefix() . 'index.php?timeout=1');
     exit;
 }
 $_SESSION['last_activity'] = time();
@@ -45,7 +58,7 @@ $_SESSION['last_activity'] = time();
 // Login prüfen (Name + Passwort pro Person)
 function require_login(): void {
     if (empty($_SESSION['authenticated'])) {
-        header('Location: index.php');
+        header('Location: ' . app_root_prefix() . 'index.php');
         exit;
     }
 }
@@ -54,7 +67,7 @@ function require_login(): void {
 function require_person(): void {
     require_login();
     if (empty($_SESSION['person_id'])) {
-        header('Location: home.php');
+        header('Location: ' . app_root_prefix() . 'home.php');
         exit;
     }
 }
@@ -64,7 +77,7 @@ function require_admin(): void {
     require_person();
     if (empty($_SESSION['is_admin'])) {
         $_SESSION['flash_error'] = 'Nur für Admins zugänglich.';
-        header('Location: home.php');
+        header('Location: ' . app_root_prefix() . 'home.php');
         exit;
     }
 }
@@ -201,14 +214,14 @@ function streak_badge(): string {
     $streak = (int)($_SESSION['streak'] ?? 0);
     if ($streak <= 0 || ($_SESSION['streak_date'] ?? '') !== today()) return '';
     $days = $streak === 1 ? 'Tag' : 'Tage';
-    return '<a href="stats.php" class="badge bg-warning text-dark text-decoration-none" title="Zur Statistik">🔥 ' . $streak . ' ' . $days . '</a>';
+    return '<a href="' . app_root_prefix() . 'stats.php" class="badge bg-warning text-dark text-decoration-none" title="Zur Statistik">🔥 ' . $streak . ' ' . $days . '</a>';
 }
 
 // Logout
 function logout(): void {
     session_unset();
     session_destroy();
-    header('Location: index.php');
+    header('Location: ' . app_root_prefix() . 'index.php');
     exit;
 }
 
@@ -303,20 +316,50 @@ function handle_navbar_actions(PDO $pdo): void {
 // nur an einer Stelle gepflegt werden müssen. $abort_url: falls gesetzt, ersetzt "Session
 // abbrechen" den Logout-Button (für laufende Leitner-/Drill-Sessions).
 function render_navbar(PDO $pdo, ?string $abort_url = null): void {
-    $person_id     = $_SESSION['person_id'];
-    $person_name   = $_SESSION['person_name'];
+    // Öffentliche Seiten (infos/*) rufen render_navbar() auch ohne aktive Anmeldung auf — daher
+    // müssen alle personenbezogenen Daten hier bedingt geladen werden, statt sie wie bisher
+    // ungeprüft aus der Session vorauszusetzen.
+    $logged_in     = !empty($_SESSION['person_id']);
+    $person_id     = $_SESSION['person_id'] ?? null;
+    $person_name   = $_SESSION['person_name'] ?? '';
     $is_admin      = !empty($_SESSION['is_admin']);       // Berechtigungen der aktuell angezeigten Person
     $real_is_admin = !empty($_SESSION['real_is_admin']);  // wirkliche Berechtigung — steuert "Person wechseln"
 
-    $persons = $real_is_admin ? $pdo->query("SELECT id, name FROM persons ORDER BY name")->fetchAll() : [];
+    $persons = ($logged_in && $real_is_admin) ? $pdo->query("SELECT id, name FROM persons ORDER BY name")->fetchAll() : [];
 
-    $stmt = $pdo->prepare("SELECT email FROM persons WHERE id = ?");
-    $stmt->execute([$person_id]);
-    $own_email = $stmt->fetchColumn() ?: '';
+    $own_email = '';
+    if ($logged_in) {
+        $stmt = $pdo->prepare("SELECT email FROM persons WHERE id = ?");
+        $stmt->execute([$person_id]);
+        $own_email = $stmt->fetchColumn() ?: '';
+    }
+    $root = app_root_prefix();
+    // wissen.php liegt in infos/ — von Root-Seiten aus muss der Link deshalb IN das
+    // Unterverzeichnis zeigen (infos/wissen.php), von infos/-Seiten aus dagegen nur "wissen.php"
+    // (gleiches Verzeichnis). Das ist die Umkehrung von $root, das für die übrigen Root-Seiten gilt.
+    $wissen_href = ($root === '../') ? 'wissen.php' : 'infos/wissen.php';
+    $login_href  = $root . 'index.php';
     ?>
     <nav class="navbar navbar-expand-sm navbar-dark bg-primary">
         <div class="container-fluid">
-            <a class="navbar-brand fw-bold me-2" href="home.php"><?= APP_NAME ?></a>
+            <!-- Linker Block (Marke + Infos-Icon + ggf. Login) bewusst in einem gemeinsamen
+                 Flex-Wrapper: container-fluid verteilt seine direkten Kinder per
+                 justify-content:space-between — ohne diesen Wrapper würde das Haus-Icon als
+                 mittleres von 2-3 direkten Kindern in die Mitte statt an den linken Rand rutschen. -->
+            <div class="d-flex align-items-center">
+                <a class="navbar-brand fw-bold me-2" href="<?= $root ?>home.php"><?= APP_NAME ?></a>
+                <!-- Infos-Icon bewusst ganz links direkt neben der Marke: die Infos-Seiten sind ohne
+                     Anmeldung erreichbar, daher muss der Link auch ohne Session sichtbar und
+                     erreichbar sein — unabhängig vom restlichen, nur für angemeldete Personen
+                     sichtbaren Icon-Block rechts. Login (für nicht angemeldete Besucher:innen) steht
+                     direkt daneben, da es ohne Session sonst keinen rechten Icon-Block gibt, in dem
+                     es stehen könnte. -->
+                <a href="<?= $wissen_href ?>" class="btn btn-sm btn-outline-light me-2" title="Wissenschaftlich Sprachen lernen" aria-label="Wissenschaftlich Sprachen lernen"><i class="bi bi-house"></i></a>
+                <?php if (!$logged_in): ?>
+                <a href="<?= htmlspecialchars($login_href) ?>" class="btn btn-sm btn-outline-light" title="Login" aria-label="Login"><i class="bi bi-box-arrow-in-right"></i></a>
+                <?php endif; ?>
+            </div>
+            <?php if ($logged_in): ?>
             <!-- flex-wrap: auf schmalen Screens (iPhone) passen Marke + Name + Icons sonst nicht
                  nebeneinander und schieben die ganze Seite breiter als den Viewport. Der
                  Personenname weicht dort zusätzlich, die Icons bleiben alle erreichbar. -->
@@ -352,21 +395,24 @@ function render_navbar(PDO $pdo, ?string $abort_url = null): void {
                 </div>
                 <?php endif; ?>
                 <?php if ($is_admin): ?>
-                <a href="users.php" class="btn btn-sm btn-outline-light" title="Benutzerverwaltung" aria-label="Benutzerverwaltung"><i class="bi bi-person-gear"></i></a>
-                <a href="settings.php" class="btn btn-sm btn-outline-light" title="Einstellungen" aria-label="Einstellungen"><i class="bi bi-gear"></i></a>
+                <a href="<?= $root ?>users.php" class="btn btn-sm btn-outline-light" title="Benutzerverwaltung" aria-label="Benutzerverwaltung"><i class="bi bi-person-gear"></i></a>
+                <a href="<?= $root ?>settings.php" class="btn btn-sm btn-outline-light" title="Einstellungen" aria-label="Einstellungen"><i class="bi bi-gear"></i></a>
                 <?php endif; ?>
+                <a href="<?= $root ?>help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
                 <?php if (!$abort_url): ?>
+                <!-- Logout ganz rechts als letztes Icon der Leiste. -->
                 <form method="post" class="d-inline">
                     <?= csrf_field() ?>
                     <input type="hidden" name="action" value="logout">
                     <button type="submit" class="btn btn-sm btn-outline-light" title="Logout" aria-label="Logout"><i class="bi bi-box-arrow-right"></i></button>
                 </form>
                 <?php endif; ?>
-                <a href="help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
             </div>
+            <?php endif; ?>
         </div>
     </nav>
 
+    <?php if ($logged_in): ?>
     <!-- Modal: eigenes Konto (E-Mail + Passwort) -->
     <div class="modal fade" id="pwModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
@@ -411,6 +457,7 @@ function render_navbar(PDO $pdo, ?string $abort_url = null): void {
         </div>
       </div>
     </div>
+    <?php endif; ?>
     <?php
 }
 

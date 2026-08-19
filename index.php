@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/db.php';
 
 // Auf Produktion: install.php muss nach der Ersteinrichtung gelöscht werden
 $_host = strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? '')[0]);
@@ -23,8 +24,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $name     = trim($_POST['name'] ?? '');
     $password = $_POST['password'] ?? '';
-
-    require_once __DIR__ . '/includes/db.php';
 
     // Brute-Force-Bremse pro IP (siehe AUTH_LIMITS in auth.php) — bewusst keine Konto-Sperre,
     // die liesse sich zum Aussperren fremder Personen missbrauchen.
@@ -63,10 +62,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title><?= APP_NAME ?> — Login</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          integrity="sha384-XGjxtQfXaH2tnPFa9x+ruJTuLE3Aa6LhHSWRr1XeTyhezb4abCG4ccI5AkVDxqC+" crossorigin="anonymous">
     <link rel="stylesheet" href="assets/style.css?v=<?= APP_VERSION ?>">
 </head>
 <body class="bg-light">
-<div class="container" style="max-width:400px; margin-top:100px;">
+
+<?php render_navbar($pdo); ?>
+
+<div class="container" style="max-width:400px; margin-top:60px;">
     <div class="text-center mb-4">
         <h1 class="h3"><?= APP_NAME ?></h1>
         <p class="text-muted">Vokabeltrainer</p>

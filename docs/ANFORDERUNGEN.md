@@ -90,7 +90,8 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 5. **Benutzerverwaltung** _(nur Admin)_ — Icon `bi-person-gear`, führt zu `users.php`
 6. **Einstellungen** _(nur Admin)_ — Icon `bi-gear`, führt zu `settings.php`
 7. **Logout** — Icon `bi-box-arrow-right` (ersetzt den bisherigen Text-Button)
-8. **Hilfe** — Icon `bi-info-lg`, führt zu `help.php` _(v2.8.0, unverändert)_
+8. **Wissenschaftlich Sprachen lernen** — Icon `bi-house`, führt zu `infos/wissen.php` _(v3.11.0, Verzeichnis seit v3.14.2)_
+9. **Hilfe** — Icon `bi-info-lg`, führt zu `help.php` _(v2.8.0, unverändert)_
 
 `learn.php` nutzt während einer Session dieselbe zentrale Navbar, nur mit gesetztem `$abort_url` (dadurch erscheint das Abbruch-Icon an erster Stelle statt des Logouts). `drill.php` rendert während einer laufenden Session weiterhin eine eigene, abweichende Navbar, weil dort zusätzlich Timer und "gemeistert"-Zähler angezeigt werden — das Abbruch-Icon steht dort aus Konsistenzgründen ebenfalls an erster Stelle, vor Timer und Zähler _(v3.2.26)_.
 
@@ -720,6 +721,20 @@ Statistik startet ohne `list_id` mit der globalen Gesamtstatistik über alle eig
 
 ---
 
+## Wissenschaftlich Sprachen lernen _(v3.11.0)_
+
+- Eigener Bereich im Unterverzeichnis `/infos/` mit Übersichtsseite `wissen.php` und fünf Unterseiten, erreichbar über das Haus-Icon (`bi-house`) in der Navbar (siehe Abschnitt "Navigation") sowie über Kacheln auf `wissen.php` selbst. Alle Seiten erfordern Login (`require_person()`), kein eigener Datenbankzugriff für Inhalte (`db.php` nur für die zentrale Navbar). `includes/auth.php` erkennt Seiten im `infos/`-Unterverzeichnis automatisch (`app_root_prefix()`) und passt Navbar-Links sowie Login-/Berechtigungs-Redirects entsprechend an (`../home.php` statt `home.php` usw.) — unabhängig vom Installationspfad der App.
+- **`infos/wissen.php`** — Einstiegsseite: kurzer Einleitungstext plus fünf Kacheln (Bootstrap-Cards) zu den Unterseiten.
+- **`infos/mythen.php`** — Mythos-Check als Accordion (erstes Element standardmässig aufgeklappt, Rest zu): Café-Plaudern ohne Feedback, Sprachduschen (passives Berieseln), Filme/Serien mit falschen Erwartungen, Vokabellernen im Schlaf, "einfach eintauchen reicht" (Grammatik ignorieren), "je früher desto besser" (früher Unterrichtsbeginn), Birkenbihl-Methode. Je Mythos: Behauptung → Was die Forschung zeigt → Was stattdessen hilft.
+- **`infos/studien.php`** — Fliesstext-Zusammenfassung der Studienlage je Fertigkeit (Wortschatz, Chunks & Kollokationen, Lesen, Vorlesen & Geschichten bei Kindern, Hören, Sprechen & Interaktion, Schreiben, Grammatik & Zeitformen, Aussprache, Immersion/Study-Abroad/CLIL, Spiele/Gamification/Technologie) — bewusst ohne Inline-Zitate im Fliesstext, Quellen nur in der Quellenliste am Seitenende.
+- **`infos/skala.php`** — Eigene 1–10-Wirksamkeits-Skala, mit deutlichem Hinweis-Banner, dass es sich um eine **eigene kommunikative Vereinfachung** handelt, keine wissenschaftlich validierte Kennzahl (Effektstärken verschiedener Meta-Analysen sind laut den Ausgangsstudien selbst nicht direkt gegeneinander ranking-fähig). 14 generische, medium-/tool-unabhängige Methoden (z.B. „Leitner-System / Spaced-Repetition-Karteikarten" statt „Karteikarten-App XY" — ob App oder Papier spielt für den Lernmechanismus keine Rolle) in sechs einklappbaren Bereichen (Bootstrap-Accordion, standardmässig zugeklappt): "Wörter lernen", "Chunks lernen" (inkl. Chunk-Definition in eigener Info-Box), "Lesen", "Hören", "Sprechen", "Weitere Methoden im Vergleich". Bewusst ausgeschlossen: rein altersbasierte Methoden (Chunks/Vorlesen bei Kindern, CLIL), benannte Marken-Komplettmethoden (Birkenbihl) und reine Mythos-Themen (Schlaf-Audio) — diese bleiben `infos/mythen.php`/`infos/studien.php` vorbehalten, damit jede Zeile hier eine mit anderen kombinierbare, niveaubasierte Methode ist statt eines Forschungsartefakts. Gamification erscheint nicht als eigene Zeile, sondern als Hinweis bei „Game-Based Learning" (wirkt nur indirekt über Motivation). Oben ein Niveau-Wähler (Buttons A1–C2): die Werte aller Methoden werden clientseitig per JS (`METHODEN`-Array + `skalaRender()`) auf drei Stufen berechnet (A1–A2/B1–B2/C1–C2 = Anfänger/Mittel/Fortgeschritten) und passen sich beim Klick live an, z.B. „Leitner-System" konstant stark auf allen Niveaus, „Chunks lernen" holt ab B1/B2 auf und überholt bis C1/C2. Methoden ohne belegten Niveau-Unterschied zeigen bewusst denselben Wert auf allen drei Stufen. Zusätzlicher Hinweis, dass sich die Methoden nicht gegenseitig ausschliessen, sondern als Werkzeugkasten zum Kombinieren gedacht sind. Jede Zeile zusätzlich mit „So wendest du es an" (konkrete Anleitung) und Evidenz-Badge (hohe/durchwachsene/schwache Evidenz, bewusst in Blau/Grau statt Ampelfarben, um Verwechslung mit dem Wirkungs-Balken zu vermeiden).
+- **`infos/lernplan.php`** — Interaktiver, rein clientseitiger (JS) Rechner: Umschalter Erwachsene/Kinder (6–12), Niveau-Dropdown (A1–C2 bzw. Altersgruppe 6–8/9–12, Optionen abhängig vom Umschalter), Minuten-Eingabefeld plus Schnellwahl-Buttons (10/15/30/60/90 Min.). Zeitverteilung je Niveau-Stufe/Altersgruppe als feste Prozent-Tabelle im JS (`PLAENE`-Objekt), abgeleitet aus den Beispiel-Zeitbudgets der Studienlage — ausdrücklich als Heuristik gekennzeichnet. Minuten pro Kategorie werden per Grösster-Rest-Verfahren gerundet, damit die Summe exakt der eingegebenen Gesamtzeit entspricht (kein Verlust/Überschuss durch simples Runden je Zeile). Bei weniger als 15 Minuten erscheint ein zusätzlicher Hinweis auf Regelmässigkeit statt Vollständigkeit.
+- **`infos/podcasts.php`** — Praktische Suchbegriffe, Suchmaschinen (Listen Notes, Podchaser) und Verständlichkeits-/Tempo-/Themenkriterien, um passendes Hörmaterial zu finden — bewusst **keine** konkreten Podcast-Titel-Empfehlungen (ändern sich laufend, Qualität schwer pauschal beurteilbar).
+- **Zentrales Quellenverzeichnis** `includes/quellen-daten.php`: assoziatives PHP-Array `$QUELLEN` (Key → Autor/Titel/Journal/DOI-Link/Kennzahl/Status) plus Helper-Funktion `render_quellenliste(array $keys, string $accordionId): string`, die daraus ein zugeklapptes Bootstrap-Accordion "Quellen zu dieser Seite (N)" rendert. Jede der fünf Inhaltsseiten (`infos/mythen.php`, `infos/studien.php`, `infos/skala.php`, `infos/lernplan.php`, `infos/podcasts.php`) ruft das am Seitenende mit ihrer eigenen Teilmenge an Keys auf. Status je Quelle: `verifiziert` (Autor/Jahr/Journal/DOI + genannte Kennzahlen gegen die Originalpublikation bestätigt), `identifiziert` (Publikation eindeutig gefunden, Kennzahlen nicht einzeln nachgeprüft — z.B. Paywall), `unklar` (Themengebiet real, aber keine einzelne Studie zweifelsfrei als DIE Quelle zuordenbar — wird entsprechend vorsichtig referenziert statt mit falscher Präzision zitiert).
+- Inhaltliche Grundlage: zwei separate Recherche-Dokumente zum wissenschaftlich fundierten Sprachenlernen (Erwachsene bzw. Kinder 6–12), die als Referenz im Projekt liegen (`studien/*.md`, `studien/*.pdf`) — nicht Teil der Web-App selbst, dienen nur als Quellmaterial für die oben genannten Seiten.
+
+---
+
 ## Installation
 
 - Einmaliges `install.php` Script das:
@@ -849,6 +864,13 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
   deploy.php                ← ZIP-Deploy via Browser (im Repo versioniert, schützt sich selbst vor Überschreiben)
   /assets/                  ← CSS, JS
   /templates/               ← CSV-Vorlage zum Download
+  /infos/                   ← Bereich "Wissenschaftlich Sprachen lernen" (v3.14.2, zuvor im Root)
+    wissen.php                 ← Übersicht, erreichbar über Haus-Icon in der Navbar (infos/wissen.php)
+    mythen.php                 ← Mythos-Check zu Sprachlern-Versprechen
+    studien.php                ← Zusammenfassung der Studienlage je Sprachfertigkeit
+    skala.php                  ← Methoden-Wirksamkeit als eigene 1–10-Skala
+    lernplan.php               ← Interaktiver Lernplan-Rechner (Zielgruppe/Niveau/Zeit → Aktivitätenplan)
+    podcasts.php               ← Suchstrategien für passendes Hörmaterial
   /includes/                ← reine Library-/Config-Dateien, nie direkt per URL aufgerufen
     config.php                 ← Statische Konfiguration (Zeitzone, Intervalle, Version, Standardwerte)
     config-runtime.php         ← Laufzeit-Einstellungen pro Umgebung (gitignored, nie deployed, schreibt settings.php)
@@ -861,6 +883,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
     deploy-config.php          ← Deploy-Token + GitHub-Konfiguration (gitignored)
     mcp-config.php             ← MCP-Token (gitignored)
     mcp-config.example.php     ← Vorlage für mcp-config.php (committet)
+    quellen-daten.php          ← Zentrales Quellenverzeichnis für "Wissenschaftlich Sprachen lernen" (v3.11.0)
   /docs/                    ← Dokumentation ausser CLAUDE.md
     ANFORDERUNGEN.md, CHANGELOG.md, Testing.md, mcp-einrichtung.md — Checkliste.md liegt ebenfalls hier, ist aber gitignored und nie committet, reine lokale Aufgabenliste
 ```
