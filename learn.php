@@ -179,8 +179,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin
         SELECT ?, c.id, 'queued' FROM cards c WHERE c.list_id IN ($init_ph)
     ")->execute(array_merge([$person_id], $valid_ids));
 
-    // Täglich (im Tag-Modus: einstellbar) neue Karten aktivieren (queued → active)
-    activate_daily_cards($pdo, $person_id, $valid_ids, $today, $card_ids_filter, $daily_limit);
+    // Täglich (im Tag-Modus: einstellbar) neue Karten aktivieren (queued → active) — begrenzt auf
+    // das Restplatz-Kontingent der gewählten Kartenanzahl (Karten, die schon vor dieser Aktivierung
+    // fällig waren, gehen immer vor): sonst könnte diese Aktivierung mehr Karten fällig machen, als
+    // build_leitner_queue() gleich danach mit seinem festen LIMIT (card_limit) noch abholt — die
+    // überzähligen blieben dann unbeantwortet als "heute fällig" hängen (siehe Kommentar bei
+    // activate_daily_cards()).
+    $due_before_activation = count_due_cards($pdo, $person_id, $valid_ids, $today, $card_ids_filter);
+    $activation_room = max(0, $card_limit - $due_before_activation);
+    activate_daily_cards($pdo, $person_id, $valid_ids, $today, $card_ids_filter, $daily_limit, $activation_room);
 
     // Karten für diese Session laden (mit Priorisierung)
     $queue = build_leitner_queue($pdo, $person_id, $valid_ids, $today, $card_limit, $card_ids_filter);
@@ -438,8 +445,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
 
 // $card_ids_filter: nur im Tag-Modus gesetzt — schränkt zusätzlich zu $list_ids auf diese
 // Karten-IDs ein (statt alle Karten der übergebenen Listen). $daily_limit: im Tag-Modus vom User
-// überschreibbar (siehe begin-Handler), sonst immer DAILY_CARD_LIMIT.
-function activate_daily_cards(PDO $pdo, int $person_id, array $list_ids, string $today, ?array $card_ids_filter = null, int $daily_limit = DAILY_CARD_LIMIT): void {
+// überschreibbar (siehe begin-Handler), sonst immer DAILY_CARD_LIMIT. $activation_room: wie viele
+// neue Karten die gerade gewählte Kartenanzahl in DIESER Session überhaupt noch aufnehmen kann
+// (siehe Aufrufstelle im begin-Handler) — verhindert, dass hier mehr Karten fällig gemacht werden,
+// als build_leitner_queue() gleich danach mit seinem festen LIMIT tatsächlich abholt. Ohne diese
+// Bremse blieben überzählig aktivierte Karten als "heute fällig" hängen, ohne je angezeigt worden
+// zu sein (Bugreport 19.08.2026: 33 fällig + 9 in Warteschlange, Kartenanzahl 33 gewählt → 2
+// Karten wurden zusätzlich aktiviert, vom LIMIT 33 aber nicht mehr erfasst).
+function activate_daily_cards(PDO $pdo, int $person_id, array $list_ids, string $today, ?array $card_ids_filter = null, int $daily_limit = DAILY_CARD_LIMIT, int $activation_room = PHP_INT_MAX): void {
+    if ($activation_room <= 0) return;
+
     $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
     [$card_filter_sql, $card_filter_params] = card_id_filter_sql($card_ids_filter);
 
@@ -454,7 +469,7 @@ function activate_daily_cards(PDO $pdo, int $person_id, array $list_ids, string 
     $check_params = array_merge([$person_id], $list_ids, $card_filter_params, [$today]);
     $stmt->execute($check_params);
     $already_activated = (int) $stmt->fetchColumn();
-    $to_activate = $daily_limit - $already_activated;
+    $to_activate = min($daily_limit - $already_activated, $activation_room);
     if ($to_activate <= 0) return;
 
     $params = array_merge([$person_id], $list_ids, $card_filter_params);
@@ -474,6 +489,25 @@ function activate_daily_cards(PDO $pdo, int $person_id, array $list_ids, string 
     foreach ($card_ids as $cid) {
         $upd->execute([$today, $person_id, $cid]);
     }
+}
+
+// Zählt, wie viele Karten JETZT schon aktiv+fällig sind (dieselbe Bedingung wie in
+// build_leitner_queue()) — genutzt im begin-Handler, um activate_daily_cards() vorab auf das
+// Restplatz-Kontingent der gewählten Kartenanzahl zu begrenzen (siehe dort).
+function count_due_cards(PDO $pdo, int $person_id, array $list_ids, string $today, ?array $card_ids_filter = null): int {
+    $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
+    [$card_filter_sql, $card_filter_params] = card_id_filter_sql($card_ids_filter);
+
+    $stmt = $pdo->prepare("
+        SELECT COUNT(*) FROM card_progress cp
+        JOIN cards c ON c.id = cp.card_id
+        WHERE cp.person_id = ?
+          AND c.list_id IN ($placeholders){$card_filter_sql}
+          AND cp.status = 'active'
+          AND cp.next_due_date <= ?
+    ");
+    $stmt->execute(array_merge([$person_id], $list_ids, $card_filter_params, [$today]));
+    return (int) $stmt->fetchColumn();
 }
 
 function build_leitner_queue(PDO $pdo, int $person_id, array $list_ids, string $today, int $limit, ?array $card_ids_filter = null): array {

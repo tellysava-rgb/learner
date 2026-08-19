@@ -373,6 +373,7 @@ card_progress Tabelle:
 ### Neue Karten / Tageslimit
 - **Standard: 10 neue Karten pro Tag** aus der Warteschlange
 - Aktivierung läuft automatisch beim Start einer Leitner-Session (`activate_daily_cards()`) — kein manueller Button, Tageslimit wird dabei serverseitig berücksichtigt (bereits heute aktivierte Karten werden mitgezählt)
+- **Zusätzlich begrenzt auf das Restplatz-Kontingent der gewählten Kartenanzahl** (Bugfix 19.08.2026): war die Kartenanzahl z.B. exakt auf die Zahl der bereits fälligen Karten gesetzt, aktivierte das Tageslimit bis dahin trotzdem weitere Karten aus der Warteschlange — die dann fällig, aber vom festen Session-Limit nicht mehr erfasst wurden und unbeantwortet als "heute fällig" hängen blieben. `activate_daily_cards()` aktiviert seither höchstens `Kartenanzahl − bereits fällige Karten` neue Karten, nie mehr als die Session tatsächlich abholen kann.
 - **Gilt pro Listen-Auswahl der jeweiligen Session, nicht global über den ganzen Account** — die Prüfung "wie viele wurden heute schon aktiviert" zählt nur Karten aus genau den Listen, die für die aktuelle Session ausgewählt sind. Lernt man zwei Listen in getrennten Sessions, hat jede ihr eigenes 10er-Kontingent (zusammen bis zu 20 neue Karten/Tag); wählt man beide gemeinsam in einer Session, teilen sie sich ein gemeinsames Kontingent von 10. Bewusst so belassen (Stand v3.3.20).
 - Warteschlange zeigt wie viele Karten noch warten
 - Beim Upload von 100 Karten → nur 10 sofort aktiv, 90 in Warteschlange
