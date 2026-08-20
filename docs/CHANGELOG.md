@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.17.1] - 2026-08-20
+
+### Behoben
+- `includes/auth.php`, `render_navbar()`: Icon-Leiste im neuen Hamburger-Menü (v3.16.1) hing links statt rechtsbündig — `.navbar-collapse` füllt dank Bootstraps eigenem `flex-grow:1` bereits die gesamte verbleibende Breite, das dafür gesetzte `ms-sm-auto` bewirkte darin nichts mehr. Ersetzt durch `justify-content-sm-end` auf dem inneren Icon-Container (nur ab sm/Reihen-Layout — auf Mobile bleibt die vertikale Liste oben ausgerichtet). Marke + Haus-Icon + ggf. Login bleiben wie vorgesehen linksbündig.
+
+---
+
 ## [3.17.0] - 2026-08-20
 
 Systematische Prüfung des gesamten Leitner-Ablaufs gegen das Soll-Bild „wenn ich alle fälligen Karten durcharbeite, ist danach nichts mehr für heute fällig" — nachdem mehrfach einzelne Karten trotz durchgearbeiteter Session fällig blieben. Dabei kamen vier voneinander unabhängige Ursachen zum Vorschein.

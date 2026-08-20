@@ -374,8 +374,14 @@ function render_navbar(PDO $pdo, ?string $abort_url = null): void {
                  kompakte, reine Icon-Leiste inline mit Tooltip. Streak-Badge und Personenname
                  bekommen align-self-start, damit sie beim Aufklappen nicht mit auf volle Breite
                  gestreckt werden (sähe bei einem farbigen Badge bzw. reinem Text seltsam aus). -->
-            <div class="collapse navbar-collapse ms-sm-auto" id="navbarIcons">
-                <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 py-2 py-sm-0">
+            <div class="collapse navbar-collapse" id="navbarIcons">
+                <!-- justify-content-sm-end statt ms-sm-auto: .navbar-collapse füllt dank Bootstraps
+                     eigenem flex-grow:1 ohnehin schon die gesamte verbleibende Breite aus, ein
+                     zusätzliches auto-Margin bewirkt darin nichts mehr — ohne justify-content-*-end
+                     hängen die Icons dadurch links in diesem bereits vollen Bereich statt rechts. Nur
+                     ab sm (Reihe), nicht auf Mobile (dort ist die Hauptachse vertikal — dort soll die
+                     Liste oben beginnen, nicht ans untere Ende geschoben werden). -->
+                <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-sm-end gap-2 py-2 py-sm-0">
                     <?php if ($abort_url): ?>
                     <!-- Während einer laufenden Session bewusst an erster Stelle: der Abbruch ist dann
                          die wichtigste Aktion und soll nicht zwischen den übrigen Icons gesucht werden -->

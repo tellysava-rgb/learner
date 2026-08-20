@@ -1,5 +1,5 @@
 <?php
-define('APP_VERSION', '3.17.0');
+define('APP_VERSION', '3.17.1');
 define('TIMEZONE', 'Europe/Zurich');
 define('LEITNER_INTERVALS', [1 => 1, 2 => 2, 3 => 7, 4 => 14, 5 => 30]);
 // Untere Grenze für den aktiven Drill-Pool (siehe DRILL_CARDS_PER_MINUTE) — auch eine sehr kurze
