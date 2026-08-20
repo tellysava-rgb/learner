@@ -9,7 +9,7 @@
 
 Referenzgerät: iPhone 15 Pro Max (430 px Breite), gegengeprüft bei 375 px. Anspruch: **keine Seite darf horizontal scrollen** — geprüft über die tatsächliche `scrollWidth` im 430-px-Viewport, nicht nur nach Augenmass. Umgesetzte Anpassungen:
 
-- **Navbar:** Die Icon-Leiste darf umbrechen (`flex-wrap`), der Personenname wird unter 576 px ausgeblendet — sonst schoben Marke + Name + bis zu sechs Icons die gesamte Seite breiter als den Viewport
+- **Navbar:** Unter 576 px steckt die Icon-Leiste hinter einem Hamburger-Menü (`navbar-toggler`/`navbar-collapse`, Bootstrap-Standardmechanik) statt umzubrechen — aufgeklappt erscheint sie als linksbündige, volle-Breite-Liste, jeder Eintrag zusätzlich mit sichtbarem Text-Label neben dem Icon. Ab 576 px unverändert als kompakte reine Icon-Leiste inline mit Tooltip, Personenname bleibt dort ausgeblendet _(v3.16.1, vorher brach die Icon-Leiste einfach in eine zweite Zeile um)_
 - **Kartenübersicht (`edit.php`):** Die vier Aktions-Icons pro Zeile brechen auf schmalen Screens in zwei Reihen um, statt aus der Tabelle zu laufen. Die Status-Spalte bleibt erhalten
 - **Einstellungen:** Beschriftung steht auf schmalen Screens über dem Eingabefeld statt daneben (Klasse `settings-row`), Textfelder nutzen die volle Breite, Zahlenfelder bleiben schmal
 - **Import:** Das CSV-Beispiel scrollt innerhalb seines eigenen Rahmens, statt die Seite zu verbreitern
@@ -94,6 +94,8 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 9. **Hilfe** — Icon `bi-info-lg`, führt zu `help.php` _(v2.8.0, unverändert)_
 
 `learn.php` nutzt während einer Session dieselbe zentrale Navbar, nur mit gesetztem `$abort_url` (dadurch erscheint das Abbruch-Icon an erster Stelle statt des Logouts). `drill.php` rendert während einer laufenden Session weiterhin eine eigene, abweichende Navbar, weil dort zusätzlich Timer und "gemeistert"-Zähler angezeigt werden — das Abbruch-Icon steht dort aus Konsistenzgründen ebenfalls an erster Stelle, vor Timer und Zähler _(v3.2.26)_.
+
+**Mobile Darstellung der Icon-Leiste** _(v3.16.1)_: Unter 576 px (`navbar-expand-sm`) steckt die gesamte Liste hinter einem Hamburger-Button (`navbar-toggler`/`.collapse.navbar-collapse#navbarIcons`, reine Bootstrap-Standardmechanik, kein eigenes JS). Aufgeklappt erscheint sie als linksbündige Liste über die volle Breite (`flex-column` statt `flex-row`), **jeder Eintrag zusätzlich mit sichtbarem Text-Label** neben dem Icon (`d-sm-none`-Span nach dem `<i>`-Icon — ab 576 px wieder ausgeblendet, dort bleibt es bei Icon + Tooltip wie bisher). Streak-Badge und Personenname bekommen `align-self-start`, damit sie beim Aufklappen nicht ebenfalls auf volle Breite gestreckt werden. Vorher brach die Icon-Leiste bei zu vielen Icons (z.B. Admin mit mehreren Personen: bis zu 7 Icons) einfach `flex-wrap` in eine zweite Zeile um.
 
 ---
 

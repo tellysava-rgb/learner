@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.16.1] - 2026-08-20
+
+### Behoben
+- `includes/auth.php`, `render_navbar()`: Icon-Leiste brach auf dem iPhone bei vielen sichtbaren Icons (z.B. Admin mit mehreren Personen) in eine zweite Zeile um. Steckt jetzt unter 576 px hinter einem Hamburger-Menü (Bootstrap-Standardmechanik `navbar-toggler`/`navbar-collapse`) — aufgeklappt als linksbündige Liste über die volle Breite, jeder Eintrag zusätzlich mit sichtbarem Text-Label neben dem Icon. Ab 576 px (Desktop) unverändert als kompakte Icon-Leiste inline mit Tooltip.
+
+---
+
 ## [3.16.0] - 2026-08-19
 
 ### Neu

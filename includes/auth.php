@@ -360,53 +360,80 @@ function render_navbar(PDO $pdo, ?string $abort_url = null): void {
                 <?php endif; ?>
             </div>
             <?php if ($logged_in): ?>
-            <!-- flex-wrap: auf schmalen Screens (iPhone) passen Marke + Name + Icons sonst nicht
-                 nebeneinander und schieben die ganze Seite breiter als den Viewport. Der
-                 Personenname weicht dort zusätzlich, die Icons bleiben alle erreichbar. -->
-            <div class="d-flex align-items-center gap-2 ms-auto flex-wrap justify-content-end">
-                <?php if ($abort_url): ?>
-                <!-- Während einer laufenden Session bewusst an erster Stelle: der Abbruch ist dann
-                     die wichtigste Aktion und soll nicht zwischen den übrigen Icons gesucht werden -->
-                <a href="<?= htmlspecialchars($abort_url) ?>" class="btn btn-sm btn-outline-light"
-                   title="Session abbrechen" aria-label="Session abbrechen"><i class="bi bi-x-lg"></i></a>
-                <?php endif; ?>
-                <?= streak_badge() ?>
-                <span class="text-white small d-none d-sm-inline"><?= htmlspecialchars($person_name) ?></span>
-                <button type="button" class="btn btn-sm btn-outline-light" title="Passwort ändern" aria-label="Passwort ändern"
-                        data-bs-toggle="modal" data-bs-target="#pwModal"><i class="bi bi-key"></i></button>
-                <?php if ($real_is_admin && count($persons) > 1): ?>
-                <div class="dropdown d-inline">
-                    <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                            title="Person wechseln" aria-label="Person wechseln"><i class="bi bi-person-lines-fill"></i></button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <?php foreach ($persons as $p): ?>
-                        <li>
-                            <form method="post" class="d-inline">
-                                <?= csrf_field() ?>
-                                <input type="hidden" name="action" value="switch_to_person">
-                                <input type="hidden" name="person_id" value="<?= $p['id'] ?>">
-                                <button type="submit" class="dropdown-item<?= $p['id'] == $person_id ? ' active' : '' ?>">
-                                    <?= htmlspecialchars($p['name']) ?>
-                                </button>
-                            </form>
-                        </li>
-                        <?php endforeach; ?>
-                    </ul>
+            <!-- Hamburger-Umschalter: navbar-expand-sm blendet die Icon-Leiste unterhalb sm
+                 (iPhone) automatisch hinter diesem Button aus (Standard-Bootstrap-Mechanik) —
+                 vorher fehlte er, wodurch zu viele Icons auf schmalen Screens einfach in eine
+                 zweite Zeile umgebrochen sind statt sich in einem Menü zu verstecken. -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarIcons"
+                    aria-controls="navbarIcons" aria-expanded="false" aria-label="Menü öffnen/schliessen">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <!-- flex-column/-sm-row + align-items-stretch: unterhalb sm klappt der Inhalt als
+                 linksbündige Liste über die volle Breite auf, jeder Eintrag zusätzlich mit
+                 sichtbarem Text-Label (d-sm-none an den Spans unten); ab sm wie bisher als
+                 kompakte, reine Icon-Leiste inline mit Tooltip. Streak-Badge und Personenname
+                 bekommen align-self-start, damit sie beim Aufklappen nicht mit auf volle Breite
+                 gestreckt werden (sähe bei einem farbigen Badge bzw. reinem Text seltsam aus). -->
+            <div class="collapse navbar-collapse ms-sm-auto" id="navbarIcons">
+                <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 py-2 py-sm-0">
+                    <?php if ($abort_url): ?>
+                    <!-- Während einer laufenden Session bewusst an erster Stelle: der Abbruch ist dann
+                         die wichtigste Aktion und soll nicht zwischen den übrigen Icons gesucht werden -->
+                    <a href="<?= htmlspecialchars($abort_url) ?>" class="btn btn-sm btn-outline-light text-start"
+                       title="Session abbrechen" aria-label="Session abbrechen">
+                        <i class="bi bi-x-lg"></i><span class="d-sm-none ms-2">Session abbrechen</span>
+                    </a>
+                    <?php endif; ?>
+                    <div class="align-self-start"><?= streak_badge() ?></div>
+                    <span class="text-white small d-none d-sm-inline align-self-start"><?= htmlspecialchars($person_name) ?></span>
+                    <button type="button" class="btn btn-sm btn-outline-light text-start" title="Passwort ändern" aria-label="Passwort ändern"
+                            data-bs-toggle="modal" data-bs-target="#pwModal">
+                        <i class="bi bi-key"></i><span class="d-sm-none ms-2">Passwort ändern</span>
+                    </button>
+                    <?php if ($real_is_admin && count($persons) > 1): ?>
+                    <div class="dropdown d-flex">
+                        <button class="btn btn-sm btn-outline-light dropdown-toggle text-start w-100" type="button" data-bs-toggle="dropdown"
+                                title="Person wechseln" aria-label="Person wechseln">
+                            <i class="bi bi-person-lines-fill"></i><span class="d-sm-none ms-2">Person wechseln</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <?php foreach ($persons as $p): ?>
+                            <li>
+                                <form method="post" class="d-inline">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="action" value="switch_to_person">
+                                    <input type="hidden" name="person_id" value="<?= $p['id'] ?>">
+                                    <button type="submit" class="dropdown-item<?= $p['id'] == $person_id ? ' active' : '' ?>">
+                                        <?= htmlspecialchars($p['name']) ?>
+                                    </button>
+                                </form>
+                            </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($is_admin): ?>
+                    <a href="<?= $root ?>users.php" class="btn btn-sm btn-outline-light text-start" title="Benutzerverwaltung" aria-label="Benutzerverwaltung">
+                        <i class="bi bi-person-gear"></i><span class="d-sm-none ms-2">Benutzerverwaltung</span>
+                    </a>
+                    <a href="<?= $root ?>settings.php" class="btn btn-sm btn-outline-light text-start" title="Einstellungen" aria-label="Einstellungen">
+                        <i class="bi bi-gear"></i><span class="d-sm-none ms-2">Einstellungen</span>
+                    </a>
+                    <?php endif; ?>
+                    <a href="<?= $root ?>help.php" class="btn btn-sm btn-outline-light text-start" title="Hilfe" aria-label="Hilfe">
+                        <i class="bi bi-info-lg"></i><span class="d-sm-none ms-2">Hilfe</span>
+                    </a>
+                    <?php if (!$abort_url): ?>
+                    <!-- Logout ganz rechts als letztes Icon der Leiste. -->
+                    <form method="post" class="d-flex">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="action" value="logout">
+                        <button type="submit" class="btn btn-sm btn-outline-light text-start w-100" title="Logout" aria-label="Logout">
+                            <i class="bi bi-box-arrow-right"></i><span class="d-sm-none ms-2">Logout</span>
+                        </button>
+                    </form>
+                    <?php endif; ?>
                 </div>
-                <?php endif; ?>
-                <?php if ($is_admin): ?>
-                <a href="<?= $root ?>users.php" class="btn btn-sm btn-outline-light" title="Benutzerverwaltung" aria-label="Benutzerverwaltung"><i class="bi bi-person-gear"></i></a>
-                <a href="<?= $root ?>settings.php" class="btn btn-sm btn-outline-light" title="Einstellungen" aria-label="Einstellungen"><i class="bi bi-gear"></i></a>
-                <?php endif; ?>
-                <a href="<?= $root ?>help.php" class="btn btn-sm btn-outline-light" title="Hilfe" aria-label="Hilfe"><i class="bi bi-info-lg"></i></a>
-                <?php if (!$abort_url): ?>
-                <!-- Logout ganz rechts als letztes Icon der Leiste. -->
-                <form method="post" class="d-inline">
-                    <?= csrf_field() ?>
-                    <input type="hidden" name="action" value="logout">
-                    <button type="submit" class="btn btn-sm btn-outline-light" title="Logout" aria-label="Logout"><i class="bi bi-box-arrow-right"></i></button>
-                </form>
-                <?php endif; ?>
             </div>
             <?php endif; ?>
         </div>
