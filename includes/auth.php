@@ -321,13 +321,17 @@ function render_navbar(PDO $pdo, ?string $abort_url = null): void {
                  bekommen align-self-start, damit sie beim Aufklappen nicht mit auf volle Breite
                  gestreckt werden (sähe bei einem farbigen Badge bzw. reinem Text seltsam aus). -->
             <div class="collapse navbar-collapse" id="navbarIcons">
-                <!-- justify-content-sm-end statt ms-sm-auto: .navbar-collapse füllt dank Bootstraps
-                     eigenem flex-grow:1 ohnehin schon die gesamte verbleibende Breite aus, ein
-                     zusätzliches auto-Margin bewirkt darin nichts mehr — ohne justify-content-*-end
-                     hängen die Icons dadurch links in diesem bereits vollen Bereich statt rechts. Nur
-                     ab sm (Reihe), nicht auf Mobile (dort ist die Hauptachse vertikal — dort soll die
-                     Liste oben beginnen, nicht ans untere Ende geschoben werden). -->
-                <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-sm-end gap-2 py-2 py-sm-0">
+                <!-- w-100 + justify-content-sm-end: .navbar-collapse ist ab sm selbst ein
+                     Flex-Container (Bootstrap erzwingt display:flex) und füllt dank flex-grow:1 die
+                     komplette verbleibende Breite — DIESER Container hier ist aber nur ein
+                     Flex-ITEM darin und wird auf der Hauptachse (Reihe, ab sm) NICHT automatisch
+                     mitgestreckt (align-items:stretch wirkt nur auf die Querachse) — ohne w-100
+                     bleibt er auf reine Inhaltsbreite geschrumpft, wodurch justify-content-*-end
+                     keinen Platz hat, in den es die Icons schieben könnte, und sie links kleben
+                     bleiben. Auf Mobile ist .navbar-collapse kein Flex-Container (display:block,
+                     erst ab sm auf flex gezwungen) — dort füllt ein Block-Element seinen Elternteil
+                     ohnehin von selbst, w-100 also unschädlich, aber nicht der eigentliche Fix. -->
+                <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-sm-end gap-2 py-2 py-sm-0 w-100">
                     <?php if ($abort_url): ?>
                     <!-- Während einer laufenden Session bewusst an erster Stelle: der Abbruch ist dann
                          die wichtigste Aktion und soll nicht zwischen den übrigen Icons gesucht werden -->

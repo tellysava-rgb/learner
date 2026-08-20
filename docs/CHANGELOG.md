@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.19.1] - 2026-08-20
+
+### Behoben
+- `includes/auth.php`, `render_navbar()`: Icon-Leiste war ab sm (Desktop) trotz Release 3.17.1 weiterhin linksbündig statt rechtsbündig. Tatsächliche Ursache (per echtem Browser-Rendering/computed styles verifiziert, nicht nur HTML-Struktur): `.navbar-collapse` füllt ab sm zwar korrekt die volle verbleibende Breite, der innere Icon-Container darin ist aber selbst nur ein Flex-Item auf der Hauptachse und wird dabei NICHT automatisch mitgestreckt (`align-items:stretch` wirkt nur auf die Querachse) — er blieb auf reine Inhaltsbreite geschrumpft, wodurch `justify-content-sm-end` keinen Platz hatte, in den es die Icons hätte schieben können. Ergänzt um `w-100` auf diesem Container. Auf Mobile unverändert (dort ist `.navbar-collapse` kein Flex-Container, ein Block-Element füllt seinen Elternteil ohnehin von selbst).
+
+---
+
 ## [3.19.0] - 2026-08-20
 
 ### Neu
