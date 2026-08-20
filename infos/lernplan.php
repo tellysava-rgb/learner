@@ -2,10 +2,19 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/quellen-daten.php';
+require_once __DIR__ . '/../includes/levels.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_validate();
     handle_navbar_actions($pdo);
+}
+
+// Sprach-Auswahl zur Niveau-Vorbefüllung: nur für eingeloggte Personen mit mindestens einem
+// gespeicherten Sprachlevel (profile.php) — ohne Login oder ohne Einträge bleibt die Seite
+// unverändert rein manuell bedienbar.
+$person_language_levels = [];
+if (!empty($_SESSION['person_id'])) {
+    $person_language_levels = get_person_language_levels($pdo, (int) $_SESSION['person_id']);
 }
 ?>
 <!DOCTYPE html>
@@ -46,6 +55,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="radio" class="btn-check" name="zielgruppe" id="zg-kind" value="kind">
                 <label class="btn btn-outline-primary" for="zg-kind"><i class="bi bi-emoji-smile"></i> Kinder (6–12)</label>
             </div>
+
+            <?php if ($person_language_levels): ?>
+            <div class="mb-3">
+                <label class="form-label small fw-semibold mb-1" for="lp-sprache">Welche Sprache lernst du gerade?</label>
+                <select class="form-select" id="lp-sprache">
+                    <option value="">— manuell wählen —</option>
+                    <?php foreach ($person_language_levels as $lvl): ?>
+                    <option value="<?= htmlspecialchars($lvl['cefr_level']) ?>"><?= htmlspecialchars($lvl['language']) ?> (<?= htmlspecialchars($lvl['cefr_level']) ?>)</option>
+                    <?php endforeach; ?>
+                </select>
+                <div class="form-text">Nur bei Zielgruppe "Erwachsene" wirksam, füllt das Niveau vor — bleibt danach frei überschreibbar.</div>
+            </div>
+            <?php endif; ?>
 
             <div class="row g-3 mb-3">
                 <div class="col-6">
@@ -220,6 +242,17 @@ function levelOptionenAktualisieren() {
 document.querySelectorAll('input[name="zielgruppe"]').forEach(function (radio) {
     radio.addEventListener('change', levelOptionenAktualisieren);
 });
+
+// Sprach-Auswahl (nur vorhanden, wenn die eingeloggte Person auf profile.php Sprachlevel
+// hinterlegt hat) füllt das Niveau-Select vor — nur bei Zielgruppe "Erwachsene" sinnvoll (nur dort
+// existiert ein CEFR-Niveau-Select), bleibt danach frei überschreibbar.
+var spracheSelect = document.getElementById('lp-sprache');
+if (spracheSelect) {
+    spracheSelect.addEventListener('change', function () {
+        if (!this.value || aktuelleZielgruppe() !== 'erwachsen') return;
+        levelSelect.value = this.value;
+    });
+}
 document.querySelectorAll('.lp-quick').forEach(function (btn) {
     btn.addEventListener('click', function () {
         minutenInput.value = btn.dataset.min;

@@ -5,6 +5,20 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.19.0] - 2026-08-20
+
+### Neu
+- **`discover.php`-Galerie**: ohne `list_id` zeigt die Seite jetzt eine filterbare Übersicht ALLER öffentlichen Listen (Filter nach Ausgangs-/Zielsprache, bookmarkbar per GET) statt zur Startseite weiterzuleiten. Button je Kachel heisst neu "Vorschau" (führt weiterhin zu `discover.php?list_id=X`, dort unverändert "Kopieren & als eigene Liste übernehmen").
+- **Tags in der Listen-Vorschau**: `discover.php?list_id=X` zeigt die Tags jeder Karte jetzt als Badges (gleiche Darstellung wie `edit.php`) — das Kopieren selbst übernahm Tags bereits vorher korrekt, nur die Vorschau zeigte sie nicht an.
+- **Sprach-Auswahl in `infos/lernplan.php`/`infos/skala.php`**: hat die eingeloggte Person auf `profile.php` Sprachlevel hinterlegt, füllt eine neue Dropdown-Auswahl automatisch das passende CEFR-Niveau vor (bleibt frei überschreibbar). Ohne Login oder ohne hinterlegte Sprachlevel unverändert.
+
+### Geändert
+- `home.php`: die eingebettete Vorschau öffentlicher Listen (max. 6, ohne Filter) ist entfernt — ersetzt durch einen Link "Entdecken" zur neuen Galerie in `discover.php`.
+- `home.php`: die globalen, listenübergreifenden "Leitner"/"Drill"-Buttons werden ausgeblendet, sobald irgendeine aktive Liste ein A1/A2-Sprachlevel hat (`person_has_beginner_active_list()`) — die Buttons pro einzelner Liste bleiben davon unabhängig immer sichtbar.
+- `docs/ANFORDERUNGEN.md`: veraltete Angabe korrigiert, dass der Bereich "Wissenschaftlich Sprachen lernen" Login erfordere — die Seiten sind seit v3.15.3 bewusst öffentlich zugänglich.
+
+---
+
 ## [3.18.0] - 2026-08-20
 
 ### Neu

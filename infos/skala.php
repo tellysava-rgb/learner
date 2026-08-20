@@ -2,10 +2,19 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/quellen-daten.php';
+require_once __DIR__ . '/../includes/levels.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_validate();
     handle_navbar_actions($pdo);
+}
+
+// Sprach-Auswahl zur Niveau-Vorbefüllung: nur für eingeloggte Personen mit mindestens einem
+// gespeicherten Sprachlevel (profile.php) — ohne Login oder ohne Einträge bleibt die Seite
+// unverändert rein manuell bedienbar.
+$person_language_levels = [];
+if (!empty($_SESSION['person_id'])) {
+    $person_language_levels = get_person_language_levels($pdo, (int) $_SESSION['person_id']);
 }
 
 /**
@@ -54,6 +63,17 @@ function skala_bereich(string $titel, string $icon, string $bodyId, string $inha
     <div class="card border-primary-subtle bg-primary-subtle mb-3 sticky-top shadow-sm" style="top:0;">
         <div class="card-body py-3">
             <h2 class="h6 card-title mb-2"><i class="bi bi-signpost-2 text-primary"></i> Dein Niveau</h2>
+            <?php if ($person_language_levels): ?>
+            <div class="mb-2">
+                <label class="form-label small fw-semibold mb-1" for="sk-sprache">Welche Sprache lernst du gerade?</label>
+                <select class="form-select form-select-sm" id="sk-sprache" style="max-width:280px;">
+                    <option value="">— manuell wählen —</option>
+                    <?php foreach ($person_language_levels as $lvl): ?>
+                    <option value="<?= htmlspecialchars($lvl['cefr_level']) ?>"><?= htmlspecialchars($lvl['language']) ?> (<?= htmlspecialchars($lvl['cefr_level']) ?>)</option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <?php endif; ?>
             <div class="btn-group flex-wrap" role="group" aria-label="Niveau wählen" id="lp-level-group">
                 <button type="button" class="btn btn-outline-primary skala-level-btn" data-level="a1a2" data-cefr="A1">A1</button>
                 <button type="button" class="btn btn-outline-primary skala-level-btn" data-level="a1a2" data-cefr="A2">A2</button>
@@ -265,6 +285,18 @@ document.querySelectorAll('.skala-level-btn').forEach(function (btn) {
 // Start: A1 aktiv
 document.querySelector('.skala-level-btn[data-cefr="A1"]').classList.add('active');
 skalaRender('a1a2');
+
+// Sprach-Auswahl (nur vorhanden, wenn die eingeloggte Person auf profile.php Sprachlevel
+// hinterlegt hat) klickt den passenden Niveau-Button an — löst denselben Listener wie ein
+// manueller Klick aus, kein separater Render-Aufruf nötig.
+var sprachSelect = document.getElementById('sk-sprache');
+if (sprachSelect) {
+    sprachSelect.addEventListener('change', function () {
+        if (!this.value) return;
+        var btn = document.querySelector('.skala-level-btn[data-cefr="' + this.value + '"]');
+        if (btn) btn.click();
+    });
+}
 </script>
 </body>
 </html>

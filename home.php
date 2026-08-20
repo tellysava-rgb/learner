@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/levels.php';
 require_person();
 
 $person_id   = $_SESSION['person_id'];
@@ -47,6 +48,12 @@ $own_lists = $stmt->fetchAll();
 $active_lists   = array_values(array_filter($own_lists, fn($l) => $l['is_active']));
 $inactive_lists = array_values(array_filter($own_lists, fn($l) => !$l['is_active']));
 
+// Globale Leitner-/Drill-Buttons (über alle aktiven Listen hinweg) werden ausgeblendet, sobald
+// irgendeine aktive Liste ein A1/A2-Sprachlevel hat (siehe includes/levels.php) — Anfänger sollen
+// gezielt pro Deck lernen statt mehrere Sprachen/Decks in einer globalen Session zu mischen. Die
+// Pro-Liste-Buttons weiter unten bleiben davon unabhängig immer sichtbar.
+$hide_global_learn_buttons = person_has_beginner_active_list($pdo, $person_id);
+
 // Warteschlangen-Anzahl und heute fällige Karten (Leitner) pro aktiver Liste
 $queued_counts    = [];
 $due_today_counts = [];
@@ -65,20 +72,6 @@ foreach ($active_lists as $list) {
     $due_today_counts[$list['id']] = (int) ($row['due_today'] ?? 0);
 }
 
-// Öffentliche Listen anderer Personen (Discover-Vorschau auf Startseite)
-$stmt = $pdo->prepare("
-    SELECT l.id, l.name, l.description, l.language_a, l.language_b,
-           p.name AS owner_name, COUNT(c.id) AS card_count
-    FROM lists l
-    JOIN persons p ON p.id = l.person_id
-    LEFT JOIN cards c ON c.list_id = l.id
-    WHERE l.is_public = 1 AND l.person_id != ?
-    GROUP BY l.id
-    ORDER BY l.name
-    LIMIT 6
-");
-$stmt->execute([$person_id]);
-$public_lists = $stmt->fetchAll();
 
 // Lernstreak berechnen (learn_date ist in Europe/Zurich, von PHP gesetzt)
 function get_streak(PDO $pdo, int $person_id): int {
@@ -153,10 +146,13 @@ $_SESSION['streak_date'] = today();
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
             <h2 class="h5 mb-0">Meine Listen</h2>
             <div class="d-flex flex-wrap gap-2">
+                <?php if (!$hide_global_learn_buttons): ?>
                 <a href="learn.php" class="btn btn-sm btn-outline-primary">Leitner</a>
                 <a href="drill.php" class="btn btn-sm btn-outline-primary">Drill</a>
+                <?php endif; ?>
                 <a href="lists.php" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>Meine Listen</a>
                 <a href="stats.php" class="btn btn-sm btn-outline-secondary"><i class="bi bi-bar-chart-line me-1"></i>Statistik</a>
+                <a href="discover.php" class="btn btn-sm btn-outline-secondary"><i class="bi bi-compass me-1"></i>Entdecken</a>
             </div>
         </div>
 
@@ -263,37 +259,6 @@ $_SESSION['streak_date'] = today();
         <?php endif; ?>
     </div>
 
-    <!-- Öffentliche Listen entdecken -->
-    <?php if ($public_lists): ?>
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="h5 mb-0">Entdecken</h2>
-            <a href="discover.php" class="btn btn-sm btn-outline-secondary">Alle anzeigen</a>
-        </div>
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
-            <?php foreach ($public_lists as $list): ?>
-            <div class="col">
-                <div class="card h-100 shadow-sm border-0 bg-light">
-                    <div class="card-body">
-                        <h5 class="card-title h6"><?= htmlspecialchars($list['name']) ?></h5>
-                        <?php if ($list['description']): ?>
-                        <p class="card-text text-muted small"><?= htmlspecialchars($list['description']) ?></p>
-                        <?php endif; ?>
-                        <p class="small text-muted mb-0">
-                            <?= htmlspecialchars($list['language_a']) ?> → <?= htmlspecialchars($list['language_b']) ?>
-                            &nbsp;·&nbsp; <?= $list['card_count'] ?> Karten
-                            &nbsp;·&nbsp; von <?= htmlspecialchars($list['owner_name']) ?>
-                        </p>
-                    </div>
-                    <div class="card-footer bg-transparent border-0 pb-3">
-                        <a href="discover.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-primary">Vorschau & Kopieren</a>
-                    </div>
-                </div>
-            </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-    <?php endif; ?>
 </div>
 
 </div><!-- /container -->

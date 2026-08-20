@@ -85,14 +85,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Ohne list_id direkt zur Startseite
 $preview_list_id = intval($_GET['list_id'] ?? 0);
-if (!$preview_list_id) {
-    header('Location: home.php');
-    exit;
-}
 
-// Öffentliche Liste anzeigen (Vorschau)
+// Öffentliche Liste anzeigen (Vorschau) — ohne list_id wird stattdessen die Galerie weiter unten
+// gerendert (siehe $gallery_lists).
 $preview_list  = null;
 $preview_cards = [];
 
@@ -109,10 +105,57 @@ if ($preview_list_id) {
     $preview_list = $stmt->fetch();
 
     if ($preview_list) {
-        $stmt = $pdo->prepare("SELECT word_a, word_b, desc_a, desc_b, phonetic_b FROM cards WHERE list_id = ? ORDER BY created_at LIMIT 200");
+        // Tags per korrelierter Subquery mitladen (Muster wie edit.php/export.php) — reine
+        // Anzeige in der Vorschau, das Kopieren selbst übernimmt Tags bereits unabhängig davon.
+        $stmt = $pdo->prepare("
+            SELECT word_a, word_b, desc_a, desc_b, phonetic_b,
+                   (SELECT GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ' ')
+                    FROM card_tags ct JOIN tags t ON t.id = ct.tag_id
+                    WHERE ct.card_id = cards.id) AS tags
+            FROM cards WHERE list_id = ? ORDER BY created_at LIMIT 200
+        ");
         $stmt->execute([$preview_list_id]);
         $preview_cards = $stmt->fetchAll();
     }
+}
+
+// Galerie aller öffentlichen Listen (nur wenn keine list_id gewählt ist) — mit optionalem Filter
+// nach Ausgangs-/Zielsprache. Bookmarkbar per GET, kein POST nötig.
+$gallery_lists   = [];
+$lang_a_options  = [];
+$lang_b_options  = [];
+$filter_lang_a   = '';
+$filter_lang_b   = '';
+
+if (!$preview_list_id) {
+    $filter_lang_a = trim($_GET['lang_a'] ?? '');
+    $filter_lang_b = trim($_GET['lang_b'] ?? '');
+
+    $stmt = $pdo->prepare("SELECT DISTINCT language_a FROM lists WHERE is_public = 1 AND person_id != ? ORDER BY language_a");
+    $stmt->execute([$person_id]);
+    $lang_a_options = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    $stmt = $pdo->prepare("SELECT DISTINCT language_b FROM lists WHERE is_public = 1 AND person_id != ? ORDER BY language_b");
+    $stmt->execute([$person_id]);
+    $lang_b_options = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    $where  = "l.is_public = 1 AND l.person_id != ?";
+    $params = [$person_id];
+    if ($filter_lang_a !== '') { $where .= " AND l.language_a = ?"; $params[] = $filter_lang_a; }
+    if ($filter_lang_b !== '') { $where .= " AND l.language_b = ?"; $params[] = $filter_lang_b; }
+
+    $stmt = $pdo->prepare("
+        SELECT l.id, l.name, l.description, l.language_a, l.language_b,
+               p.name AS owner_name, COUNT(c.id) AS card_count
+        FROM lists l
+        JOIN persons p ON p.id = l.person_id
+        LEFT JOIN cards c ON c.list_id = l.id
+        WHERE $where
+        GROUP BY l.id
+        ORDER BY l.name
+    ");
+    $stmt->execute($params);
+    $gallery_lists = $stmt->fetchAll();
 }
 
 ?>
@@ -185,6 +228,11 @@ if ($preview_list_id) {
                             <?php if ($card['desc_a']): ?>
                             <br><span class="text-muted"><?= htmlspecialchars($card['desc_a']) ?></span>
                             <?php endif; ?>
+                            <?php if ($card['tags']): ?>
+                            <br><?php foreach (explode(' ', $card['tags']) as $t): ?>
+                            <span class="badge bg-light text-dark border">#<?= htmlspecialchars($t) ?></span>
+                            <?php endforeach; ?>
+                            <?php endif; ?>
                         </td>
                         <td>
                             <?= htmlspecialchars($card['word_b']) ?>
@@ -204,8 +252,62 @@ if ($preview_list_id) {
     </div>
     <?php endif; ?>
 
-    <?php if (!$preview_list): ?>
+    <?php if ($preview_list_id && !$preview_list): ?>
         <div class="alert alert-warning">Liste nicht gefunden oder nicht öffentlich.</div>
+    <?php endif; ?>
+
+    <?php if (!$preview_list_id): ?>
+    <!-- Galerie aller öffentlichen Listen -->
+    <form method="get" class="row g-2 mb-4">
+        <div class="col-auto">
+            <select name="lang_a" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">Alle Ausgangssprachen</option>
+                <?php foreach ($lang_a_options as $l): ?>
+                <option value="<?= htmlspecialchars($l) ?>" <?= $filter_lang_a === $l ? 'selected' : '' ?>><?= htmlspecialchars($l) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-auto">
+            <select name="lang_b" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">Alle Zielsprachen</option>
+                <?php foreach ($lang_b_options as $l): ?>
+                <option value="<?= htmlspecialchars($l) ?>" <?= $filter_lang_b === $l ? 'selected' : '' ?>><?= htmlspecialchars($l) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <?php if ($filter_lang_a !== '' || $filter_lang_b !== ''): ?>
+        <div class="col-auto">
+            <a href="discover.php" class="btn btn-sm btn-outline-secondary">Filter zurücksetzen</a>
+        </div>
+        <?php endif; ?>
+    </form>
+
+    <?php if (!$gallery_lists): ?>
+        <p class="text-muted">Keine öffentlichen Listen gefunden<?= ($filter_lang_a !== '' || $filter_lang_b !== '') ? ' für diese Filterauswahl' : '' ?>.</p>
+    <?php else: ?>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+        <?php foreach ($gallery_lists as $list): ?>
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title h6"><?= htmlspecialchars($list['name']) ?></h5>
+                    <?php if ($list['description']): ?>
+                    <p class="card-text text-muted small"><?= htmlspecialchars($list['description']) ?></p>
+                    <?php endif; ?>
+                    <p class="small text-muted mb-0">
+                        <?= htmlspecialchars($list['language_a']) ?> → <?= htmlspecialchars($list['language_b']) ?>
+                        &nbsp;·&nbsp; <?= $list['card_count'] ?> Karten
+                        &nbsp;·&nbsp; von <?= htmlspecialchars($list['owner_name']) ?>
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="discover.php?list_id=<?= $list['id'] ?>" class="btn btn-sm btn-outline-primary">Vorschau</a>
+                </div>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
     <?php endif; ?>
 
 </div>
