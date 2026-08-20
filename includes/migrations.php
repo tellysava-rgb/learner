@@ -22,7 +22,7 @@ function migration_definitions(): array {
     // eine Neuinstallation ohnehin nie eine dieser Migrationen braucht. Nachzulesen in der
     // Git-Historie (includes/migrations.php vor v3.2.21), falls je ein sehr altes Backup
     // (vor v3.2.20) wiederhergestellt werden muss.
-    // Nächste neue Migration hier mit der ID 19 beginnen.
+    // Nächste neue Migration hier mit der ID 21 beginnen.
     return [
         // Rate-Limiting für Login und "Passwort vergessen" (v3.2.23).
         14 => "CREATE TABLE IF NOT EXISTS auth_attempts (
@@ -82,6 +82,26 @@ function migration_definitions(): array {
         // Migration kann das Tageskontingent daher einmalig neu ausgeschoepft werden, danach greift
         // die Zaehlung korrekt.
         18 => "ALTER TABLE card_progress ADD COLUMN activated_on DATE NULL DEFAULT NULL",
+
+        // Standard-Lernrichtung pro Person (v3.18.0, siehe profile.php): ersetzt die bisher fest
+        // auf 'random' hartcodierte Vorauswahl auf der Leitner-/Drill-Konfigurationsseite. Default
+        // bewusst 'random' — identisches Verhalten für alle Bestandspersonen wie bisher.
+        19 => "ALTER TABLE persons ADD COLUMN default_direction ENUM('a_to_b','b_to_a','mixed','random') NOT NULL DEFAULT 'random'",
+
+        // Sprachlevel pro Person UND Sprache (v3.18.0, siehe profile.php/includes/levels.php):
+        // eigene Tabelle statt Feld auf persons, analog zu 'tags' — eine Person kann mehrere
+        // Sprachen mit je eigenem CEFR-Niveau lernen (z.B. Englisch B2, Italienisch A1). Fehlt ein
+        // Eintrag fuer eine Sprache, gilt A1 als Anwendungs-Default (get_effective_level_for_language()),
+        // nicht als DB-Zeile.
+        20 => "CREATE TABLE IF NOT EXISTS person_language_levels (
+                   id         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                   person_id  INT          NOT NULL,
+                   language   VARCHAR(50)  NOT NULL,
+                   cefr_level ENUM('A1','A2','B1','B2','C1','C2') NOT NULL DEFAULT 'A1',
+                   created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                   UNIQUE KEY unique_person_language (person_id, language),
+                   FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE
+               ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
     ];
 }
 

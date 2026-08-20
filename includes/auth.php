@@ -231,7 +231,6 @@ function logout(): void {
 // damit die Seite ihre eigene, seitenspezifische Aktion weiterverarbeiten kann.
 function handle_navbar_actions(PDO $pdo): void {
     $action        = $_POST['action'] ?? '';
-    $person_id     = (int) ($_SESSION['person_id'] ?? 0);
     $real_is_admin = !empty($_SESSION['real_is_admin']);
     $back          = safe_redirect_target($_SERVER['REQUEST_URI'] ?? null);
 
@@ -261,55 +260,8 @@ function handle_navbar_actions(PDO $pdo): void {
         exit;
     }
 
-    if ($action === 'change_own_password') {
-        $cur_pw  = $_POST['current_password'] ?? '';
-        $new_pw  = $_POST['new_password']     ?? '';
-        $new_pw2 = $_POST['new_password2']    ?? '';
-
-        $stmt = $pdo->prepare("SELECT password_hash FROM persons WHERE id = ?");
-        $stmt->execute([$person_id]);
-        $hash = $stmt->fetchColumn();
-
-        if (!$hash || !password_verify($cur_pw, $hash)) {
-            $_SESSION['flash_error'] = 'Aktuelles Passwort ist falsch.';
-        } elseif (mb_strlen($new_pw) < 8) {
-            $_SESSION['flash_error'] = 'Neues Passwort muss mindestens 8 Zeichen haben.';
-        } elseif ($new_pw !== $new_pw2) {
-            $_SESSION['flash_error'] = 'Die neuen Passwörter stimmen nicht überein.';
-        } else {
-            $new_hash = password_hash($new_pw, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("UPDATE persons SET password_hash = ? WHERE id = ?");
-            $stmt->execute([$new_hash, $person_id]);
-            $_SESSION['flash_success'] = 'Passwort erfolgreich geändert.';
-        }
-        header('Location: ' . $back);
-        exit;
-    }
-
-    if ($action === 'change_own_email') {
-        $email = trim($_POST['email'] ?? '');
-        if ($email === '') {
-            $stmt = $pdo->prepare("UPDATE persons SET email = NULL WHERE id = ?");
-            $stmt->execute([$person_id]);
-            $_SESSION['flash_success'] = 'E-Mail-Adresse entfernt.';
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            // Gleiche Prüfung wie in users.php — der Wert wird später als Empfänger an mail()
-            // übergeben (Passwort-Reset), darf also nichts Unvalidiertes enthalten.
-            $_SESSION['flash_error'] = 'Ungültige E-Mail-Adresse.';
-        } else {
-            try {
-                $stmt = $pdo->prepare("UPDATE persons SET email = ? WHERE id = ?");
-                $stmt->execute([$email, $person_id]);
-                $_SESSION['flash_success'] = 'E-Mail-Adresse gespeichert.';
-            } catch (PDOException $e) {
-                $_SESSION['flash_error'] = $e->getCode() === '23000'
-                    ? 'Diese E-Mail-Adresse wird bereits von einer anderen Person verwendet.'
-                    : 'Fehler beim Speichern der E-Mail-Adresse.';
-            }
-        }
-        header('Location: ' . $back);
-        exit;
-    }
+    // change_own_password/change_own_email sind nach profile.php umgezogen (v3.18.0) — dort statt
+    // im Navbar-Modal editierbar, siehe profile.php.
 }
 
 // Zentrale Navbar — von jeder Seite mit Person-Kontext aufgerufen, damit Icons/Reihenfolge
@@ -327,12 +279,6 @@ function render_navbar(PDO $pdo, ?string $abort_url = null): void {
 
     $persons = ($logged_in && $real_is_admin) ? $pdo->query("SELECT id, name FROM persons ORDER BY name")->fetchAll() : [];
 
-    $own_email = '';
-    if ($logged_in) {
-        $stmt = $pdo->prepare("SELECT email FROM persons WHERE id = ?");
-        $stmt->execute([$person_id]);
-        $own_email = $stmt->fetchColumn() ?: '';
-    }
     $root = app_root_prefix();
     // wissen.php liegt in infos/ — von Root-Seiten aus muss der Link deshalb IN das
     // Unterverzeichnis zeigen (infos/wissen.php), von infos/-Seiten aus dagegen nur "wissen.php"
@@ -392,10 +338,9 @@ function render_navbar(PDO $pdo, ?string $abort_url = null): void {
                     <?php endif; ?>
                     <div class="align-self-start"><?= streak_badge() ?></div>
                     <span class="text-white small d-none d-sm-inline align-self-start"><?= htmlspecialchars($person_name) ?></span>
-                    <button type="button" class="btn btn-sm btn-outline-light text-start" title="Passwort ändern" aria-label="Passwort ändern"
-                            data-bs-toggle="modal" data-bs-target="#pwModal">
-                        <i class="bi bi-key"></i><span class="d-sm-none ms-2">Passwort ändern</span>
-                    </button>
+                    <a href="<?= $root ?>profile.php" class="btn btn-sm btn-outline-light text-start" title="Profil" aria-label="Profil">
+                        <i class="bi bi-person-circle"></i><span class="d-sm-none ms-2">Profil</span>
+                    </a>
                     <?php if ($real_is_admin && count($persons) > 1): ?>
                     <div class="dropdown d-flex">
                         <button class="btn btn-sm btn-outline-light dropdown-toggle text-start w-100" type="button" data-bs-toggle="dropdown"
@@ -444,53 +389,6 @@ function render_navbar(PDO $pdo, ?string $abort_url = null): void {
             <?php endif; ?>
         </div>
     </nav>
-
-    <?php if ($logged_in): ?>
-    <!-- Modal: eigenes Konto (E-Mail + Passwort) -->
-    <div class="modal fade" id="pwModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Konto</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schliessen"></button>
-          </div>
-          <div class="modal-body">
-
-            <form method="post" class="mb-4 pb-4 border-bottom">
-              <?= csrf_field() ?>
-              <input type="hidden" name="action" value="change_own_email">
-              <label class="form-label fw-medium">E-Mail-Adresse</label>
-              <div class="form-text mb-2">Optional — nur nötig, um das Passwort selbst per E-Mail zurücksetzen zu können.</div>
-              <div class="d-flex gap-2">
-                <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($own_email) ?>" placeholder="name@beispiel.ch">
-                <button type="submit" class="btn btn-outline-primary flex-shrink-0">Speichern</button>
-              </div>
-            </form>
-
-            <form method="post">
-              <?= csrf_field() ?>
-              <input type="hidden" name="action" value="change_own_password">
-              <label class="form-label fw-medium mb-2">Passwort ändern</label>
-              <div class="mb-3">
-                <input type="password" name="current_password" class="form-control" placeholder="Aktuelles Passwort" autocomplete="current-password" required>
-              </div>
-              <div class="mb-3">
-                <input type="password" name="new_password" class="form-control" placeholder="Neues Passwort (min. 8 Zeichen)" autocomplete="new-password" minlength="8" required>
-              </div>
-              <div class="mb-3">
-                <input type="password" name="new_password2" class="form-control" placeholder="Neues Passwort (Wiederholung)" autocomplete="new-password" required>
-              </div>
-              <button type="submit" class="btn btn-primary w-100">Passwort ändern</button>
-            </form>
-
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schliessen</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <?php endif; ?>
     <?php
 }
 

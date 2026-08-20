@@ -51,13 +51,21 @@ Referenzgerät: iPhone 15 Pro Max (430 px Breite), gegengeprüft bei 375 px. Ans
 - Login führt **direkt** auf die Startseite der jeweiligen Person — kein separater "Person auswählen"-Schritt mehr
 - **Personenname muss eindeutig sein** — beim Anlegen (über `users.php`) wird geprüft ob der Name bereits existiert, sonst Fehlermeldung
 - **Admin-Rolle** (`persons.is_admin`): nur Admins dürfen `settings.php`, `deploy.php` und `users.php` öffnen, sowie als andere Person agieren ("Person wechseln"). Der Admin-Status wird beim Login in die Session geladen — Änderungen wirken erst ab dem nächsten Login der betroffenen Person
-- **Eigenes Passwort ändern**: jede Person kann ihr eigenes Passwort über ein Modal ("Konto") auf der Startseite ändern (aktuelles Passwort zur Bestätigung nötig, min. 8 Zeichen)
-- **Optionale E-Mail-Adresse pro Person** _(v3.0.0)_: im selben "Konto"-Modal kann jede Person selbst eine E-Mail-Adresse hinterlegen/entfernen (eindeutig über alle Personen, sonst Fehlermeldung). Ausschliesslicher Zweck: **eigenständiges Zurücksetzen des Passworts** per E-Mail, falls es vergessen wurde — ohne hinterlegte E-Mail ist ein Reset nur über den Admin (`users.php`) möglich
+- **Eigenes Passwort ändern**: jede Person kann ihr eigenes Passwort über die eigene Profilseite (`profile.php`, siehe Abschnitt "Profilseite") ändern (aktuelles Passwort zur Bestätigung nötig, min. 8 Zeichen) _(bis v3.17.x über ein Modal ("Konto") in der Navbar, seit v3.18.0 auf `profile.php` verschoben)_
+- **Optionale E-Mail-Adresse pro Person** _(v3.0.0)_: auf `profile.php` kann jede Person selbst eine E-Mail-Adresse hinterlegen/entfernen (eindeutig über alle Personen, sonst Fehlermeldung). Ausschliesslicher Zweck: **eigenständiges Zurücksetzen des Passworts** per E-Mail, falls es vergessen wurde — ohne hinterlegte E-Mail ist ein Reset nur über den Admin (`users.php`) möglich
 - **Passwort vergessen** (`forgot-password.php`, `reset-password.php`) _(v3.0.0)_: Link auf der Login-Seite → E-Mail-Adresse eingeben → falls sie einer Person zugeordnet ist, wird ein Link mit Einmal-Token per E-Mail verschickt (60 Min. gültig, Versand über PHPs `mail()`). Antwort ist immer dieselbe generische Meldung, unabhängig davon ob die E-Mail existiert (verhindert Enumeration). Token wird nur gehasht in der DB gespeichert, ist einmalig verwendbar und wird nach erfolgreichem Reset gelöscht
   - **`mail()`-Aufruf RFC-konform** _(v3.2.3)_: Subject-Header mit Umlauten wird per `mb_encode_mimeheader()` (RFC 1342) kodiert — rohe Non-ASCII-Zeichen in Mail-Headern werden von manchen Hostern (bestätigt bei HostFactory) als Spam eingestuft und die Nachricht kommentarlos nicht zugestellt. Zusätzlich `-f`-Parameter (Return-Path/Envelope-Sender) gesetzt sowie `Content-Type: text/plain; charset=utf-8` ergänzt. Fehlschläge landen im PHP-Error-Log statt stillschweigend unterdrückt zu werden (`@mail()` entfernt)
 - **Benutzerverwaltung** (`users.php`, nur Admin): Personen anlegen (Name + initiales Passwort + optionale E-Mail + optionales Admin-Flag), E-Mail-Adresse einer Person setzen/ändern, Passwort einer Person zurücksetzen (ohne deren altes Passwort zu kennen), Admin-Status umschalten — der letzte verbleibende Admin kann nicht entfernt werden (verhindert Aussperren)
 - **"Person wechseln"** (nur Admin, in der zentralen Navbar auf jeder Seite _(v3.0.0)_): Dropdown aller Personen, um vorübergehend als eine andere Person zu agieren (z.B. für Support). Übernimmt dabei **exakt deren Berechtigungen** — als Nicht-Admin-Person agieren verbirgt "Einstellungen"/"Benutzerverwaltung" und sperrt diese Seiten genauso wie für die echte Person. Einzige Ausnahme: **das Recht, die Person erneut zu wechseln bleibt erhalten**, damit man sich nicht selbst aussperrt — dafür merkt sich die Session getrennt, wer *wirklich* Admin ist (`real_is_admin`), unabhängig von den gerade angezeigten Berechtigungen (`is_admin`) _(v3.0.0)_
 - Jede Person hat **eigene Listen** und **eigenen Lernfortschritt** (Fortschritt ist nicht öffentlich)
+
+### Profilseite (`profile.php`) _(v3.18.0)_
+
+- Eigene Seite pro Person (`require_person()`, kein Admin nötig), erreichbar über das Profil-Icon in der zentralen Navbar (ersetzt das bisherige "Konto"-Modal)
+- **Benutzername**: nur Anzeige, nicht änderbar — dient als Login-Kennung, Umbenennen bleibt Admin-Funktion (`users.php`)
+- **E-Mail** und **Passwort ändern**: unverändertes Verhalten/dieselbe Validierung wie zuvor im Modal, nur der Ort hat sich geändert
+- **Sprachlevel pro Sprache**: CEFR-Niveau (A1–C2) für beliebig viele, frei benannte Sprachen (z.B. Englisch B2, Italienisch A1) — eigene Tabelle `person_language_levels` (analog zu `tags`, siehe Abschnitt "Datenbankmodell"), Hinzufügen überschreibt einen bestehenden Eintrag derselben Sprache (kein Duplikat). Fehlt ein Eintrag für eine Sprache, gilt **A1 als Anwendungs-Default** — nicht als eigene DB-Zeile. Wird u.a. auf der Startseite (Sichtbarkeit der globalen Leitner-/Drill-Buttons) sowie in `infos/lernplan.php`/`infos/skala.php` (Sprach-Auswahl zur Niveau-Vorbefüllung) verwendet
+- **Standard-Lernrichtung**: dieselben vier Optionen wie im Leitner-/Drill-Setup (`a_to_b`/`b_to_a`/`mixed`/`random`, Feld `persons.default_direction`, Default `random`) — bestimmt die Vorauswahl beim Öffnen von `learn.php`/`drill.php`, bleibt dort weiterhin pro Session änderbar
 
 ---
 
@@ -79,13 +87,13 @@ Referenzgerät: iPhone 15 Pro Max (430 px Breite), gegengeprüft bei 375 px. Ans
 
 ### Zentrale Navbar _(v3.0.0)_
 
-Die Navbar wird über eine einzige Funktion `render_navbar($pdo)` in `includes/auth.php` gerendert und auf jeder Seite mit Person-Kontext aufgerufen (`<?php render_navbar($pdo); ?>`) — Icons, Reihenfolge und Verhalten müssen dadurch nur an einer Stelle gepflegt werden, nicht auf jeder Seite einzeln. Zugehörige Aktionen (Logout, eigenes Konto, Person wechseln) laufen ebenfalls über eine gemeinsame Funktion `handle_navbar_actions($pdo)`, die jede Seite direkt nach `csrf_validate()` aufruft.
+Die Navbar wird über eine einzige Funktion `render_navbar($pdo)` in `includes/auth.php` gerendert und auf jeder Seite mit Person-Kontext aufgerufen (`<?php render_navbar($pdo); ?>`) — Icons, Reihenfolge und Verhalten müssen dadurch nur an einer Stelle gepflegt werden, nicht auf jeder Seite einzeln. Zugehörige Aktionen (Logout, Person wechseln) laufen ebenfalls über eine gemeinsame Funktion `handle_navbar_actions($pdo)`, die jede Seite direkt nach `csrf_validate()` aufruft — eigenes Passwort/E-Mail sind seit v3.18.0 nicht mehr Teil davon, siehe `profile.php`.
 
 Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 0. **Session abbrechen** _(nur während einer laufenden Leitner-Session)_ — Icon `bi-x-lg`, bewusst an **erster Stelle**, weil der Abbruch dann die wichtigste Aktion ist und nicht zwischen den übrigen Icons gesucht werden soll. Ersetzt in diesem Zustand den Logout-Button _(Icon statt Text-Button, Position vorgezogen: v3.2.26)_
 1. **Streak-Badge** (🔥 N Tage)
 2. **Personenname**
-3. **Passwort ändern** — Icon `bi-key`, öffnet das "Konto"-Modal (eigenes Passwort + eigene E-Mail-Adresse)
+3. **Profil** — Icon `bi-person-circle`, führt zu `profile.php` (Benutzername, E-Mail, Passwort, Sprachlevel, Standard-Lernrichtung) _(bis v3.17.x: Icon `bi-key`, öffnete das "Konto"-Modal — seit v3.18.0 eigene Seite)_
 4. **Person wechseln** _(nur Admin, nur wenn mehr als eine Person existiert)_ — Icon `bi-person-lines-fill` als Dropdown-Toggle, Auswahlliste aller Personen bleibt wie gehabt per Klick erreichbar
 5. **Benutzerverwaltung** _(nur Admin)_ — Icon `bi-person-gear`, führt zu `users.php`
 6. **Einstellungen** _(nur Admin)_ — Icon `bi-gear`, führt zu `settings.php`
@@ -223,7 +231,7 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 
 ### Lernrichtung: Zufall-Option _(v3.3.11)_
 - Vierte Option auf der Konfigurationsseite (Leitner **und** Drill, identisches Verhalten in beiden Modi), am Ende der Liste: A→B, B→A, Gemischt, **Zufall**
-- **Zufall ist der Default-Wert** — sowohl bei fehlender/ungültiger Auswahl (z.B. manipuliertes Formular) als auch beim erstmaligen Öffnen der Konfigurationsseite
+- **Zufall ist der Fallback-Wert** bei fehlender/ungültiger Auswahl (z.B. manipuliertes Formular). Welches Radio beim Öffnen der Konfigurationsseite vorausgewählt ist, richtet sich seit v3.18.0 nach der auf `profile.php` hinterlegten **Standard-Lernrichtung** der Person (`persons.default_direction`) — ohne eigene Einstellung bleibt es bei Zufall (DB-Default)
 - Wird "Zufall" gewählt, würfelt der Server **einmalig beim Start der Session** eine der drei echten Richtungen aus (A→B, B→A oder Gemischt, je 1/3 Wahrscheinlichkeit, `random_int()`) — die Session läuft danach durchgehend mit dieser einen Richtung, kein erneutes Auswürfeln pro Karte. "Zufall" selbst ist also kein eigener Anzeige-Modus, sondern wird vor dem eigentlichen Session-Start in einen der drei bestehenden Werte aufgelöst (`resolve_direction()` in `includes/auth.php`, gemeinsam genutzt von `learn.php` und `drill.php`)
 - Ziel: verhindert einseitiges Lernen durch immer dieselbe, vom User (unbewusst) bevorzugte Richtung
 - Radio-Buttons stehen untereinander (nicht mehr nebeneinander in einer Zeile) — Reihenfolge von oben nach unten: A→B, B→A, Gemischt, Zufall
@@ -818,7 +826,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 
 | Tabelle | Inhalt |
 |---|---|
-| `persons` | Personen (Name, Passwort-Hash, Admin-Flag, E-Mail, Reset-Token+Ablauf, erstellt am) _(seit v3.0.0)_ |
+| `persons` | Personen (Name, Passwort-Hash, Admin-Flag, E-Mail, Reset-Token+Ablauf, Standard-Lernrichtung, erstellt am) _(seit v3.0.0, `default_direction` seit v3.18.0)_ |
 | `lists` | Wortlisten (Name, Beschreibung, Sprachen, Besitzer, öffentlich/privat) |
 | `cards` | Karten (Sprache A/B, Beschreibung A/B, Liste, erstellt am) |
 | `card_progress` | Fortschritt pro Person/Karte (status, leitner_box, next_due_date, drill_mastery, drill_too_hard) |
@@ -826,6 +834,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
 | `auth_attempts` | Fehlversuche für das Rate-Limiting von Login und „Passwort vergessen" (Scope, IP, Zeitpunkt) — keine Personenzuordnung _(v3.2.23)_ |
 | `tags` | Stichworte pro Person (Name, Besitzer) — kein globaler Pool, jede Person hat ihre eigenen Tags _(v3.9.0)_ |
 | `card_tags` | n:m-Verknüpfung Karte ↔ Tag _(v3.9.0)_ |
+| `person_language_levels` | CEFR-Sprachlevel pro Person und Sprache (Freitext-Sprachname, Niveau A1-C2) — analog zu `tags` pro Person eigenständig, kein Eintrag bedeutet A1 als Anwendungs-Default _(v3.18.0)_ |
 
 ### Lösch-Verhalten
 - Karte löschen → `card_progress`- und `card_tags`-Einträge dieser Karte werden **physisch mitgelöscht** (kaskadierend)
@@ -864,6 +873,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
   discover.php             ← Öffentliche Listen entdecken & kopieren
   import.php               ← CSV Upload mit Formatbeschreibung
   export.php               ← CSV Export
+  profile.php               ← Profilseite: Konto (E-Mail/Passwort), Sprachlevel, Standard-Lernrichtung (v3.18.0)
   stats.php                ← Statistik-Dashboard
   math.php                 ← Mathe-Generator (Multiplikation + Division)
   help.php                 ← Hilfe/Handbuch, erreichbar über Info-Icon in der Navbar
@@ -889,6 +899,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
     migrations.php             ← Auto-Migrationen: fehlende DB-Spalten werden beim Start automatisch ergänzt
     auth.php                   ← Session-Start, Timeout, CSRF-Funktionen, require_login/person, today()
     tags.php                   ← Tag-Verwaltung: Parsing, Find-or-Create pro Person, Zuordnung zu Karten (v3.9.0)
+    levels.php                  ← Sprachlevel-Verwaltung: CEFR-Niveau pro Person/Sprache, A1-Default (v3.18.0)
     db.php                     ← Umgebungserkennung + DB-Verbindung + Migrationen
     db-credentials.php         ← Zugangsdaten Dev + Prod (gitignored, nie committen)
     db-credentials.example.php ← Vorlage für db-credentials.php (committet)

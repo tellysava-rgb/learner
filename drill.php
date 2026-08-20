@@ -894,6 +894,13 @@ $default_drill_minutes = (int) round(DRILL_SESSION_SECONDS / 60);
 <?php
 $lang_a = $preset_list ? htmlspecialchars($preset_list['language_a']) : 'A';
 $lang_b = $preset_list ? htmlspecialchars($preset_list['language_b']) : 'B';
+
+// Vorauswahl der Lernrichtung aus dem Profil (profile.php) statt hartcodiert "Zufall" — Fallback
+// bleibt 'random', falls nichts gesetzt (Bestandspersonen / DB-Default).
+$stmt = $pdo->prepare("SELECT default_direction FROM persons WHERE id = ?");
+$stmt->execute([$person_id]);
+$default_direction = $stmt->fetchColumn() ?: 'random';
+
 // Bei Mathe-Listen (siehe is_math_list()) ist nur "Aufgabe → Ergebnis" sinnvoll — die anderen
 // Richtungen werden ausgeblendet und a_to_b fest vorausgewählt.
 $is_math_preset = $preset_list && is_math_list($preset_list);
@@ -1016,19 +1023,19 @@ $is_math_preset = $preset_list && is_math_list($preset_list);
             <label class="form-label fw-semibold">Lernrichtung</label>
             <div class="row row-cols-2 g-2">
                 <div class="col">
-                    <input type="radio" class="btn-check" name="direction" id="dir_ab" value="a_to_b" autocomplete="off">
+                    <input type="radio" class="btn-check" name="direction" id="dir_ab" value="a_to_b" autocomplete="off" <?= $default_direction === 'a_to_b' ? 'checked' : '' ?>>
                     <label class="btn btn-outline-primary w-100" for="dir_ab" id="label_ab"><?= $lang_a ?> → <?= $lang_b ?></label>
                 </div>
                 <div class="col">
-                    <input type="radio" class="btn-check" name="direction" id="dir_ba" value="b_to_a" autocomplete="off">
+                    <input type="radio" class="btn-check" name="direction" id="dir_ba" value="b_to_a" autocomplete="off" <?= $default_direction === 'b_to_a' ? 'checked' : '' ?>>
                     <label class="btn btn-outline-primary w-100" for="dir_ba" id="label_ba"><?= $lang_b ?> → <?= $lang_a ?></label>
                 </div>
                 <div class="col">
-                    <input type="radio" class="btn-check" name="direction" id="dir_mix" value="mixed" autocomplete="off">
+                    <input type="radio" class="btn-check" name="direction" id="dir_mix" value="mixed" autocomplete="off" <?= $default_direction === 'mixed' ? 'checked' : '' ?>>
                     <label class="btn btn-outline-primary w-100" for="dir_mix">Gemischt</label>
                 </div>
                 <div class="col">
-                    <input type="radio" class="btn-check" name="direction" id="dir_random" value="random" autocomplete="off" checked>
+                    <input type="radio" class="btn-check" name="direction" id="dir_random" value="random" autocomplete="off" <?= $default_direction === 'random' ? 'checked' : '' ?>>
                     <label class="btn btn-outline-primary w-100" for="dir_random">Zufall</label>
                 </div>
             </div>

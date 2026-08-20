@@ -59,6 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     email                VARCHAR(255) NULL DEFAULT NULL,
                     reset_token_hash     VARCHAR(64)  NULL DEFAULT NULL,
                     reset_token_expires  DATETIME     NULL DEFAULT NULL,
+                    default_direction    ENUM('a_to_b','b_to_a','mixed','random') NOT NULL DEFAULT 'random',
                     created_at           TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE KEY unique_person_email (email)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -122,6 +123,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     PRIMARY KEY (card_id, tag_id),
                     FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE,
                     FOREIGN KEY (tag_id)  REFERENCES tags(id)  ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+                CREATE TABLE IF NOT EXISTS person_language_levels (
+                    id         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    person_id  INT          NOT NULL,
+                    language   VARCHAR(50)  NOT NULL,
+                    cefr_level ENUM('A1','A2','B1','B2','C1','C2') NOT NULL DEFAULT 'A1',
+                    created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE KEY unique_person_language (person_id, language),
+                    FOREIGN KEY (person_id) REFERENCES persons(id) ON DELETE CASCADE
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
                 CREATE TABLE IF NOT EXISTS auth_attempts (

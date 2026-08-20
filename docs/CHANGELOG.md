@@ -5,6 +5,21 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.18.0] - 2026-08-20
+
+### Neu
+- **Profilseite** (`profile.php`): jede Person verwaltet dort künftig ihr eigenes Konto — Benutzername (nur Anzeige), E-Mail-Adresse und Passwort (bisher ein Modal in der Navbar, jetzt eine eigene Seite).
+- **Sprachlevel pro Sprache** (`includes/levels.php`, Tabelle `person_language_levels`): CEFR-Niveau (A1–C2) für beliebig viele, frei benannte Sprachen hinterlegbar (z.B. Englisch B2, Italienisch A1). Ohne Eintrag gilt A1 als Default. Wird ab dem nächsten Release (home.php-Redesign) für die Startseite sowie in `infos/lernplan.php`/`infos/skala.php` genutzt.
+- **Standard-Lernrichtung** pro Person (`persons.default_direction`): auf der Profilseite hinterlegbar, bestimmt künftig die Vorauswahl beim Öffnen von `learn.php`/`drill.php` (dort weiterhin pro Session änderbar). Bisher war "Zufall" fest vorausgewählt.
+
+### Geändert
+- `includes/auth.php`: Navbar-Icon "Passwort ändern" (bi-key, öffnete ein Modal) ersetzt durch einen Link "Profil" (bi-person-circle) zu `profile.php`. `handle_navbar_actions()` verarbeitet `change_own_password`/`change_own_email` nicht mehr — diese Logik ist 1:1 nach `profile.php` umgezogen.
+
+### DB-Schema
+- Neue Tabelle `person_language_levels`, neue Spalte `persons.default_direction` (Migrationen 19–20, `install.php` entsprechend ergänzt).
+
+---
+
 ## [3.17.1] - 2026-08-20
 
 ### Behoben
