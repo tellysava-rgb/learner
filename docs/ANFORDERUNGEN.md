@@ -98,7 +98,7 @@ Reihenfolge der Elemente (rechtsbündig, in dieser Reihenfolge):
 5. **Benutzerverwaltung** _(nur Admin)_ — Icon `bi-person-gear`, führt zu `users.php`
 6. **Einstellungen** _(nur Admin)_ — Icon `bi-gear`, führt zu `settings.php`
 7. **Logout** — Icon `bi-box-arrow-right` (ersetzt den bisherigen Text-Button)
-8. **Wissenschaftlich Sprachen lernen** — Icon `bi-house`, führt zu `infos/wissen.php` _(v3.11.0, Verzeichnis seit v3.14.2)_
+8. **Wissenschaftlich Sprachen lernen** — Icon `bi-book`, führt zu `infos/wissen.php` _(v3.11.0, Verzeichnis seit v3.14.2, Icon `bi-house` → `bi-book` seit v3.19.2)_
 9. **Hilfe** — Icon `bi-info-lg`, führt zu `help.php` _(v2.8.0, unverändert)_
 
 `learn.php` nutzt während einer Session dieselbe zentrale Navbar, nur mit gesetztem `$abort_url` (dadurch erscheint das Abbruch-Icon an erster Stelle statt des Logouts). `drill.php` rendert während einer laufenden Session weiterhin eine eigene, abweichende Navbar, weil dort zusätzlich Timer und "gemeistert"-Zähler angezeigt werden — das Abbruch-Icon steht dort aus Konsistenzgründen ebenfalls an erster Stelle, vor Timer und Zähler _(v3.2.26)_.
@@ -742,7 +742,7 @@ Statistik startet ohne `list_id` mit der globalen Gesamtstatistik über alle eig
 
 ## Wissenschaftlich Sprachen lernen _(v3.11.0)_
 
-- Eigener Bereich im Unterverzeichnis `/infos/` mit Übersichtsseite `wissen.php` und fünf Unterseiten, erreichbar über das Haus-Icon (`bi-house`) in der Navbar (siehe Abschnitt "Navigation") sowie über Kacheln auf `wissen.php` selbst. Kein eigener Datenbankzugriff für Inhalte (`db.php` nur für die zentrale Navbar). **Öffentlich ohne Login erreichbar** _(seit v3.15.3, siehe Release "Login-Navbar")_ — keine Seite ruft `require_person()` auf, `render_navbar()` zeigt ohne aktive Session stattdessen einen Login-Button. `includes/auth.php` erkennt Seiten im `infos/`-Unterverzeichnis automatisch (`app_root_prefix()`) und passt Navbar-Links sowie Login-/Berechtigungs-Redirects entsprechend an (`../home.php` statt `home.php` usw.) — unabhängig vom Installationspfad der App.
+- Eigener Bereich im Unterverzeichnis `/infos/` mit Übersichtsseite `wissen.php` und fünf Unterseiten, erreichbar über das Buch-Icon (`bi-book`, bis v3.19.1 `bi-house`) in der Navbar (siehe Abschnitt "Navigation") sowie über Kacheln auf `wissen.php` selbst. Kein eigener Datenbankzugriff für Inhalte (`db.php` nur für die zentrale Navbar). **Öffentlich ohne Login erreichbar** _(seit v3.15.3, siehe Release "Login-Navbar")_ — keine Seite ruft `require_person()` auf, `render_navbar()` zeigt ohne aktive Session stattdessen einen Login-Button. `includes/auth.php` erkennt Seiten im `infos/`-Unterverzeichnis automatisch (`app_root_prefix()`) und passt Navbar-Links sowie Login-/Berechtigungs-Redirects entsprechend an (`../home.php` statt `home.php` usw.) — unabhängig vom Installationspfad der App.
 - **`infos/wissen.php`** — Einstiegsseite: kurzer Einleitungstext plus fünf Kacheln (Bootstrap-Cards) zu den Unterseiten.
 - **`infos/mythen.php`** — Mythos-Check als Accordion (erstes Element standardmässig aufgeklappt, Rest zu): Café-Plaudern ohne Feedback, Sprachduschen (passives Berieseln), Filme/Serien mit falschen Erwartungen, Vokabellernen im Schlaf, "einfach eintauchen reicht" (Grammatik ignorieren), "je früher desto besser" (früher Unterrichtsbeginn), Birkenbihl-Methode. Je Mythos: Behauptung → Was die Forschung zeigt → Was stattdessen hilft.
 - **`infos/studien.php`** — Fliesstext-Zusammenfassung der Studienlage je Fertigkeit (Wortschatz, Chunks & Kollokationen, Lesen, Vorlesen & Geschichten bei Kindern, Hören, Sprechen & Interaktion, Schreiben, Grammatik & Zeitformen, Aussprache, Immersion/Study-Abroad/CLIL, Spiele/Gamification/Technologie) — bewusst ohne Inline-Zitate im Fliesstext, Quellen nur in der Quellenliste am Seitenende.
@@ -887,7 +887,7 @@ Neue Versionen werden via ZIP-Download von GitHub eingespielt (kein `shell_exec`
   /assets/                  ← CSS, JS
   /templates/               ← CSV-Vorlage zum Download
   /infos/                   ← Bereich "Wissenschaftlich Sprachen lernen" (v3.14.2, zuvor im Root)
-    wissen.php                 ← Übersicht, erreichbar über Haus-Icon in der Navbar (infos/wissen.php)
+    wissen.php                 ← Übersicht, erreichbar über Buch-Icon in der Navbar (infos/wissen.php)
     mythen.php                 ← Mythos-Check zu Sprachlern-Versprechen
     studien.php                ← Zusammenfassung der Studienlage je Sprachfertigkeit
     skala.php                  ← Methoden-Wirksamkeit als eigene 1–10-Skala

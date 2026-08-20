@@ -290,7 +290,7 @@ function render_navbar(PDO $pdo, ?string $abort_url = null): void {
         <div class="container-fluid">
             <!-- Linker Block (Marke + Infos-Icon + ggf. Login) bewusst in einem gemeinsamen
                  Flex-Wrapper: container-fluid verteilt seine direkten Kinder per
-                 justify-content:space-between — ohne diesen Wrapper würde das Haus-Icon als
+                 justify-content:space-between — ohne diesen Wrapper würde das Buch-Icon als
                  mittleres von 2-3 direkten Kindern in die Mitte statt an den linken Rand rutschen. -->
             <div class="d-flex align-items-center">
                 <a class="navbar-brand fw-bold me-2" href="<?= $root ?>home.php"><?= APP_NAME ?></a>
@@ -300,7 +300,7 @@ function render_navbar(PDO $pdo, ?string $abort_url = null): void {
                      sichtbaren Icon-Block rechts. Login (für nicht angemeldete Besucher:innen) steht
                      direkt daneben, da es ohne Session sonst keinen rechten Icon-Block gibt, in dem
                      es stehen könnte. -->
-                <a href="<?= $wissen_href ?>" class="btn btn-sm btn-outline-light me-2" title="Wissenschaftlich Sprachen lernen" aria-label="Wissenschaftlich Sprachen lernen"><i class="bi bi-house"></i></a>
+                <a href="<?= $wissen_href ?>" class="btn btn-sm btn-outline-light me-2" title="Wissenschaftlich Sprachen lernen" aria-label="Wissenschaftlich Sprachen lernen"><i class="bi bi-book"></i></a>
                 <?php if (!$logged_in): ?>
                 <a href="<?= htmlspecialchars($login_href) ?>" class="btn btn-sm btn-outline-light" title="Login" aria-label="Login"><i class="bi bi-box-arrow-in-right"></i></a>
                 <?php endif; ?>

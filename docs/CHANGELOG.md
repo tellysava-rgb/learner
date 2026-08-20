@@ -5,6 +5,13 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.19.2] - 2026-08-20
+
+### Geändert
+- `includes/auth.php`, `render_navbar()`: Icon für "Wissenschaftlich Sprachen lernen" in der Navbar von `bi-house` auf `bi-book` geändert.
+
+---
+
 ## [3.19.1] - 2026-08-20
 
 ### Behoben
