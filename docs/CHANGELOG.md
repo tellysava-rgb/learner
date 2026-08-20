@@ -5,6 +5,26 @@ Format: `MAJOR.MINOR.PATCH` — siehe `config.php` für die aktuelle Version.
 
 ---
 
+## [3.17.0] - 2026-08-20
+
+Systematische Prüfung des gesamten Leitner-Ablaufs gegen das Soll-Bild „wenn ich alle fälligen Karten durcharbeite, ist danach nichts mehr für heute fällig" — nachdem mehrfach einzelne Karten trotz durchgearbeiteter Session fällig blieben. Dabei kamen vier voneinander unabhängige Ursachen zum Vorschein.
+
+### Behoben
+- **Tageslimit wurde von mehreren Sessions pro Tag umgangen.** „Wie viele neue Karten wurden heute schon aktiviert" wurde indirekt aus `status='active' AND next_due_date = heute AND leitner_box = 1` erschlossen. Dieser Hilfsindikator verschwindet, sobald die Karte beantwortet wird (Fachwechsel bzw. späteres Fälligkeitsdatum) — nach einer fertigen Session war das Kontingent dadurch wieder frei. Gemessen: drei Sessions an einem Tag aktivierten 30 statt 10 neue Karten, was die Warteschlange leerzog und laufend neue Karten fällig machte. Neu über ein echtes Aktivierungsdatum (`card_progress.activated_on`, Migration 18) gezählt, unabhängig vom weiteren Lernverlauf.
+- **Session über Mitternacht setzte Karten sofort wieder auf „heute fällig".** Die Fälligkeits-Berechnung nutzte den beim Session-*Start* ermittelten Tag; „falsch → morgen" landete nach Mitternacht auf dem bereits laufenden Tag. Es gilt jetzt der reale Kalendertag zum Zeitpunkt der Antwort — auch für `learning_events.learn_date`, das sonst auf den Vortag gebucht wurde.
+- **Neuinstallation war unbrauchbar:** `install.php` schrieb nie eine `db_version`. `run_pending_migrations()` startete deshalb bei 0 und liess `ALTER TABLE ... ADD COLUMN`-Migrationen auf Spalten los, die `install.php` gerade erst angelegt hatte — Abbruch mit „Duplicate column" bei jedem Request (betraf bereits Migration 15). `install.php` stempelt die frische Datenbank jetzt auf den aktuellen Migrationsstand.
+
+### Neu
+- **Abschluss-Abgleich am Session-Ende.** Eine Session ist eine Momentaufnahme (feste Queue, beim Start gebaut), die Startseiten-Zahl „heute fällig" wird dagegen live berechnet. Am Ende wird jetzt gegen denselben Massstab nachgezählt: bleiben Karten offen, erscheint „Noch N Karten heute fällig" samt Erklärung, und der Button heisst **„Weiterlernen"** statt „Neue Session". Damit kann kein Restbestand mehr stillschweigend liegen bleiben — auch nicht aus künftigen, noch unbekannten Ursachen.
+- **Warnung bei zu klein eingestellter Kartenanzahl.** Der Verfügbarkeits-Hinweis im Setup meldete bisher nur den Fall „mehr gewünscht als verfügbar". Ist die Kartenanzahl kleiner als die heute anstehende Menge, steht jetzt dort, wie viele Karten danach fällig bleiben — vorher blieb das unkommentiert, obwohl der Text darunter „App zeigt alle fälligen Karten" verspricht.
+
+### Geändert
+- `card_progress` um Spalte `activated_on` erweitert (Migration 18, `install.php` entsprechend ergänzt). Bestandsdaten bleiben `NULL`: am ersten Tag nach dem Update kann das Tageskontingent einmalig neu ausgeschöpft werden, danach greift die Zählung korrekt.
+- Migrations-Liste in eine eigene Funktion `migration_definitions()` ausgelagert, damit `install.php` die höchste Migrations-ID abfragen kann, ohne Migrationen auszuführen.
+- Ungenutzten Session-Zustand entfernt (`retry_queue`, `today`) — die Wiedervorlage falsch beantworteter Karten läuft über die reguläre Queue.
+
+---
+
 ## [3.16.1] - 2026-08-20
 
 ### Behoben

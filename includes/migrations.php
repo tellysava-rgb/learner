@@ -3,7 +3,15 @@
 // Neue Migrationen am Ende der Liste anfügen, Nummerierung fortlaufend.
 // Bereits ausgeführte Migrationen werden anhand der db_version in der settings-Tabelle übersprungen.
 
-function run_pending_migrations(PDO $pdo): void {
+// Höchste vergebene Migrations-ID — von install.php verwendet, um eine frisch angelegte
+// Datenbank sofort als "auf dem aktuellsten Stand" zu stempeln (siehe migration_definitions()).
+function latest_migration_id(): int {
+    return max(array_keys(migration_definitions()));
+}
+
+// Migrations-Definitionen als eigene Funktion, damit install.php die höchste ID abfragen kann,
+// ohne die Migrationen auszuführen.
+function migration_definitions(): array {
     // Migrations-Liste: ID => SQL
     // Jede Migration einmalig und in Reihenfolge ausführen.
     //
@@ -14,8 +22,8 @@ function run_pending_migrations(PDO $pdo): void {
     // eine Neuinstallation ohnehin nie eine dieser Migrationen braucht. Nachzulesen in der
     // Git-Historie (includes/migrations.php vor v3.2.21), falls je ein sehr altes Backup
     // (vor v3.2.20) wiederhergestellt werden muss.
-    // Nächste neue Migration hier mit der ID 18 beginnen (bestehende db_version bleibt bei 17).
-    $migrations = [
+    // Nächste neue Migration hier mit der ID 19 beginnen.
+    return [
         // Rate-Limiting für Login und "Passwort vergessen" (v3.2.23).
         14 => "CREATE TABLE IF NOT EXISTS auth_attempts (
                    id           INT         NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -63,7 +71,22 @@ function run_pending_migrations(PDO $pdo): void {
                 FOREIGN KEY (tag_id)  REFERENCES tags(id)  ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
         },
+
+        // Aktivierungsdatum je Karte (v3.17.0): Bis dahin wurde "wie viele neue Karten wurden heute
+        // schon aktiviert" indirekt aus (status='active' AND next_due_date=heute AND leitner_box=1)
+        // erschlossen. Dieser Hilfsindikator verschwindet, sobald die Karte beantwortet wird (sie
+        // verlaesst Fach 1 bzw. bekommt ein spaeteres Datum) — dadurch war das Tageslimit nach einer
+        // abgeschlossenen Session wieder "frei" und jede weitere Session desselben Tages aktivierte
+        // erneut bis zu DAILY_CARD_LIMIT neue Karten. Mit einem echten Datumsfeld ist die Zaehlung
+        // unabhaengig vom spaeteren Lernverlauf. Bestandsdaten bleiben NULL: am ersten Tag nach der
+        // Migration kann das Tageskontingent daher einmalig neu ausgeschoepft werden, danach greift
+        // die Zaehlung korrekt.
+        18 => "ALTER TABLE card_progress ADD COLUMN activated_on DATE NULL DEFAULT NULL",
     ];
+}
+
+function run_pending_migrations(PDO $pdo): void {
+    $migrations = migration_definitions();
 
     // db_version aus settings lesen — falls Tabelle noch nicht existiert (vor install.php): abbrechen
     try {

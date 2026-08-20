@@ -97,6 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     status          ENUM('queued','active','archived') NOT NULL DEFAULT 'queued',
                     leitner_box     TINYINT      NOT NULL DEFAULT 1,
                     next_due_date   DATE         NULL DEFAULT NULL,
+                    activated_on    DATE         NULL DEFAULT NULL,
                     drill_mastery   TINYINT      NOT NULL DEFAULT 0,
                     drill_too_hard  TINYINT(1)   NOT NULL DEFAULT 0,
                     last_drill_shown DATE        NULL DEFAULT NULL,
@@ -142,6 +143,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     FOREIGN KEY (card_id)   REFERENCES cards(id)   ON DELETE CASCADE
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
             ");
+            // Frisch angelegte Datenbank sofort auf den aktuellen Migrationsstand stempeln: die
+            // CREATE-TABLE-Definitionen oben bilden bereits das vollstaendige, aktuelle Schema ab.
+            // Ohne diesen Eintrag startet run_pending_migrations() (includes/migrations.php) bei
+            // db_version 0 und laesst spaeter ALTER-TABLE-Migrationen auf Spalten los, die hier
+            // gerade erst angelegt wurden — was mit "Duplicate column" abbricht und die frische
+            // Installation bei jedem Request lahmlegt.
+            $pdo->prepare("INSERT INTO settings (`key`, `value`) VALUES ('db_version', ?)
+                           ON DUPLICATE KEY UPDATE `value` = VALUES(`value`)")
+                ->execute([latest_migration_id()]);
             $tables_exist = true;
             $message = 'Tabellen erfolgreich erstellt (bereits vorhandene wurden übersprungen).';
         } catch (PDOException $e) {

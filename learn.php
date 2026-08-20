@@ -53,7 +53,7 @@ if ($all_lists) {
         SELECT c.list_id,
                SUM(CASE WHEN cp.status = 'queued' THEN 1 ELSE 0 END) AS queued,
                SUM(CASE WHEN cp.status = 'active' AND cp.next_due_date <= ? THEN 1 ELSE 0 END) AS due_today,
-               SUM(CASE WHEN cp.status = 'active' AND cp.next_due_date = ? AND cp.leitner_box = 1 THEN 1 ELSE 0 END) AS already_activated
+               SUM(CASE WHEN cp.activated_on = ? THEN 1 ELSE 0 END) AS already_activated
         FROM card_progress cp
         JOIN cards c ON c.id = cp.card_id
         WHERE cp.person_id = ? AND c.list_id IN ($ph)
@@ -234,8 +234,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'begin
         'current_index' => 0,
         'answered'      => [], // card_id => attempts: 1 oder 2
         'stats'         => ['correct' => 0, 'incorrect' => 0, 'promoted' => 0],
-        'today'         => $today,
-        'retry_queue'   => [], // card_ids die nochmal kommen (nach falscher Antwort)
     ];
 
     header('Location: learn.php');
@@ -288,7 +286,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
     $state     = &$_SESSION['learn'];
     $card_id   = intval($_POST['card_id'] ?? 0);
     $result    = $_POST['result'] ?? ''; // 'correct' | 'incorrect' | 'skip'
-    $today     = $state['today'];
+    // Datumsbasis ist bewusst der REALE heutige Tag, nicht der beim Session-Start ermittelte:
+    // bei einer Session über Mitternacht hinweg würde "fällig morgen" sonst auf
+    // den bereits laufenden Tag fallen und die Karte wäre sofort wieder heute fällig. Aus demselben
+    // Grund wird auch learning_events.learn_date auf den realen Tag gebucht (sonst zählte die
+    // Antwort für Streak/Statistik auf den Vortag).
+    $today     = today();
 
     // Nur die aktuell vorderste Karte der Queue darf beantwortet werden — verhindert, dass ein
     // doppelt gesendeter/verspäteter Request (z.B. Doppel-Tap auf "Gewusst") eine andere,
@@ -425,11 +428,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'answe
         // Streak berechnen
         $streak = get_learn_streak($pdo, $person_id);
 
+        // Abschluss-Abgleich: Eine Session ist eine Momentaufnahme (feste Queue, beim Start gebaut) —
+        // die Zahl "heute fällig" auf der Startseite wird dagegen live berechnet. Beides kann
+        // auseinanderlaufen, sobald mehr Karten fällig sind als die gewählte Kartenanzahl abholt.
+        // Statt den Rest stillschweigend liegen zu lassen (was wiederholt zu "ich habe alles
+        // gelernt, es bleibt trotzdem etwas fällig" geführt hat), wird hier gegen denselben Massstab
+        // nachgezählt und das Ergebnis auf der Abschluss-Seite ausgewiesen.
+        $done_filter = null;
+        $reconcile   = true;
+        if ($tag !== null) {
+            $done_filter = get_person_tag_card_ids($pdo, $person_id, $tag);
+            // Leere Tag-Auswahl (Tag zwischenzeitlich entfernt): kein sinnvoller Abgleich möglich
+            if (!$done_filter) $reconcile = false;
+        }
+        $still_due = $reconcile
+            ? count_due_cards($pdo, $person_id, $list_ids, today(), $done_filter)
+            : 0;
+
         $_SESSION['learn_done'] = [
-            'stats'    => $summary,
-            'streak'   => $streak,
-            'list_ids' => $list_ids,
-            'tag'      => $tag,
+            'stats'     => $summary,
+            'streak'    => $streak,
+            'list_ids'  => $list_ids,
+            'tag'       => $tag,
+            'still_due' => $still_due,
         ];
         header('Location: learn.php?done=1');
         exit;
@@ -458,13 +479,16 @@ function activate_daily_cards(PDO $pdo, int $person_id, array $list_ids, string 
     $placeholders = implode(',', array_fill(0, count($list_ids), '?'));
     [$card_filter_sql, $card_filter_params] = card_id_filter_sql($card_ids_filter);
 
-    // Wie viele wurden heute schon aktiviert?
+    // Wie viele wurden heute schon aktiviert? Bewusst über das Aktivierungsdatum (activated_on)
+    // statt über den früheren Hilfsindikator "Fach 1 + fällig heute": jener verschwand, sobald die
+    // Karte beantwortet wurde (Fachwechsel bzw. späteres Fälligkeitsdatum) — dadurch war das
+    // Tageslimit nach einer abgeschlossenen Session wieder frei und jede weitere Session desselben
+    // Tages aktivierte erneut bis zu DAILY_CARD_LIMIT neue Karten aus der Warteschlange.
     $stmt = $pdo->prepare("
         SELECT COUNT(*) FROM card_progress cp
         JOIN cards c ON c.id = cp.card_id
         WHERE cp.person_id = ? AND c.list_id IN ($placeholders){$card_filter_sql}
-          AND cp.status = 'active' AND cp.next_due_date = ?
-          AND cp.leitner_box = 1
+          AND cp.activated_on = ?
     ");
     $check_params = array_merge([$person_id], $list_ids, $card_filter_params, [$today]);
     $stmt->execute($check_params);
@@ -485,9 +509,9 @@ function activate_daily_cards(PDO $pdo, int $person_id, array $list_ids, string 
 
     if (!$card_ids) return;
 
-    $upd = $pdo->prepare("UPDATE card_progress SET status='active', leitner_box=1, next_due_date=? WHERE person_id=? AND card_id=?");
+    $upd = $pdo->prepare("UPDATE card_progress SET status='active', leitner_box=1, next_due_date=?, activated_on=? WHERE person_id=? AND card_id=?");
     foreach ($card_ids as $cid) {
-        $upd->execute([$today, $person_id, $cid]);
+        $upd->execute([$today, $today, $person_id, $cid]);
     }
 }
 
@@ -689,8 +713,24 @@ $no_cards_due   = ($total_answered === 0);
     $repeat_url = $repeat_tag
         ? 'learn.php?tag=' . urlencode($repeat_tag)
         : (count($repeat_ids) === 1 ? 'learn.php?list_id=' . $repeat_ids[0] : 'learn.php');
+    // Abschluss-Abgleich (siehe answer-Handler): sind trotz durchgearbeiteter Session noch Karten
+    // für heute offen, wird das hier ausdrücklich benannt — inklusive Grund und direktem Weg
+    // weiterzulernen. Ohne diesen Hinweis wirkt die Startseite ("N heute fällig") im Widerspruch
+    // zur eben gemeldeten fertigen Session.
+    $still_due = (int) ($done_data['still_due'] ?? 0);
     ?>
+    <?php if ($still_due > 0): ?>
+    <div class="alert alert-warning text-start mx-auto mb-4" style="max-width:520px;">
+        <div class="fw-semibold mb-1"><i class="bi bi-hourglass-split me-1"></i>Noch <?= $still_due ?> Karte<?= $still_due !== 1 ? 'n' : '' ?> heute fällig</div>
+        <div class="small mb-0">
+            Diese Session hat so viele Karten abgeholt, wie unter „Kartenanzahl" eingestellt waren — für heute sind aber mehr Karten fällig.
+            Mit „Weiterlernen" holst du die restlichen.
+        </div>
+    </div>
+    <a href="<?= $repeat_url ?>" class="btn btn-primary">Weiterlernen</a>
+    <?php else: ?>
     <a href="<?= $repeat_url ?>" class="btn btn-primary">Neue Session</a>
+    <?php endif; ?>
 </div>
 
 <?php elseif ($state && $current): ?>
@@ -1193,13 +1233,26 @@ function updateAvailabilityHint() {
     const cardLimitInput = document.getElementById('card_limit');
     const requested = cardLimitInput ? parseInt(cardLimitInput.value || '0', 10) : 0;
 
-    if (requested <= maxAvailable) {
+    if (requested === maxAvailable) {
         hint.classList.add('d-none');
         hint.innerHTML = '';
         return;
     }
 
     hint.classList.remove('d-none');
+
+    // Zu KLEIN eingestellte Kartenanzahl: die Session lässt dann bewusst Karten für heute liegen.
+    // Der Hinweistext unter dem Feld verspricht "App zeigt alle fälligen Karten" — ohne diese
+    // Warnung bliebe unsichtbar, dass genau das gerade nicht passiert, und die Startseite meldet
+    // nach der Session weiterhin fällige Karten (siehe auch Abschluss-Abgleich in learn.php).
+    if (requested < maxAvailable) {
+        const rest = maxAvailable - requested;
+        hint.innerHTML = 'Heute stehen <strong>' + maxAvailable + '</strong> Karten an ('
+            + due + ' fällig + ' + willActivate + ' neu aus der Warteschlange). Mit der eingestellten '
+            + 'Kartenanzahl bearbeitest du davon <strong>' + requested + '</strong> — '
+            + rest + ' Karte' + (rest !== 1 ? 'n bleiben' : ' bleibt') + ' danach für heute fällig.';
+        return;
+    }
 
     // Zwei mögliche Gründe, warum weniger als das Tageslimit aus der Warteschlange kommt: entweder
     // ist das Tageslimit selbst der Engpass, oder die Warteschlange hat schlicht nicht genug Karten.
